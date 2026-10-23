@@ -1,0 +1,1081 @@
+package app.organicmaps.editor;
+
+import static android.view.View.INVISIBLE;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AutoCompleteTextView;
+import android.widget.GridLayout;
+import android.widget.TextView;
+import androidx.annotation.CallSuper;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import app.organicmaps.R;
+import app.organicmaps.base.BaseMwmFragment;
+import app.organicmaps.dialog.EditTextDialogFragment;
+import app.organicmaps.editor.data.TimeFormatUtils;
+import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.bookmarks.data.ChargeSocketDescriptor;
+import app.organicmaps.sdk.bookmarks.data.Metadata;
+import app.organicmaps.sdk.editor.Editor;
+import app.organicmaps.sdk.editor.OpeningHours;
+import app.organicmaps.sdk.editor.data.LocalizedName;
+import app.organicmaps.sdk.editor.data.LocalizedStreet;
+import app.organicmaps.sdk.editor.data.Timetable;
+import app.organicmaps.sdk.util.StringUtils;
+import app.organicmaps.sdk.util.Utils;
+import app.organicmaps.sdk.util.log.Logger;
+import app.organicmaps.util.Graphics;
+import app.organicmaps.util.InputUtils;
+import app.organicmaps.util.UiUtils;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.textview.MaterialTextView;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class EditorFragment extends BaseMwmFragment implements View.OnClickListener
+{
+  final static String LAST_INDEX_OF_NAMES_ARRAY = "LastIndexOfNamesArray";
+  private static final String CHARGE_SOCKETS_TAG = "CHARGE_SOCKETS_TAG";
+
+  private MaterialTextView mCategory;
+  private View mCardName;
+  private View mCardAddress;
+  private View mCardChargingStation;
+  private View mCardDetails;
+  private View mCardSocialMedia;
+  private View mCardBuilding;
+
+  private RecyclerView mNamesView;
+
+  private final RecyclerView.AdapterDataObserver mNamesObserver = new RecyclerView.AdapterDataObserver() {
+    @Override
+    public void onChanged()
+    {
+      refreshNamesCaption();
+    }
+
+    @Override
+    public void onItemRangeChanged(int positionStart, int itemCount)
+    {
+      refreshNamesCaption();
+    }
+
+    @Override
+    public void onItemRangeInserted(int positionStart, int itemCount)
+    {
+      refreshNamesCaption();
+    }
+
+    @Override
+    public void onItemRangeRemoved(int positionStart, int itemCount)
+    {
+      refreshNamesCaption();
+    }
+
+    @Override
+    public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount)
+    {
+      refreshNamesCaption();
+    }
+  };
+
+  private MultilanguageAdapter mNamesAdapter;
+  private MaterialTextView mNamesCaption;
+  private MaterialButton mAddLanguage;
+  private MaterialButton mMoreLanguages;
+
+  private MaterialTextView mStreet;
+  private TextInputEditText mHouseNumber;
+  private TextInputEditText mBuildingLevels;
+
+  // Define Metadata entries, that have more tricky logic, separately.
+  private MaterialTextView mPhone;
+  private MaterialButton mEditPhoneLink;
+  private MaterialTextView mCuisine;
+  private MaterialSwitch mWifi;
+  private MaterialTextView mSelfService;
+  private MaterialSwitch mOutdoorSeating;
+
+  // Default Metadata entries.
+  private static final class MetadataEntry
+  {
+    TextInputEditText mEdit;
+    TextInputLayout mInput;
+  }
+  Map<Metadata.MetadataType, MetadataEntry> mMetadata = new HashMap<>();
+
+  private void initMetadataEntry(Metadata.MetadataType type, @StringRes int error)
+  {
+    final MetadataEntry e = mMetadata.get(type);
+    final int id = type.toInt();
+    e.mEdit.setText(Editor.nativeGetMetadata(id));
+    e.mEdit.addTextChangedListener(new StringUtils.SimpleTextWatcher() {
+      @Override
+      public void onTextChanged(CharSequence s, int start, int before, int count)
+      {
+        UiUtils.setInputError(e.mInput, Editor.nativeIsMetadataValid(id, s.toString()) ? 0 : error);
+      }
+    });
+  }
+
+  private TextInputLayout mInputHouseNumber;
+  private TextInputLayout mInputBuildingLevels;
+
+  private View mChargeSockets;
+
+  private View mEmptyOpeningHours;
+  private MaterialTextView mOpeningHours;
+  private View mEditOpeningHours;
+  private TextInputEditText mDescription;
+  private final Map<Metadata.MetadataType, View> mDetailsBlocks = new HashMap<>();
+  private final Map<Metadata.MetadataType, View> mSocialMediaBlocks = new HashMap<>();
+  private MaterialButton mReset;
+  private MaterialButton mDisused;
+
+  private EditorHostFragment mParent;
+
+  @Nullable
+  @Override
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
+  {
+    return inflater.inflate(R.layout.fragment_editor, container, false);
+  }
+
+  @CallSuper
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+  {
+    mParent = (EditorHostFragment) getParentFragment();
+
+    initViews(view);
+
+    mCategory.setText(Utils.getLocalizedFeatureType(requireContext(), Editor.nativeGetCategory()));
+    final LocalizedStreet street = Editor.nativeGetStreet();
+    mStreet.setText(street.defaultName);
+
+    mHouseNumber.setText(Editor.nativeGetHouseNumber());
+    mHouseNumber.addTextChangedListener(new StringUtils.SimpleTextWatcher() {
+      @Override
+      public void onTextChanged(CharSequence s, int start, int before, int count)
+      {
+        UiUtils.setInputError(mInputHouseNumber,
+                              Editor.nativeIsHouseValid(s.toString()) ? 0 : R.string.error_enter_correct_house_number);
+      }
+    });
+
+    initMetadataEntry(Metadata.MetadataType.FMD_POSTCODE, R.string.error_enter_correct_zip_code);
+
+    mBuildingLevels.setText(Editor.nativeGetBuildingLevels());
+    mBuildingLevels.addTextChangedListener(new StringUtils.SimpleTextWatcher() {
+      @Override
+      public void onTextChanged(CharSequence s, int start, int before, int count)
+      {
+        final Context context = mInputBuildingLevels.getContext();
+        final boolean isValid = Editor.nativeIsLevelValid(s.toString());
+        mInputBuildingLevels.setError(isValid ? null
+                                              : context.getString(R.string.error_enter_correct_storey_number,
+                                                                  Editor.nativeGetMaxEditableBuildingLevels()));
+      }
+    });
+
+    mPhone.setText(Editor.nativeGetPhone());
+
+    initMetadataEntry(Metadata.MetadataType.FMD_WEBSITE, R.string.error_enter_correct_web);
+    initMetadataEntry(Metadata.MetadataType.FMD_WEBSITE_MENU, R.string.error_enter_correct_web);
+    initMetadataEntry(Metadata.MetadataType.FMD_EMAIL, R.string.error_enter_correct_email);
+    initMetadataEntry(Metadata.MetadataType.FMD_LEVEL, R.string.error_enter_correct_level);
+    initMetadataEntry(Metadata.MetadataType.FMD_CONTACT_FEDIVERSE, R.string.error_enter_correct_fediverse_page);
+    initMetadataEntry(Metadata.MetadataType.FMD_CONTACT_FACEBOOK, R.string.error_enter_correct_facebook_page);
+    initMetadataEntry(Metadata.MetadataType.FMD_CONTACT_INSTAGRAM, R.string.error_enter_correct_instagram_page);
+    initMetadataEntry(Metadata.MetadataType.FMD_CONTACT_TWITTER, R.string.error_enter_correct_twitter_page);
+    initMetadataEntry(Metadata.MetadataType.FMD_CONTACT_VK, R.string.error_enter_correct_vk_page);
+    initMetadataEntry(Metadata.MetadataType.FMD_CONTACT_LINE, R.string.error_enter_correct_line_page);
+    initMetadataEntry(Metadata.MetadataType.FMD_CONTACT_BLUESKY, R.string.error_enter_correct_bluesky_page);
+
+    mCuisine.setText(Editor.nativeGetFormattedCuisine());
+    String selfServiceMetadata = Editor.nativeGetMetadata(Metadata.MetadataType.FMD_SELF_SERVICE.toInt());
+    mSelfService.setText(Utils.getTagValueLocalized(view.getContext(), "self_service", selfServiceMetadata));
+    initMetadataEntry(Metadata.MetadataType.FMD_OPERATOR, 0);
+    mWifi.setChecked(Editor.nativeHasWifi());
+    // TODO Reimplement this to avoid https://github.com/organicmaps/organicmaps/issues/9049
+    // mOutdoorSeating.setChecked(Editor.nativeGetSwitchInput(Metadata.MetadataType.FMD_OUTDOOR_SEATING.toInt(),"yes"));
+    refreshChargeSockets();
+    refreshOpeningTime();
+    refreshEditableFields();
+    refreshResetButton();
+  }
+
+  @Override
+  public void onSaveInstanceState(Bundle outState)
+  {
+    super.onSaveInstanceState(outState);
+    setEdits();
+  }
+
+  boolean setEdits()
+  {
+    if (!validateFields())
+      return false;
+
+    Editor.nativeSetHouseNumber(mHouseNumber.getText().toString());
+    Editor.nativeSetBuildingLevels(mBuildingLevels.getText().toString());
+    Editor.nativeSetHasWifi(mWifi.isChecked());
+    Editor.nativeSetNames(mParent.getNamesAsArray());
+
+    // TODO Reimplement this to avoid https://github.com/organicmaps/organicmaps/issues/9049
+    // Editor.nativeSetSwitchInput(Metadata.MetadataType.FMD_OUTDOOR_SEATING.toInt(), mOutdoorSeating.isChecked(),
+    // "yes", "no");
+
+    for (var e : mMetadata.entrySet())
+      Editor.nativeSetMetadata(e.getKey().toInt(), e.getValue().mEdit.getText().toString());
+
+    return true;
+  }
+
+  boolean saveEdits()
+  {
+    return setEdits() && beforeSavingValidation();
+  }
+
+  @NonNull
+  protected String getDescription()
+  {
+    return mDescription.getText().toString().trim();
+  }
+
+  private boolean validateFields()
+  {
+    if (Editor.nativeIsAddressEditable())
+    {
+      if (!Editor.nativeIsHouseValid(mHouseNumber.getText().toString()))
+      {
+        mHouseNumber.requestFocus();
+        InputUtils.showKeyboard(mHouseNumber);
+        return false;
+      }
+
+      if (!Editor.nativeIsLevelValid(mBuildingLevels.getText().toString()))
+      {
+        mBuildingLevels.requestFocus();
+        InputUtils.showKeyboard(mBuildingLevels);
+        return false;
+      }
+    }
+
+    for (var e : mMetadata.entrySet())
+    {
+      final TextInputEditText edit = e.getValue().mEdit;
+      if (!Editor.nativeIsMetadataValid(e.getKey().toInt(), edit.getText().toString()))
+      {
+        edit.requestFocus();
+        InputUtils.showKeyboard(edit);
+        return false;
+      }
+    }
+
+    if (!Editor.nativeIsPhoneValid(mPhone.getText().toString()))
+    {
+      mPhone.requestFocus();
+      InputUtils.showKeyboard(mPhone);
+      return false;
+    }
+
+    return validateNames();
+  }
+
+  private boolean beforeSavingValidation()
+  {
+    // Validation to make sure address features have a house number
+    if (!Editor.nativeCheckHouseNumberWhenIsAddress())
+    {
+      mHouseNumber.requestFocus();
+      UiUtils.setInputError(mInputHouseNumber, R.string.error_enter_correct_house_number);
+      InputUtils.showKeyboard(mHouseNumber);
+      return false;
+    }
+    return true;
+  }
+
+  private boolean validateNames()
+  {
+    for (int pos = 0; pos < mNamesAdapter.getItemCount(); pos++)
+    {
+      LocalizedName localizedName = mNamesAdapter.getNameAtPos(pos);
+      if (Editor.nativeIsNameValid(localizedName.name))
+        continue;
+
+      View nameView = mNamesView.getChildAt(pos);
+      nameView.requestFocus();
+
+      InputUtils.showKeyboard(nameView);
+
+      return false;
+    }
+
+    return true;
+  }
+
+  private void refreshEditableFields()
+  {
+    UiUtils.showIf(Editor.nativeIsNameEditable(), mCardName);
+    UiUtils.showIf(Editor.nativeIsAddressEditable(), mCardAddress);
+    UiUtils.showIf(Editor.nativeIsBuilding() && !Editor.nativeIsPointType(), mCardBuilding);
+
+    final int[] editableDetails = Editor.nativeGetEditableProperties();
+
+    // charge sockets have their own card; check whether we should display it.
+    boolean hasChargeSockets = false;
+    for (int type : editableDetails)
+    {
+      hasChargeSockets = hasChargeSockets || (type == Metadata.MetadataType.FMD_CHARGE_SOCKETS.toInt());
+    }
+    UiUtils.showIf(hasChargeSockets, mCardChargingStation);
+
+    setCardVisibility(mCardDetails, mDetailsBlocks, editableDetails);
+    setCardVisibility(mCardSocialMedia, mSocialMediaBlocks, editableDetails);
+  }
+
+  private void setCardVisibility(View card, Map<Metadata.MetadataType, View> blocks, int[] editableDetails)
+  {
+    for (var e : blocks.entrySet())
+      UiUtils.hide(e.getValue());
+
+    boolean anyBlockElement = false;
+    for (int type : editableDetails)
+    {
+      final View blockElement = blocks.get(Metadata.MetadataType.fromInt(type));
+      if (blockElement == null)
+        continue;
+
+      anyBlockElement = true;
+      UiUtils.show(blockElement);
+    }
+    UiUtils.showIf(anyBlockElement, card);
+  }
+
+  /**
+   * Builds a dialog for editing or adding a charge socket.
+   *
+   * @param socketIndex The index of the socket to edit, or -1 to add a new socket.
+   * @param type The current type of the socket (e.g., "type2", "type2_combo").
+   * @param count The current number of sockets of this type or 0 for new socket.
+   * @param power The current power output of the socket in kW or 0 for new socket.
+   * @return A MaterialAlertDialogBuilder instance for the configured dialog.
+   */
+  private MaterialAlertDialogBuilder buildChargeSocketDialog(int socketIndex, String type, int count, double power)
+  {
+    LayoutInflater inflater = LayoutInflater.from(getActivity());
+    View dialogView = inflater.inflate(R.layout.dialog_edit_socket, null);
+
+    GridLayout typeBtns = dialogView.findViewById(R.id.edit_socket_type_grid);
+    typeBtns.removeAllViews();
+
+    List<String> SOCKET_TYPES = Arrays.stream(getResources().getStringArray(R.array.charge_socket_types)).toList();
+    for (String socketType : SOCKET_TYPES)
+    {
+      ChargeSocketDescriptor socket = new ChargeSocketDescriptor(socketType, 0, 0);
+
+      MaterialButton btn = (MaterialButton) inflater.inflate(R.layout.button_socket_type, typeBtns, false);
+
+      btn.setTag(R.id.socket_type, socket.type());
+
+      // load SVG icon converted into VectorDrawable in res/drawable
+      @SuppressLint("DiscouragedApi")
+      int resIconId = getResources().getIdentifier("ic_charge_socket_" + socket.visualType(), "drawable",
+                                                   requireContext().getPackageName());
+      if (resIconId != 0)
+      {
+        btn.setIcon(getResources().getDrawable(resIconId));
+      }
+
+      @SuppressLint("DiscouragedApi")
+      int resTypeId = getResources().getIdentifier("charge_socket_" + socket.visualType(), "string",
+                                                   requireContext().getPackageName());
+      if (resTypeId != 0)
+      {
+        btn.setText(getResources().getString(resTypeId));
+      }
+
+      if (socketType.equals(type))
+      {
+        btn.setChecked(true);
+      }
+
+      typeBtns.addView(btn);
+    }
+
+    // manage the grid of socket type buttons as a single 'radio group'
+    // (this can not be done with a MaterialButtonToggleGroup because it does
+    // not support GridLayout)
+    List<MaterialButton> buttonList = new ArrayList<>();
+
+    for (int i = 0; i < typeBtns.getChildCount(); i++)
+    {
+      View child = typeBtns.getChildAt(i);
+      if (child instanceof MaterialButton button)
+      {
+        buttonList.add(button);
+
+        button.setOnClickListener(view -> {
+          // deselect all
+          for (MaterialButton b : buttonList)
+          {
+            b.setChecked(false);
+          }
+          // select clicked
+          button.setChecked(true);
+        });
+      }
+    }
+
+    TextInputLayout countInputLayout = dialogView.findViewById(R.id.edit_socket_count_layout);
+    AutoCompleteTextView countView = dialogView.findViewById(R.id.edit_socket_count);
+    if (count > 0)
+    {
+      countView.setText(String.valueOf(count));
+    }
+
+    // Add a TextWatcher to validate on text change
+    countView.addTextChangedListener(new TextWatcher() {
+      @Override
+      public void beforeTextChanged(CharSequence s, int start, int count, int after)
+      {}
+
+      @Override
+      public void onTextChanged(CharSequence s, int start, int before, int count)
+      {}
+
+      @Override
+      public void afterTextChanged(Editable s)
+      {
+        validatePositiveField(s.toString(), countInputLayout);
+      }
+    });
+
+    TextInputLayout powerInputLayout = dialogView.findViewById(R.id.edit_socket_power_layout);
+    AutoCompleteTextView powerView = dialogView.findViewById(R.id.edit_socket_power);
+    if (power > 0)
+    {
+      if (power == (long) power)
+      {
+        powerView.setText(String.valueOf((long) power));
+      }
+      else
+      {
+        powerView.setText(String.valueOf(power));
+      }
+    }
+
+    // Add a TextWatcher to validate on text change
+    powerView.addTextChangedListener(new TextWatcher() {
+      @Override
+      public void beforeTextChanged(CharSequence s, int start, int count, int after)
+      {}
+
+      @Override
+      public void onTextChanged(CharSequence s, int start, int before, int count)
+      {}
+
+      @Override
+      public void afterTextChanged(Editable s)
+      {
+        validatePositiveField(s.toString(), powerInputLayout);
+      }
+    });
+
+    return new MaterialAlertDialogBuilder(requireActivity())
+        .setTitle(R.string.editor_socket)
+        .setView(dialogView)
+        .setPositiveButton(
+            R.string.save,
+            (dialog, which) -> {
+              String socketType = "";
+              for (MaterialButton b : buttonList)
+              {
+                if (b.isChecked())
+                {
+                  socketType = b.getTag(R.id.socket_type).toString();
+                  break;
+                }
+              }
+
+              int countValue = 0; // 0 means 'unknown count'
+              try
+              {
+                countValue = Integer.parseInt(countView.getText().toString());
+              }
+              catch (NumberFormatException ignored)
+              {
+                Logger.w(CHARGE_SOCKETS_TAG, "Invalid count value for socket:" + countView.getText().toString());
+              }
+
+              if (countValue < 0)
+              {
+                countValue = 0;
+                Logger.w(CHARGE_SOCKETS_TAG, "Invalid count value for socket:" + countView.getText().toString());
+              }
+
+              double powerValue = 0; // 0 means 'unknown power'
+              try
+              {
+                powerValue = Double.parseDouble(powerView.getText().toString());
+              }
+              catch (NumberFormatException ignored)
+              {
+                Logger.w(CHARGE_SOCKETS_TAG, "Invalid power value for socket:" + powerView.getText().toString());
+              }
+
+              if (powerValue < 0)
+              {
+                powerValue = 0;
+                Logger.w(CHARGE_SOCKETS_TAG, "Invalid power value for socket:" + powerView.getText().toString());
+              }
+
+              ChargeSocketDescriptor socket = new ChargeSocketDescriptor(socketType, countValue, powerValue);
+
+              updateChargeSockets(socketIndex, socket);
+            })
+        .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
+  }
+
+  // Helper method for validation logic
+  private boolean validatePositiveField(String text, TextInputLayout layout)
+  {
+    if (text.isEmpty())
+    {
+      layout.setError(null); // No error if empty (assuming 0 is the default)
+      return true;
+    }
+    try
+    {
+      double value = Double.parseDouble(text);
+      if (value < 0)
+      {
+        layout.setError(getString(R.string.error_value_must_be_positive));
+        return false;
+      }
+      else
+      {
+        layout.setError(null);
+        return true;
+      }
+    }
+    catch (NumberFormatException e)
+    {
+      layout.setError(getString(R.string.error_invalid_number));
+      return false;
+    }
+  }
+  /**
+   * Updates the list of charge sockets.
+   * If socketIndex is >=0, it updates the socket at that index.
+   * Otherwise, it adds the new socket to the list.
+   *
+   * @param socketIndex The index of the socket to update, or -1 to add a new socket.
+   * @param socket The ChargeSocketDescriptor of the socket to add or update.
+   */
+  private void updateChargeSockets(int socketIndex, ChargeSocketDescriptor socket)
+  {
+    ChargeSocketDescriptor[] sockets = Editor.nativeGetChargeSockets();
+    if (socketIndex >= 0)
+    {
+      sockets[socketIndex] = socket;
+    }
+    else
+    {
+      List<ChargeSocketDescriptor> list = new ArrayList<>(Arrays.asList(sockets));
+      list.add(socket);
+      sockets = list.toArray(new ChargeSocketDescriptor[0]);
+    }
+    Editor.nativeSetChargeSockets(sockets);
+
+    refreshChargeSockets();
+  }
+  private void refreshChargeSockets()
+  {
+    ChargeSocketDescriptor[] sockets = Editor.nativeGetChargeSockets();
+
+    LayoutInflater inflater = LayoutInflater.from(requireContext());
+
+    GridLayout socketsGrid = mChargeSockets.findViewById(R.id.socket_grid_editor);
+    socketsGrid.removeAllViews();
+
+    for (int i = 0; i < sockets.length; i++)
+    {
+      final int currentIndex = i;
+      ChargeSocketDescriptor socket = sockets[i];
+
+      View itemView = inflater.inflate(R.layout.item_charge_socket, socketsGrid, false);
+
+      MaterialTextView type = itemView.findViewById(R.id.socket_type);
+      ShapeableImageView icon = itemView.findViewById(R.id.socket_icon);
+      MaterialTextView power = itemView.findViewById(R.id.socket_power);
+      MaterialTextView count = itemView.findViewById(R.id.socket_count);
+
+      // load SVG icon converted into VectorDrawable in res/drawable
+      @SuppressLint("DiscouragedApi")
+      int resIconId = getResources().getIdentifier("ic_charge_socket_" + socket.visualType(), "drawable",
+                                                   requireContext().getPackageName());
+      if (resIconId != 0)
+      {
+        icon.setImageResource(resIconId);
+      }
+
+      @SuppressLint("DiscouragedApi")
+      int resTypeId = getResources().getIdentifier("charge_socket_" + socket.visualType(), "string",
+                                                   requireContext().getPackageName());
+      if (resTypeId != 0)
+      {
+        type.setText(resTypeId);
+      }
+
+      if (socket.power() != 0)
+      {
+        DecimalFormat df = new DecimalFormat("#.##");
+        power.setText(getString(R.string.kw_label, df.format(socket.power())));
+      }
+      else if (socket.ignorePower())
+      {
+        power.setVisibility(INVISIBLE);
+      }
+
+      if (socket.count() != 0)
+      {
+        count.setText(getString(R.string.count_label, socket.count()));
+      }
+
+      itemView.setOnClickListener(
+          v -> buildChargeSocketDialog(currentIndex, socket.type(), socket.count(), socket.power()).show());
+      socketsGrid.addView(itemView);
+    }
+
+    // add a 'new item' button at the end, to create new sockets
+    View btnNewItemView = inflater.inflate(R.layout.button_new_item, socketsGrid, false);
+    btnNewItemView.setOnClickListener(v -> buildChargeSocketDialog(-1, "unknown", -1, -1).show());
+    socketsGrid.addView(btnNewItemView);
+  }
+
+  private void refreshOpeningTime()
+  {
+    final String openingHours = Editor.nativeGetOpeningHours();
+    if (TextUtils.isEmpty(openingHours) || !OpeningHours.nativeIsTimetableStringValid(openingHours))
+    {
+      UiUtils.show(mEmptyOpeningHours);
+      UiUtils.hide(mOpeningHours, mEditOpeningHours);
+    }
+    else
+    {
+      final Timetable[] timetables = OpeningHours.nativeTimetablesFromString(openingHours);
+      CharSequence content = timetables == null
+                               ? openingHours
+                               : TimeFormatUtils.formatTimetables(getResources(), openingHours, timetables);
+      UiUtils.hide(mEmptyOpeningHours);
+      mOpeningHours.setText(content, TextView.BufferType.SPANNABLE);
+      UiUtils.show(mOpeningHours);
+      UiUtils.show(mEditOpeningHours);
+    }
+  }
+
+  private void initNamesView(final View view)
+  {
+    mNamesCaption = view.findViewById(R.id.show_additional_names);
+    mNamesCaption.setOnClickListener(this);
+
+    mAddLanguage = view.findViewById(R.id.add_langs);
+    mAddLanguage.setOnClickListener(this);
+
+    mMoreLanguages = view.findViewById(R.id.more_names);
+    mMoreLanguages.setOnClickListener(this);
+
+    mNamesView = view.findViewById(R.id.recycler);
+    mNamesView.setNestedScrollingEnabled(false);
+    mNamesView.setLayoutManager(new LinearLayoutManager(requireActivity()));
+    mNamesAdapter = new MultilanguageAdapter(mParent);
+    mNamesView.setAdapter(mNamesAdapter);
+    mNamesAdapter.registerAdapterDataObserver(mNamesObserver);
+
+    final Bundle args = getArguments();
+    if (args == null || !args.containsKey(LAST_INDEX_OF_NAMES_ARRAY))
+    {
+      showAdditionalNames(false);
+      return;
+    }
+    showAdditionalNames(true);
+    UiUtils.waitLayout(mNamesView, () -> {
+      LinearLayoutManager lm = (LinearLayoutManager) mNamesView.getLayoutManager();
+      int position = args.getInt(LAST_INDEX_OF_NAMES_ARRAY);
+
+      View nameItem = lm.findViewByPosition(position);
+
+      int cvNameTop = mCardName.getTop();
+      int nameItemTop = nameItem.getTop();
+
+      view.scrollTo(0, cvNameTop + nameItemTop);
+
+      // TODO(mgsergio): Uncomment if focus and keyboard are required.
+      // TODO(mgsergio): Keyboard doesn't want to hide. Only pressing back button works.
+      // View nameItemInput = nameItem.findViewById(R.id.input);
+      // nameItemInput.requestFocus();
+      // InputUtils.showKeyboard(nameItemInput);
+    });
+  }
+
+  private View initBlock(View view, Metadata.MetadataType type, @IdRes int idBlock, @DrawableRes int idIcon,
+                         @StringRes int idName, int inputType)
+  {
+    View block = view.findViewById(idBlock);
+    MetadataEntry e = new MetadataEntry();
+    e.mEdit = findInputAndInitBlock(block, idIcon, idName);
+    if (inputType > 0)
+      e.mEdit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | inputType);
+    e.mInput = block.findViewById(R.id.custom_input);
+    mMetadata.put(type, e);
+    return block;
+  }
+
+  private void initViews(View view)
+  {
+    final View categoryBlock = view.findViewById(R.id.category);
+    // TODO show icon and fill it when core will implement that
+    UiUtils.hide(categoryBlock.findViewById(R.id.icon));
+    mCategory = categoryBlock.findViewById(R.id.name);
+    mCardName = view.findViewById(R.id.cv__name);
+    mCardAddress = view.findViewById(R.id.cv__address);
+    mCardChargingStation = view.findViewById(R.id.cv__charging_station);
+    mCardDetails = view.findViewById(R.id.cv__details);
+    mCardSocialMedia = view.findViewById(R.id.cv__social_media);
+    mCardBuilding = view.findViewById(R.id.cv__building);
+    initNamesView(view);
+
+    // Address
+    view.findViewById(R.id.block_street).setOnClickListener(this);
+    mStreet = view.findViewById(R.id.street);
+    View blockHouseNumber = view.findViewById(R.id.block_building);
+    mHouseNumber = findInputAndInitBlock(blockHouseNumber, R.drawable.ic_building, R.string.house_number);
+    mInputHouseNumber = blockHouseNumber.findViewById(R.id.custom_input);
+
+    initBlock(view, Metadata.MetadataType.FMD_POSTCODE, R.id.block_zipcode, R.drawable.ic_address,
+              R.string.editor_zip_code, 0);
+
+    // Details
+    View mBlockLevels = view.findViewById(R.id.block_levels);
+    mBuildingLevels = findInputAndInitBlock(mBlockLevels, R.drawable.ic_floor, R.string.editor_building_levels);
+    mBuildingLevels.setInputType(InputType.TYPE_CLASS_NUMBER);
+    mInputBuildingLevels = mBlockLevels.findViewById(R.id.custom_input);
+    View blockPhone = view.findViewById(R.id.block_phone);
+    mPhone = blockPhone.findViewById(R.id.phone);
+    mEditPhoneLink = blockPhone.findViewById(R.id.edit_phone);
+    mEditPhoneLink.setOnClickListener(this);
+    mPhone.setOnClickListener(this);
+    View websiteBlock = initBlock(view, Metadata.MetadataType.FMD_WEBSITE, R.id.block_website, R.drawable.ic_website,
+                                  R.string.website, InputType.TYPE_TEXT_VARIATION_URI);
+    View websiteMenuBlock =
+        initBlock(view, Metadata.MetadataType.FMD_WEBSITE_MENU, R.id.block_website_menu, R.drawable.ic_website_menu,
+                  R.string.website_menu, InputType.TYPE_TEXT_VARIATION_URI);
+    View emailBlock = initBlock(view, Metadata.MetadataType.FMD_EMAIL, R.id.block_email, R.drawable.ic_email,
+                                R.string.email, InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+    View levelBlock = initBlock(view, Metadata.MetadataType.FMD_LEVEL, R.id.block_level, R.drawable.ic_level_white,
+                                R.string.editor_level, InputType.TYPE_CLASS_NUMBER);
+    View fediverseContactBlock =
+        initBlock(view, Metadata.MetadataType.FMD_CONTACT_FEDIVERSE, R.id.block_fediverse, R.drawable.ic_mastodon,
+                  R.string.mastodon, InputType.TYPE_TEXT_VARIATION_URI);
+    View facebookContactBlock =
+        initBlock(view, Metadata.MetadataType.FMD_CONTACT_FACEBOOK, R.id.block_facebook, R.drawable.ic_facebook_white,
+                  R.string.facebook, InputType.TYPE_TEXT_VARIATION_URI);
+    View instagramContactBlock =
+        initBlock(view, Metadata.MetadataType.FMD_CONTACT_INSTAGRAM, R.id.block_instagram,
+                  R.drawable.ic_instagram_white, R.string.instagram, InputType.TYPE_TEXT_VARIATION_URI);
+    View twitterContactBlock =
+        initBlock(view, Metadata.MetadataType.FMD_CONTACT_TWITTER, R.id.block_twitter, R.drawable.ic_twitterx_white,
+                  R.string.twitter, InputType.TYPE_TEXT_VARIATION_URI);
+    View vkContactBlock = initBlock(view, Metadata.MetadataType.FMD_CONTACT_VK, R.id.block_vk, R.drawable.ic_vk_white,
+                                    R.string.vk, InputType.TYPE_TEXT_VARIATION_URI);
+    View lineContactBlock =
+        initBlock(view, Metadata.MetadataType.FMD_CONTACT_LINE, R.id.block_line, R.drawable.ic_line_white,
+                  R.string.editor_line_social_network, InputType.TYPE_TEXT_VARIATION_URI);
+    View blueskyContactBlock = initBlock(view, Metadata.MetadataType.FMD_CONTACT_BLUESKY, R.id.block_bluesky,
+                                         R.drawable.ic_bluesky, R.string.bluesky, InputType.TYPE_TEXT_VARIATION_URI);
+    View operatorBlock = initBlock(view, Metadata.MetadataType.FMD_OPERATOR, R.id.block_operator,
+                                   R.drawable.ic_operator, R.string.editor_operator, 0);
+
+    View blockCuisine = view.findViewById(R.id.block_cuisine);
+    blockCuisine.setOnClickListener(this);
+    mCuisine = view.findViewById(R.id.cuisine);
+
+    View blockWifi = view.findViewById(R.id.block_wifi);
+    mWifi = view.findViewById(R.id.sw__wifi);
+    blockWifi.setOnClickListener(this);
+
+    View blockSelfService = view.findViewById(R.id.block_self_service);
+    blockSelfService.setOnClickListener(this);
+    mSelfService = view.findViewById(R.id.self_service);
+
+    View blockOutdoorSeating = view.findViewById(R.id.block_outdoor_seating);
+    mOutdoorSeating = view.findViewById(R.id.sw__outdoor_seating);
+    blockOutdoorSeating.setOnClickListener(this);
+
+    mChargeSockets = view.findViewById(R.id.block_charge_sockets);
+
+    View blockOpeningHours = view.findViewById(R.id.block_opening_hours);
+    mEditOpeningHours = blockOpeningHours.findViewById(R.id.edit_opening_hours);
+    mEditOpeningHours.setOnClickListener(this);
+    mEmptyOpeningHours = blockOpeningHours.findViewById(R.id.empty_opening_hours);
+    mEmptyOpeningHours.setOnClickListener(this);
+    mOpeningHours = blockOpeningHours.findViewById(R.id.opening_hours);
+    mOpeningHours.setOnClickListener(this);
+    final View cardMore = view.findViewById(R.id.cv__more);
+    mDescription = findInput(cardMore);
+    MaterialTextView osmInfo = view.findViewById(R.id.osm_info);
+    osmInfo.setMovementMethod(LinkMovementMethod.getInstance());
+    mReset = view.findViewById(R.id.reset);
+    mReset.setOnClickListener(this);
+    mDisused = view.findViewById(R.id.disused);
+    mDisused.setOnClickListener(this);
+
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_OPEN_HOURS, blockOpeningHours);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_PHONE_NUMBER, blockPhone);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_CUISINE, blockCuisine);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_INTERNET, blockWifi);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_SELF_SERVICE, blockSelfService);
+    // TODO Reimplement this to avoid https://github.com/organicmaps/organicmaps/issues/9049
+    UiUtils.hide(blockOutdoorSeating);
+    // mDetailsBlocks.put(Metadata.MetadataType.FMD_OUTDOOR_SEATING, blockOutdoorSeating);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_WEBSITE, websiteBlock);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_WEBSITE_MENU, websiteMenuBlock);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_EMAIL, emailBlock);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_LEVEL, levelBlock);
+    mDetailsBlocks.put(Metadata.MetadataType.FMD_OPERATOR, operatorBlock);
+
+    mSocialMediaBlocks.put(Metadata.MetadataType.FMD_CONTACT_FEDIVERSE, fediverseContactBlock);
+    mSocialMediaBlocks.put(Metadata.MetadataType.FMD_CONTACT_FACEBOOK, facebookContactBlock);
+    mSocialMediaBlocks.put(Metadata.MetadataType.FMD_CONTACT_INSTAGRAM, instagramContactBlock);
+    mSocialMediaBlocks.put(Metadata.MetadataType.FMD_CONTACT_TWITTER, twitterContactBlock);
+    mSocialMediaBlocks.put(Metadata.MetadataType.FMD_CONTACT_VK, vkContactBlock);
+    mSocialMediaBlocks.put(Metadata.MetadataType.FMD_CONTACT_LINE, lineContactBlock);
+    mSocialMediaBlocks.put(Metadata.MetadataType.FMD_CONTACT_BLUESKY, blueskyContactBlock);
+  }
+
+  private static TextInputEditText findInput(View blockWithInput)
+  {
+    return blockWithInput.findViewById(R.id.input);
+  }
+
+  private TextInputEditText findInputAndInitBlock(View blockWithInput, @DrawableRes int icon, @StringRes int hint)
+  {
+    return findInputAndInitBlock(blockWithInput, icon, getString(hint));
+  }
+
+  private static TextInputEditText findInputAndInitBlock(View blockWithInput, @DrawableRes int icon, String hint)
+  {
+    ((ShapeableImageView) blockWithInput.findViewById(R.id.icon)).setImageResource(icon);
+    final TextInputLayout input = blockWithInput.findViewById(R.id.custom_input);
+    input.setHint(hint);
+    return input.findViewById(R.id.input);
+  }
+
+  @Override
+  public void onClick(View v)
+  {
+    final int id = v.getId();
+    if (id == R.id.edit_opening_hours || id == R.id.empty_opening_hours || id == R.id.opening_hours)
+      mParent.editTimetable();
+    else if (id == R.id.phone || id == R.id.edit_phone)
+      mParent.editPhone();
+    else if (id == R.id.block_wifi)
+      mWifi.toggle();
+    else if (id == R.id.block_self_service)
+      mParent.editSelfService();
+    else if (id == R.id.block_street)
+      mParent.editStreet();
+    else if (id == R.id.block_cuisine)
+      mParent.editCuisine();
+    else if (id == R.id.more_names || id == R.id.show_additional_names)
+    {
+      if (!mNamesAdapter.areAdditionalLanguagesShown() || validateNames())
+        showAdditionalNames(!mNamesAdapter.areAdditionalLanguagesShown());
+    }
+    else if (id == R.id.add_langs)
+      mParent.addLanguage();
+    else if (id == R.id.reset)
+      reset();
+    else if (id == R.id.disused)
+      placeDisused();
+    else if (id == R.id.block_outdoor_seating)
+      mOutdoorSeating.toggle();
+  }
+
+  private void showAdditionalNames(boolean show)
+  {
+    mNamesAdapter.showAdditionalLanguages(show);
+
+    refreshNamesCaption();
+  }
+
+  private void refreshNamesCaption()
+  {
+    if (mNamesAdapter.getNamesCount() <= mNamesAdapter.getMandatoryNamesCount())
+      setNamesArrow(0 /* arrowResourceId */); // bind arrow with empty resource (do not draw arrow)
+    else if (mNamesAdapter.areAdditionalLanguagesShown())
+      setNamesArrow(R.drawable.ic_expand_less);
+    else
+      setNamesArrow(R.drawable.ic_expand_more);
+
+    boolean showAddLanguage = mNamesAdapter.getNamesCount() <= mNamesAdapter.getMandatoryNamesCount()
+                           || mNamesAdapter.areAdditionalLanguagesShown();
+
+    UiUtils.showIf(showAddLanguage, mAddLanguage);
+    UiUtils.showIf(!showAddLanguage, mMoreLanguages);
+  }
+
+  // Bind arrow in the top right corner of names caption with needed resource.
+  private void setNamesArrow(@DrawableRes int arrowResourceId)
+  {
+    if (arrowResourceId == 0)
+    {
+      mNamesCaption.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, null, null);
+      return;
+    }
+
+    mNamesCaption.setCompoundDrawablesRelativeWithIntrinsicBounds(
+        null, null, Graphics.tint(requireActivity(), arrowResourceId, R.attr.iconTint), null);
+  }
+
+  private void refreshResetButton()
+  {
+    if (mParent.addingNewObject())
+    {
+      UiUtils.hide(mReset);
+      UiUtils.hide(mDisused);
+      return;
+    }
+
+    mDisused.setVisibility(Editor.nativeCanMarkPlaceAsDisused() ? View.VISIBLE : View.GONE);
+
+    if (Editor.nativeAreSomeFeatureChangesUploaded())
+    {
+      mReset.setText(R.string.editor_place_doesnt_exist);
+      return;
+    }
+
+    switch (Editor.nativeGetMapObjectStatus())
+    {
+    case Editor.CREATED -> mReset.setText(R.string.editor_remove_place_button);
+    case Editor.MODIFIED -> mReset.setText(R.string.editor_reset_edits_button);
+    case Editor.UNTOUCHED -> mReset.setText(R.string.editor_place_doesnt_exist);
+    case Editor.DELETED -> throw new IllegalStateException("Can't delete already deleted feature.");
+    case Editor.OBSOLETE -> throw new IllegalStateException("Obsolete objects cannot be reverted.");
+    }
+  }
+
+  private void reset()
+  {
+    if (Editor.nativeAreSomeFeatureChangesUploaded())
+    {
+      placeDoesntExist();
+      return;
+    }
+
+    switch (Editor.nativeGetMapObjectStatus())
+    {
+    case Editor.CREATED -> rollback(Editor.CREATED);
+    case Editor.MODIFIED -> rollback(Editor.MODIFIED);
+    case Editor.UNTOUCHED -> placeDoesntExist();
+    case Editor.DELETED -> throw new IllegalStateException("Can't delete already deleted feature.");
+    case Editor.OBSOLETE -> throw new IllegalStateException("Obsolete objects cannot be reverted.");
+    }
+  }
+
+  private void rollback(@Editor.FeatureStatus int status)
+  {
+    @StringRes
+    final int title;
+    @StringRes
+    final int message;
+    if (status == Editor.CREATED)
+    {
+      title = R.string.editor_remove_place_button;
+      message = R.string.editor_remove_place_message;
+    }
+    else
+    {
+      title = R.string.editor_reset_edits_button;
+      message = R.string.editor_reset_edits_message;
+    }
+
+    new MaterialAlertDialogBuilder(requireActivity())
+        .setTitle(message)
+        .setPositiveButton(title,
+                           (dialog, which) -> {
+                             Editor.nativeRollbackMapObject();
+                             Framework.nativePokeSearchInViewport();
+                             mParent.onBackPressed();
+                           })
+        .setNegativeButton(R.string.cancel, null)
+        .show();
+  }
+
+  private void placeDoesntExist()
+  {
+    EditTextDialogFragment dialogFragment = EditTextDialogFragment.show(
+        getString(R.string.editor_place_doesnt_exist), "", getString(R.string.editor_place_doesnt_exist_description),
+        getString(R.string.editor_report_problem_send_button), getString(R.string.cancel), this,
+        getDeleteCommentValidator());
+    dialogFragment.setTextSaveListener(this::commitPlaceDoesntExist);
+  }
+
+  private void placeDisused()
+  {
+    new MaterialAlertDialogBuilder(requireActivity())
+        .setTitle(R.string.editor_mark_business_vacant_title)
+        .setMessage(R.string.editor_mark_business_vacant_description)
+        .setPositiveButton(R.string.editor_submit,
+                           (dlg, which) -> {
+                             Editor.nativeMarkPlaceAsDisused();
+                             mParent.ensureOsmAuthorized();
+                           })
+        .setNegativeButton(android.R.string.cancel, null)
+        .show();
+  }
+
+  private void commitPlaceDoesntExist(@NonNull String text)
+  {
+    Editor.nativePlaceDoesNotExist(text);
+    mParent.ensureOsmAuthorized();
+  }
+
+  @NonNull
+  private EditTextDialogFragment.Validator getDeleteCommentValidator()
+  {
+    return (activity, text) ->
+    {
+      if (TextUtils.isEmpty(text))
+        return activity.getString(R.string.delete_place_empty_comment_error);
+      else
+        return null;
+    };
+  }
+}

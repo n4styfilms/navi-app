@@ -1,0 +1,71 @@
+project(editor)
+
+set(SRC
+  changeset_wrapper.cpp
+  changeset_wrapper.hpp
+  config_loader.cpp
+  config_loader.hpp
+  editable_data_source.hpp
+  editable_feature_source.cpp
+  editable_feature_source.hpp
+  editor_config.cpp
+  editor_config.hpp
+  editor_notes.cpp
+  editor_notes.hpp
+  editor_storage.cpp
+  editor_storage.hpp
+  edits_migration.cpp
+  edits_migration.hpp
+  feature_matcher.cpp
+  feature_matcher.hpp
+  feature_type_to_osm.cpp
+  feature_type_to_osm.hpp
+  new_feature_categories.cpp
+  new_feature_categories.hpp
+  opening_hours_ui.cpp
+  opening_hours_ui.hpp
+  osm_auth.cpp
+  osm_auth.hpp
+  osm_editor.cpp
+  osm_editor.hpp
+  osm_feature_lookup.cpp
+  osm_feature_lookup.hpp
+  review.cpp
+  review.hpp
+  server_api.cpp
+  server_api.hpp
+  ui2oh.cpp
+  ui2oh.hpp
+  xml_feature.cpp
+  xml_feature.hpp
+  yes_no_unknown.hpp
+  keys_to_remove.hpp
+)
+
+omim_add_library(${PROJECT_NAME} ${SRC})
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    base
+    geometry
+    i18n
+    indexer
+  PRIVATE
+    coding
+    cppjansson
+    platform
+)
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    opening_hours
+    pugixml
+)
+
+omim_add_test_subdirectory(editor_tests)
+omim_add_test_subdirectory(osm_auth_tests)
+
+if(NOT (SKIP_TESTS AND SKIP_TOOLS))
+# used by both tests and tools
+add_subdirectory(editor_tests_support)
+endif()

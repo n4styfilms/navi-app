@@ -1,0 +1,86 @@
+name: Coverage Report
+on:
+  workflow_dispatch: # Manual trigger
+
+# Cancels previous jobs if the same branch or PR was updated again.
+concurrency:
+  group: ${{ github.workflow }}-coverage-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Generate coverage report
+    runs-on: comaps-android
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100 # enough to get all commits for the current day
+
+      - name: Update submodules
+        uses: ./.forgejo/actions/update-submodules
+
+      - name: Cache world map
+        uses: actions/cache@v4
+        with:
+          path: data/world_mwm
+          key: world-mwm
+
+      - name: Configure ccache
+        uses: https://github.com/hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.workflow }}-coverage
+
+      - name: Compile
+        shell: bash
+        env:
+          CC: clang
+          CXX: clang++
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+          SKIP_MAP_DOWNLOAD: 1
+          # -g1 should slightly reduce build time.
+          CMAKE_C_FLAGS: -g1
+          CMAKE_CXX_FLAGS: -g1
+        run: ./tools/unix/build_omim.sh -d coverage
+
+      - name: Tests
+        shell: bash
+        working-directory: build
+        env:
+          QT_QPA_PLATFORM: "offscreen"
+          # generator_integration_tests - https://github.com/organicmaps/organicmaps/issues/225
+          # opening_hours_integration_tests - https://github.com/organicmaps/organicmaps/issues/219
+          # opening_hours_supported_features_tests - https://github.com/organicmaps/organicmaps/issues/219
+          # routing_integration_tests - https://github.com/organicmaps/organicmaps/issues/221
+          # shaders_tests - https://github.com/organicmaps/organicmaps/issues/223
+          # world_feed_integration_tests - https://github.com/organicmaps/organicmaps/issues/215
+          CTEST_EXCLUDE_REGEX: "generator_integration_tests|opening_hours_integration_tests|opening_hours_supported_features_tests|routing_benchmarks|routing_integration_tests|routing_quality_tests|search_quality_tests|storage_integration_tests|shaders_tests|world_feed_integration_tests"
+        run: |
+          locale-gen en_US
+          locale-gen en_US.UTF-8
+          locale-gen es_ES
+          locale-gen es_ES.UTF-8
+          locale-gen fr_FR
+          locale-gen fr_FR.UTF-8
+          locale-gen ru_RU
+          locale-gen ru_RU.UTF-8
+          update-locale
+          ./tools/unix/run_tests.sh -b ../omim-build-debug -e "$CTEST_EXCLUDE_REGEX" -s full
+
+      - name: Run coverage report generation
+        shell: bash
+        working-directory: build
+        run: |
+          cmake --build . --target omim_coverage
+          cat coverage_report/summary.txt
+
+      - name: Archive the coverage report
+        working-directory: build/coverage_report
+        run: zip -r coverage_report.zip html/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: build/coverage_report/coverage_report.zip

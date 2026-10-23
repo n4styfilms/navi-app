@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bookmarks_places</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Brez zaznamkov</string>
+			<key>one</key>
+			<string>%lld zaznamek</string>
+			<key>two</key>
+			<string>%lld zaznamka</string>
+			<key>few</key>
+			<string>%lld zaznamki</string>
+			<key>other</key>
+			<string>%lld zaznamki</string>
+		</dict>
+	</dict>
+	<key>bookmarks_detect_message</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Najdenih ni bilo %lld datotek. Ogledate si jih lahko po pretvorbi.</string>
+			<key>one</key>
+			<string>Najdena je bila %lld datoteka. Ogledate si jo lahko po pretvorbi.</string>
+			<key>two</key>
+			<string>Najdeni sta bili %lld datoteki. Ogledate si ju lahko po pretvorbi.</string>
+			<key>few</key>
+			<string>Najdene so bile %lld datoteke. Ogledate si jih lahko po pretvorbi.</string>
+			<key>other</key>
+			<string>Najdenih je bilo %lld datotek. Ogledate si jih lahko po pretvorbi.</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+	</dict>
+	<key>tracks</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld sledi</string>
+			<key>one</key>
+			<string>%lld sled</string>
+			<key>two</key>
+			<string>%lld sledi</string>
+			<key>few</key>
+			<string>%lld sledi</string>
+			<key>other</key>
+			<string>%lld sledi</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+	</dict>
+	<key>population</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Brez prebivalcev</string>
+			<key>one</key>
+			<string>%lld prebivalec</string>
+			<key>two</key>
+			<string>%lld prebivalca</string>
+			<key>few</key>
+			<string>%lld prebivalci</string>
+			<key>other</key>
+			<string>%lld prebivalcev</string>
+		</dict>
+	</dict>
+	<key>rooms</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Brez sob</string>
+			<key>one</key>
+			<string>%lld soba</string>
+			<key>two</key>
+			<string>%lld sobi</string>
+			<key>few</key>
+			<string>%lld sobe</string>
+			<key>other</key>
+			<string>%lld sob</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+	</dict>
+	<key>capacity_disabled</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Brez parkirnih mest</string>
+			<key>one</key>
+			<string>%lld parkirno mesto</string>
+			<key>two</key>
+			<string>%lld parkirni mesti</string>
+			<key>few</key>
+			<string>%lld parkirnih mest</string>
+			<key>other</key>
+			<string>%lld parkirnih mest</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+	</dict>
+	<key>capacity_charging</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Ni mest za polnjenje</string>
+			<key>one</key>
+			<string>%lld mesto za polnjenje</string>
+			<key>two</key>
+			<string>%lld mesti za polnjenje</string>
+			<key>few</key>
+			<string>%lld mesta za polnjenje</string>
+			<key>other</key>
+			<string>%lld mest za polnjenje</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+	</dict>
+	<key>capacity</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Ni mest</string>
+			<key>one</key>
+			<string>%lld mesto</string>
+			<key>two</key>
+			<string>%lld mesti</string>
+			<key>few</key>
+			<string>%lld mesta</string>
+			<key>other</key>
+			<string>%lld mest</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+	</dict>
+</dict>
+</plist>

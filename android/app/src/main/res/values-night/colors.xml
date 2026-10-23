@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="base_accent">#FF7CBC7B</color>
+  <color name="base_accent_pressed">#FF588157</color>
+
+  <color name="icon_tint">#FFF</color>
+
+  <color name="icon_tint_light">#FF76797C</color>
+
+  <color name="divider">#1EFFFFFF</color>
+
+  <!-- Backgrounds -->
+  <color name="bg_window">#FF32363A</color>
+  <color name="bg_primary">#37653F</color>
+  <color name="bg_cards">#FF3C4044</color>
+  <color name="bg_panel">@color/bg_window</color>
+  <color name="bg_primary_dark">#FF588157</color>
+  <color name="bg_app">#10140F</color>
+
+  <color name="bg_menu">#CC2D3237</color>
+
+  <color name="bg_statusbar">#004120</color>
+
+  <!-- Buttons -->
+  <color name="button_pressed">#40CCCCCC</color>
+  <color name="button_disabled">@color/white_12</color>
+  <color name="button_text">#FFFFFFFF</color>
+  <color name="button_text_disabled">#4CFFFFFF</color>
+
+  <color name="button_accent_normal">@color/base_accent</color>
+  <color name="button_accent_pressed">@color/base_accent_pressed</color>
+  <color name="button_accent_disabled">#FF505050</color>
+  <color name="button_accent_text">#FF000000</color>
+  <color name="button_accent_text_disabled">#4CFFFFFF</color>
+
+  <!-- LanesView -->
+  <color name="nav_lane_arrow_active">@color/white_primary</color>
+
+  <color name="elevation_profile_dot_enabled">#FF9600</color>
+  <color name="elevation_profile">@color/base_accent</color>
+
+  <!-- Downloader icons -->
+  <color name="bg_dl_done">#54575b</color>
+  <color name="bg_dl_download">#ffe68c</color>
+
+  <color name="fg_dl_done">#cccdce</color>
+  <color name="fg_dl_folder">#756940</color>
+  <color name="fg_dl_folder_done">#cccdce</color>
+
+  <!-- Rating -->
+  <color name="fg_rating_star">#d7a203</color>
+  <color name="bg_rating_star">#606060</color>
+
+  <!-- Categories -->
+  <color name="foreground_color">#000</color>
+
+  <color name="amenity">#51585E</color>
+  <color name="entertainment">#802D19</color>
+  <color name="food">#8C491C</color>
+  <color name="shop">#6B425C</color>
+  <color name="cm_services">#574469</color>
+  <color name="medical">#983E44</color>
+  <color name="hotel">#614A43</color>
+  <color name="parking">#20607C</color>
+  <color name="tourism">#6E4426</color>
+  <color name="transport">#2F6499</color>
+  <color name="water">#0A6074</color>
+</resources>

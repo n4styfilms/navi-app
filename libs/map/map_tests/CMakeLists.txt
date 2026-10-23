@@ -1,0 +1,43 @@
+project(map_tests)
+navi_require_finite_math(${CMAKE_CURRENT_SOURCE_DIR}/navi_route_snapshot_tests.cpp)
+
+set(SRC
+  address_tests.cpp
+  bookmarks_test.cpp
+  chart_generator_tests.cpp
+  check_mwms.cpp
+  countries_names_tests.cpp
+  extrapolator_tests.cpp
+  feature_getters_tests.cpp
+  gps_track_collection_test.cpp
+  gps_track_storage_test.cpp
+  gps_track_test.cpp
+  kmz_unarchive_test.cpp
+  mwm_url_tests.cpp
+  navi_route_snapshot_tests.cpp
+  navi_headless_routing_tests.cpp
+  navi_headless_routing_scenario.cpp
+  power_manager_tests.cpp
+  search_api_tests.cpp
+  elevation_info_tests.cpp
+  track_statistics_tests.cpp
+)
+
+omim_add_test(${PROJECT_NAME} ${SRC} REQUIRE_QT REQUIRE_SERVER)
+
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    base
+    coding
+    drape_frontend
+    generator_tests_support
+    geometry
+    i18n
+    indexer
+    kml
+    map
+    platform
+    search
+    search_tests_support
+    storage
+)

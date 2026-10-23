@@ -1,0 +1,201 @@
+name: map-generator
+on:
+  workflow_dispatch: # Manual trigger
+    inputs:
+      map-generator-test:
+        description: 'Test (non-prod) generation?'
+        required: false
+        default: true
+        type: boolean
+      run-copy-coasts:
+        description: 'Copy last generated coastlines for a fallback use?'
+        required: false
+        default: true
+        type: boolean
+      run-planet-o5m:
+        description: 'Update OSM planet? (O5M format for mapgen and reviews)'
+        required: false
+        default: true
+        type: boolean
+      map-generator-continue:
+        description: 'Continue previous map generation?'
+        required: true
+        default: false
+        type: boolean
+      map-generator-countries:
+        description: 'Generate specific MWMs? (i.e. "US_New York_*", "*Madrid*, WorldCoasts")'
+        required: false
+        type: string
+
+env:
+  COUNTRIES_PUB_KEY: ${{ secrets.COUNTRIES_PUB_KEY }}
+  COUNTRIES_SECRET_KEY: ${{ secrets.COUNTRIES_SECRET_KEY }}
+  ZULIP_BOT_EMAIL: ${{ secrets.ZULIP_BOT_EMAIL }}
+  ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
+  MWMTEST: ${{ inputs.map-generator-test }}
+  MWMCONTINUE: ${{ inputs.map-generator-continue }}
+  MWMCOUNTRIES: ${{ inputs.map-generator-countries }}
+  DEBIAN_FRONTEND: noninteractive
+  TZ: Etc/UTC
+
+jobs:
+  generate-maps:
+    name: Generate Maps
+    runs-on: mapfilemaker
+    timeout-minutes: 3600 # 60hrs, usually takes ~35
+    container:
+      image: codeberg.org/comaps/maps_generator:f6d53d54f794
+      volumes:
+        - /mnt/4tbexternal/:/mnt/4tbexternal/
+        - /mnt/4tbexternal/osm-planet:/home/planet
+        - /var/www/html:/var/www/html
+      options: --ulimit nofile=262144:262144
+    concurrency:
+      group: ${{ github.workflow }}-map-generator-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Copy worldcoasts from the previous generation
+        if: inputs.run-copy-coasts
+        continue-on-error: true
+        shell: bash
+        run: |
+          if [ -f /mnt/4tbexternal/osm-maps/*/intermediate_data/WorldCoasts.geom ]; then
+            echo "WorldCoasts.* available:"
+            ls -alh /mnt/4tbexternal/osm-maps/*/intermediate_data/WorldCoasts.*
+            echo "Before:"
+            ls -alh /home/planet/latest_coasts.*
+            # TODO: don't copy coasts from test generations
+            cp -p /mnt/4tbexternal/osm-maps/*/intermediate_data/WorldCoasts.geom /home/planet/latest_coasts.geom
+            cp -p /mnt/4tbexternal/osm-maps/*/intermediate_data/WorldCoasts.rawgeom /home/planet/latest_coasts.rawgeom
+            echo "After:"
+            ls -alh /home/planet/latest_coasts.*
+          else
+            echo "No previously generated WorldCoasts found."
+            exit 1
+          fi
+      - name: Clean temp files from previous generations
+        shell: bash
+        run: |
+          if [ $MWMCONTINUE == "true" ]; then
+            echo "Skip cleanup because of continuing previous generation."
+            exit 0
+          fi
+          echo "Checking for intermediate map build data in /mnt/4tbexternal/osm-maps..."
+          cd /mnt/4tbexternal/osm-maps/
+          # List all dated directories, sort by name (newest first)
+          ls -1d */ 2>/dev/null | grep -E '^[0-9]{4}_[0-9]{2}_[0-9]{2}__[0-9]{2}_[0-9]{2}_[0-9]{2}(\-test)?/$' | while read dir; do
+            if [ -f "${dir}world_roads.o5m" ]; then
+              echo "Removing ${dir}world_roads.o5m"
+              rm ${dir}world_roads.o5m
+            fi
+            if [ -d "${dir}osm2ft" ]; then
+              echo "Removing ${dir}osm2ft"
+              rm -r ${dir}osm2ft
+            fi
+            if [ -d "${dir}intermediate_data" ]; then
+              echo "Removing ${dir}intermediate_data"
+              rm -r ${dir}intermediate_data
+            fi
+          done
+          echo "Done."
+      - name: Check for enough free space
+        shell: bash
+        run: |
+          cd /mnt/4tbexternal/osm-maps
+          KB=`df -k --output=avail . | tail -n1`
+          GB=$(( KB/1024/1024 ))
+          GB_REQ=650
+          echo "Free space available: $GB GB (min $GB_REQ GB required)"
+          if [ $MWMCONTINUE == "true" ] || [[ -n $MWMCOUNTRIES ]]; then
+            echo "Skip free space check for continued or partial generations."
+          elif [[ $GB -lt $GB_REQ ]]; then
+            echo "ERROR: not enough free space for whole planet generation"
+            exit 1
+          fi
+      - name: Checkout main repo
+        shell: bash
+        run: |
+          echo "Cloning $FORGEJO_SERVER_URL/$FORGEJO_REPOSITORY branch $FORGEJO_REF_NAME"
+          cd ~
+          git clone --depth 1 --recurse-submodules --shallow-submodules -b $FORGEJO_REF_NAME --single-branch $FORGEJO_SERVER_URL/$FORGEJO_REPOSITORY.git comaps
+      - name: Compile and prepare tools
+        shell: bash
+        run: |
+          echo "Bootstrapping boost C++ library..."
+          cd ~/comaps/3party/boost/
+          ./bootstrap.sh
+          ./b2 headers
+          echo "Compiling binaries..."
+          cd ~/comaps
+          ./tools/unix/build_omim.sh -p ~ -R generator_tool
+          ./tools/unix/build_omim.sh -p ~ -R world_roads_builder_tool
+          ./tools/unix/build_omim.sh -p ~ -R mwm_diff_tool
+          echo "Preparing python venv..."
+          cd tools/python/maps_generator
+          python3 -m venv /tmp/venv
+          /tmp/venv/bin/pip3 install -r requirements_dev.txt
+          echo "Done."
+      - name: Generate drules and search categories (configure the repo)
+        shell: bash
+        run: |
+          cd ~/comaps
+          export SKIP_MAP_DOWNLOAD=1 SKIP_GENERATE_SYMBOLS=1 SKIP_GENERATE_STRINGS=1 SKIP_GENERATE_SERBIAN_LATIN_STRINGS=1
+          ./configure.sh
+      - name: Check O5M planet file exists
+        shell: bash
+        run: |
+          if [ ! -f /home/planet/planet/planet.o5m ]; then
+            echo "WARN: No file at /home/planet/planet/planet.o5m"
+            if [ ! -f /home/planet/planet/planet-latest.osm.pbf ]; then
+              echo "ERROR: No file at /home/planet/planet/planet-latest.osm.pbf"
+              ls -al /home/planet/planet/
+              exit 1
+            fi
+            echo "Converting planet-latest.osm.pbf to planet.o5m"
+            cd /home/planet/planet/
+            osmconvert -v --drop-author --drop-version --hash-memory=4000 planet-latest.osm.pbf -o=planet.o5m
+          fi
+          echo "Done."
+      - name: Update O5M planet
+        if: inputs.run-planet-o5m
+        run: |
+          echo "Starting..."
+          cd /home/planet/planet/
+          rm -f planet-new.o5m
+          osmupdate -v --drop-author --drop-version --hash-memory=4000  --max-merge=32 --out-o5m planet.o5m planet-new.o5m
+          mv planet-new.o5m planet.o5m
+          echo "Done."
+          curl -X POST https://comaps.zulipchat.com/api/v1/messages \
+            -u $ZULIP_BOT_EMAIL:$ZULIP_API_KEY \
+            --data-urlencode type=stream \
+            --data-urlencode 'to="DevOps"' \
+            --data-urlencode topic=codeberg-bot \
+            --data-urlencode 'content=O5M planet is updated for maps generation.'
+      - name: Generate maps
+        shell: bash
+        run: |
+          if [ ! -d /home/planet/SRTM-patched-europe/ ]; then
+            # TODO: it should be a separate step like Wiki or isolines; still we don't check for isolines or wiki here?
+            echo "ERROR: NO SRTM"
+            exit 1
+          fi
+          curl -X POST https://comaps.zulipchat.com/api/v1/messages \
+            -u $ZULIP_BOT_EMAIL:$ZULIP_API_KEY \
+            --data-urlencode type=stream \
+            --data-urlencode 'to="DevOps"' \
+            --data-urlencode topic=codeberg-bot \
+            --data-urlencode 'content=Starting maps generation.'
+          mkdir -p /root/keys
+          echo "$COUNTRIES_PUB_KEY" > /root/keys/comaps_maps_ed25519_pk.pem
+          echo "$COUNTRIES_SECRET_KEY" > /root/keys/comaps_maps_ed25519_sk.pem
+          mkdir -p /mnt/4tbexternal/osm-maps
+          cd ~/comaps
+          bash ./tools/unix/maps/docker_maps_generator.sh
+      - name: Notify Zulip
+        run: |
+          curl -X POST https://comaps.zulipchat.com/api/v1/messages \
+            -u $ZULIP_BOT_EMAIL:$ZULIP_API_KEY \
+            --data-urlencode type=stream \
+            --data-urlencode 'to="DevOps"' \
+            --data-urlencode topic=codeberg-bot \
+            --data-urlencode 'content=Maps generation is finished!'

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="NaviTheme" parent="MwmTheme.MainActivity">
+    <item name="colorAccent">@color/navi_ink</item>
+    <item name="colorPrimary">@color/navi_ink</item>
+    <item name="colorSecondary">@color/navi_ink</item>
+    <item name="colorOnPrimary">@color/navi_surface</item>
+    <item name="android:statusBarColor">@color/navi_surface</item>
+    <item name="android:navigationBarColor">@color/navi_surface</item>
+    <item name="android:windowBackground">@color/navi_surface</item>
+  </style>
+</resources>

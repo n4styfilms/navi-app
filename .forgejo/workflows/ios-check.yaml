@@ -1,0 +1,135 @@
+name: iOS Check
+on:
+  workflow_dispatch: # Manual trigger
+  push:
+    paths: &paths
+      - 3party/**
+      - configure.sh
+      - cmake/**
+      - '!cmake/windows/**'
+      - CMakeLists.txt
+      - defines.hpp
+      - .forgejo/workflows/ios-check.yaml  # Run check on self change
+      - libs/**
+      - '!libs/platform/*_android*'
+      - '!libs/platform/*_linux*'
+      - '!libs/platform/*_mac*'
+      - '!libs/platform/*qt*'
+      - '!libs/platform/*_win*'
+      - '!libs/pyhelpers/**'
+      - iphone/**
+      - '!iphone/metadata/**'
+      - '!**/*_tests/**'
+      - private.h
+      - xcode/**
+    branches:
+      - main
+  pull_request:
+    paths: *paths
+
+jobs:
+  ios-check:
+    name: Build iOS
+    runs-on: comaps-macos-tahoe
+    env:
+      DEBUG_RESULTS_BUNDLE_NAME: CoMaps-Debug-Test-Results
+      DERIVED_DATA_PATH: /Users/forgejo/Library/Developer/Xcode/DerivedData/CoMaps-CI
+      RELEASE_RESULTS_BUNDLE_NAME: CoMaps-Release-Build-Results
+    # Cancels previous jobs if the same branch or PR was updated again.
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Update submodules
+        uses: ./.forgejo/actions/update-submodules
+
+      - name: Cache world map
+        uses: actions/cache@v4
+        with:
+          path: data/world_mwm
+          key: world-mwm
+
+      - name: Configure repository
+        shell: bash
+        run: ./configure.sh
+
+      - name: Configure Xcode cache
+        uses: https://github.com/irgaly/xcode-cache@4141f139f00e335c6e1031fb93e667181f86146f # v1.9.2
+        with:
+          key: xcode-cache-deriveddata-v2-ios-check-${{ github.sha }}
+          restore-keys: xcode-cache-deriveddata-v2-ios-check-
+          deriveddata-directory: ${{ env.DERIVED_DATA_PATH }}
+
+      - name: Build and Run Tests (Debug)
+        id: debug_test
+        shell: bash
+        run: |
+          xcodebuild test \
+            -workspace xcode/CoMaps.xcworkspace \
+            -scheme CoMaps \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 18 Pro Max,OS=latest' \
+            -derivedDataPath "${DERIVED_DATA_PATH}" \
+            -quiet \
+            -resultBundlePath ${{ env.DEBUG_RESULTS_BUNDLE_NAME }}.xcresult \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO
+
+      - name: Upload Test Results On Failure (Debug)
+        if: ${{ failure() && steps.debug_test.outcome == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.DEBUG_RESULTS_BUNDLE_NAME }}-${{ github.run_number }}.xcresult
+          path: ${{ env.DEBUG_RESULTS_BUNDLE_NAME }}.xcresult
+          if-no-files-found: error
+
+      - name: Build (Release)
+        id: release_build
+        shell: bash
+        run: |
+          xcodebuild archive \
+            -workspace xcode/CoMaps.xcworkspace \
+            -scheme CoMaps \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "${DERIVED_DATA_PATH}" \
+            -quiet \
+            -archivePath CoMaps-Release.xcarchive \
+            -resultBundlePath ${{ env.RELEASE_RESULTS_BUNDLE_NAME }}.xcresult \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO
+
+      - name: Upload Build Results On Failure (Release)
+        if: ${{ failure() && steps.release_build.outcome == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.RELEASE_RESULTS_BUNDLE_NAME }}-${{ github.run_number }}.xcresult
+          path: ${{ env.RELEASE_RESULTS_BUNDLE_NAME }}.xcresult
+          if-no-files-found: error
+
+      - name: Create ipa
+        shell: bash
+        run: |
+          mkdir Payload
+          cp -R CoMaps-Release.xcarchive/Products/Applications/CoMaps.app Payload/
+          zip -ry 'CoMaps.ipa' Payload
+
+      - name: Upload ipa
+        uses: actions/upload-artifact@v3
+        with:
+          name: CoMaps release ipa
+          path: CoMaps.ipa
+          if-no-files-found: error
+
+      - name: Trim index store from DerivedData before caching
+        if: always()
+        shell: bash
+        # Index.noindex is Xcode's code-navigation database, drop if it exists
+        run: rm -rf "${DERIVED_DATA_PATH}/Index.noindex"

@@ -1,0 +1,33 @@
+project(platform_tests)
+
+set(SRC
+  country_file_tests.cpp
+  distance_tests.cpp
+  downloader_tests/downloader_test.cpp
+  downloader_utils_tests.cpp
+  glaze_test.cpp
+  jansson_test.cpp
+  language_test.cpp
+  local_country_file_tests.cpp
+  location_test.cpp
+  measurement_tests.cpp
+  platform_test.cpp
+  meta_config_tests.cpp
+  utm_mgrs_utils_tests.cpp
+)
+
+omim_add_test(${PROJECT_NAME} ${SRC} REQUIRE_QT REQUIRE_SERVER)
+
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    base
+    coding
+    cppjansson
+    platform
+    platform_tests_support
+)
+
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    glaze::glaze
+)

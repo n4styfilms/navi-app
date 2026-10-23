@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:id="@+id/name"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:animateLayoutChanges="true"
+  android:gravity="center_vertical"
+  android:orientation="horizontal">
+  <com.google.android.material.textfield.TextInputLayout
+    android:id="@+id/input_layout"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:hint="@string/editor_edit_place_name_hint">
+    <com.google.android.material.textfield.TextInputEditText
+      android:id="@+id/input"
+      style="@style/MwmWidget.Editor.FieldLayout.EditText"
+      android:inputType="textCapSentences"
+      android:padding="@dimen/margin_base"
+      android:textAlignment="viewStart" />
+  </com.google.android.material.textfield.TextInputLayout>
+  <com.google.android.material.imageview.ShapeableImageView
+    android:id="@+id/delete"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="?selectableItemBackgroundBorderless"
+    android:padding="@dimen/margin_half_plus"
+    app:srcCompat="@drawable/ic_close"
+    app:tint="?iconTint" />
+</LinearLayout>

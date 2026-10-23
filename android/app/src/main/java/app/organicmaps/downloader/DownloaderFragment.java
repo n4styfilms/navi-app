@@ -1,0 +1,270 @@
+package app.organicmaps.downloader;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.CallSuper;
+import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.RecyclerView;
+import app.organicmaps.R;
+import app.organicmaps.base.BaseMwmRecyclerFragment;
+import app.organicmaps.sdk.downloader.CountryItem;
+import app.organicmaps.sdk.downloader.MapManager;
+import app.organicmaps.sdk.search.MapSearchListener;
+import app.organicmaps.sdk.search.SearchEngine;
+import app.organicmaps.sdk.util.log.Logger;
+import app.organicmaps.util.bottomsheet.MenuBottomSheetFragment;
+import app.organicmaps.util.bottomsheet.MenuBottomSheetItem;
+import app.organicmaps.widget.PlaceholderView;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DownloaderFragment
+    extends BaseMwmRecyclerFragment<DownloaderAdapter> implements MenuBottomSheetFragment.MenuBottomSheetInterface
+{
+  private static final String TAG = DownloaderFragment.class.getSimpleName();
+
+  private DownloaderToolbarController mToolbarController;
+
+  private BottomPanel mBottomPanel;
+  @Nullable
+  private DownloaderAdapter mAdapter;
+
+  private long mCurrentSearch;
+  private boolean mSearchRunning;
+
+  private int mSubscriberSlot;
+
+  final ActivityResultLauncher<Intent> startVoiceRecognitionForResult =
+      registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                                activityResult -> mToolbarController.onVoiceRecognitionResult(activityResult));
+
+  private final RecyclerView.OnScrollListener mScrollListener = new RecyclerView.OnScrollListener() {
+    @Override
+    public void onScrollStateChanged(RecyclerView recyclerView, int newState)
+    {
+      if (newState == RecyclerView.SCROLL_STATE_DRAGGING)
+        mToolbarController.deactivate();
+    }
+  };
+
+  private final MapSearchListener mSearchListener = new MapSearchListener() {
+    @Keep
+    @Override
+    public void onMapSearchResults(@NonNull Result[] results, long timestamp, boolean isLast)
+    {
+      if (!mSearchRunning || timestamp != mCurrentSearch)
+        return;
+
+      List<CountryItem> rs = new ArrayList<>();
+      for (Result result : results)
+      {
+        CountryItem item = CountryItem.fill(result.countryId());
+        item.searchResultName = result.matchedString();
+        rs.add(item);
+      }
+
+      if (mAdapter != null)
+        mAdapter.setSearchResultsMode(rs, mToolbarController.getQuery());
+
+      if (isLast)
+        onSearchEnd();
+    }
+  };
+
+  boolean shouldShowSearch()
+  {
+    return CountryItem.isRoot(getCurrentRoot());
+  }
+
+  void startSearch()
+  {
+    mSearchRunning = true;
+    mCurrentSearch = System.nanoTime();
+    SearchEngine.searchMaps(requireContext(), mToolbarController.getQuery(), mCurrentSearch);
+    mToolbarController.showProgress(true);
+  }
+
+  void clearSearchQuery()
+  {
+    mToolbarController.clear();
+  }
+
+  void cancelSearch()
+  {
+    if (mAdapter == null || !mAdapter.isSearchResultsMode())
+      return;
+
+    mAdapter.resetSearchResultsMode();
+    onSearchEnd();
+  }
+
+  private void onSearchEnd()
+  {
+    mSearchRunning = false;
+    mToolbarController.showProgress(false);
+    update();
+  }
+
+  void update()
+  {
+    mToolbarController.update();
+    mBottomPanel.update();
+  }
+
+  @CallSuper
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState)
+  {
+    super.onCreate(savedInstanceState);
+    requireActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+  }
+
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+  {
+    super.onViewCreated(view, savedInstanceState);
+
+    ViewCompat.setOnApplyWindowInsetsListener(view, new DownloaderInsetsListener(view));
+
+    mSubscriberSlot = MapManager.nativeSubscribe(new MapManager.StorageCallback() {
+      @Override
+      public void onStatusChanged(List<MapManager.StorageCallbackData> data)
+      {
+        if (isAdded())
+          update();
+      }
+
+      @Override
+      public void onProgress(String countryId, long localSize, long remoteSize)
+      {}
+    });
+
+    MapManager.nativeSubscribeOnCheckUpdates(new MapManager.CheckUpdatesListener() {
+      @Override
+      public void onCheckUpdates(int status)
+      {
+        final boolean wasManuallyStarted = mBottomPanel.isCheckUpdatesManuallyStarted();
+        mBottomPanel.resetCheckUpdatesButton();
+        if (status == MapManager.CHECK_UPDATES_UPDATED)
+          update();
+        else if (status > MapManager.CHECK_UPDATES_ERROR)
+          Logger.w(TAG, "Check updates finished with unknown status: " + status);
+
+        final int notifResId = switch (status)
+        {
+          case MapManager.CHECK_UPDATES_UPDATED -> R.string.downloader_check_updates_updated;
+          case MapManager.CHECK_UPDATES_NOUPDATE -> R.string.downloader_check_updates_no_updates;
+          case MapManager.CHECK_UPDATES_EOL -> R.string.downloader_check_updates_eol;
+          case MapManager.CHECK_UPDATES_ERROR -> R.string.downloader_check_updates_error;
+          default -> R.string.downloader_check_updates_error;
+        };
+
+        // Don't notify if the check was automatic and resulted in noupdate or error,
+        // i.e. from user POV a map download/update is just being carried out using current/"old" map version.
+        if (wasManuallyStarted || status == MapManager.CHECK_UPDATES_UPDATED || status == MapManager.CHECK_UPDATES_EOL)
+          Toast.makeText(requireContext(), getString(notifResId), Toast.LENGTH_LONG).show();
+      }
+    });
+
+    SearchEngine.INSTANCE.addMapListener(mSearchListener);
+
+    getRecyclerView().addOnScrollListener(mScrollListener);
+    if (mAdapter != null)
+    {
+      mAdapter.refreshData();
+      mAdapter.attach();
+    }
+
+    mBottomPanel = new BottomPanel(this, view);
+    mToolbarController = new DownloaderToolbarController(view, requireActivity(), this);
+    requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                                                               mToolbarController.getBackPressedCallback());
+
+    update();
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+    if (mAdapter != null)
+      mAdapter.detach();
+    mAdapter = null;
+
+    if (mSubscriberSlot != 0)
+    {
+      MapManager.nativeUnsubscribe(mSubscriberSlot);
+      mSubscriberSlot = 0;
+    }
+
+    MapManager.nativeUnsubscribeOnCheckUpdates();
+
+    SearchEngine.INSTANCE.removeMapListener(mSearchListener);
+  }
+
+  @Override
+  public void onDestroy()
+  {
+    super.onDestroy();
+    if (getRecyclerView() != null)
+      getRecyclerView().removeOnScrollListener(mScrollListener);
+  }
+
+  @Override
+  protected int getLayoutRes()
+  {
+    return R.layout.fragment_downloader;
+  }
+
+  @NonNull
+  @Override
+  protected DownloaderAdapter createAdapter()
+  {
+    if (mAdapter == null)
+      mAdapter = new DownloaderAdapter(this);
+    requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                                                               mAdapter.getBackPressedCallback());
+
+    return mAdapter;
+  }
+
+  @NonNull
+  @Override
+  public DownloaderAdapter getAdapter()
+  {
+    return mAdapter;
+  }
+
+  @NonNull
+  String getCurrentRoot()
+  {
+    return mAdapter != null ? mAdapter.getCurrentRootId() : "";
+  }
+
+  @Override
+  protected void setupPlaceholder(@Nullable PlaceholderView placeholder)
+  {
+    if (placeholder == null)
+      return;
+
+    if (mAdapter != null && mAdapter.isSearchResultsMode())
+      placeholder.setContent(R.string.search_not_found, R.string.search_not_found_query, R.drawable.ic_search_fail);
+    else
+      placeholder.setContent(R.string.downloader_no_downloaded_maps_title,
+                             R.string.downloader_no_downloaded_maps_message, R.drawable.ic_download);
+  }
+
+  @Override
+  @Nullable
+  public ArrayList<MenuBottomSheetItem> getMenuBottomSheetItems(String id)
+  {
+    return mAdapter != null ? mAdapter.getMenuItems() : null;
+  }
+}

@@ -1,0 +1,455 @@
+{
+    "make_a_slight_right_turn": {
+        "defaultMessage": "Sağdan devam edin."
+    },
+    "make_a_slight_right_turn_street": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_slight_right_turn_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_right_turn": {
+        "defaultMessage": "Sağa dönün."
+    },
+    "make_a_right_turn_street": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_sharp_right_turn": {
+        "defaultMessage": "Tam sağa dönün."
+    },
+    "make_a_sharp_right_turn_street": {
+        "defaultMessage": "NULL"
+    },
+    "enter_the_roundabout": {
+        "defaultMessage": "Kavşağa girin."
+    },
+    "enter_the_roundabout_street": {
+        "defaultMessage": "NULL"
+    },
+    "enter_the_roundabout_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "leave_the_roundabout": {
+        "defaultMessage": "Kavşaktan çıkın."
+    },
+    "leave_the_roundabout_street": {
+        "defaultMessage": "NULL"
+    },
+    "leave_the_roundabout_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_slight_left_turn": {
+        "defaultMessage": "Soldan devam edin."
+    },
+    "make_a_slight_left_turn_street": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_slight_left_turn_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_left_turn": {
+        "defaultMessage": "Sola dönün."
+    },
+    "make_a_left_turn_street": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_sharp_left_turn": {
+        "defaultMessage": "Tam sola dönün."
+    },
+    "make_a_sharp_left_turn_street": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_u_turn": {
+        "defaultMessage": "U dönüşü yapın."
+    },
+    "make_a_u_turn_street": {
+        "defaultMessage": "NULL"
+    },
+    "make_a_u_turn_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "go_straight": {
+        "defaultMessage": "Düz ilerleyin."
+    },
+    "exit": {
+        "defaultMessage": "çıkın."
+    },
+    "onto": {
+        "defaultMessage": "yönünde"
+    },
+    "take_exit_number": {
+        "defaultMessage": "çıkın yönünde"
+    },
+    "take_exit_number_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "route_recalculating": {
+        "defaultMessage": "Rota yeniden hesaplanıyor"
+    },
+    "destination": {
+        "defaultMessage": "Varacaksınız."
+    },
+    "you_have_reached_the_destination": {
+        "defaultMessage": "Hedef noktasına vardınız."
+    },
+    "in_50_meters": {
+        "defaultMessage": "Elli metre sonra"
+    },
+    "in_100_meters": {
+        "defaultMessage": "Yüz metre sonra"
+    },
+    "in_200_meters": {
+        "defaultMessage": "İki yüz metre sonra"
+    },
+    "in_250_meters": {
+        "defaultMessage": "İki yüz elli metre sonra"
+    },
+    "in_300_meters": {
+        "defaultMessage": "Üç yüz metre sonra"
+    },
+    "in_400_meters": {
+        "defaultMessage": "Dört yüz metre sonra"
+    },
+    "in_500_meters": {
+        "defaultMessage": "Beş yüz metre sonra"
+    },
+    "in_600_meters": {
+        "defaultMessage": "Altı yüz metre sonra"
+    },
+    "in_700_meters": {
+        "defaultMessage": "Yedi yüz metre sonra"
+    },
+    "in_750_meters": {
+        "defaultMessage": "Yedi yüz elli metre sonra"
+    },
+    "in_800_meters": {
+        "defaultMessage": "Sekiz yüz metre sonra"
+    },
+    "in_900_meters": {
+        "defaultMessage": "Dokuz yüz metre sonra"
+    },
+    "in_1_kilometer": {
+        "defaultMessage": "Bir kilometre sonra"
+    },
+    "in_1_5_kilometers": {
+        "defaultMessage": "Bir buçuk kilometre sonra"
+    },
+    "in_2_kilometers": {
+        "defaultMessage": "İki kilometre sonra"
+    },
+    "in_2_5_kilometers": {
+        "defaultMessage": "İki buçuk kilometre sonra"
+    },
+    "in_3_kilometers": {
+        "defaultMessage": "Üç kilometre sonra"
+    },
+    "then": {
+        "defaultMessage": "Ardından"
+    },
+    "dist_direction_onto_street": {
+        "defaultMessage": "%1$s %4$s %3$s %2$s"
+    },
+    "take_the_1_exit": {
+        "defaultMessage": "Birinci çıkıştan çıkın."
+    },
+    "take_the_1_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_1_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_2_exit": {
+        "defaultMessage": "İkinci çıkıştan çıkın."
+    },
+    "take_the_2_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_2_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_3_exit": {
+        "defaultMessage": "Üçüncü çıkıştan çıkın."
+    },
+    "take_the_3_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_3_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_4_exit": {
+        "defaultMessage": "Dördüncü çıkıştan çıkın."
+    },
+    "take_the_4_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_4_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_5_exit": {
+        "defaultMessage": "Beşinci çıkıştan çıkın."
+    },
+    "take_the_5_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_5_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_6_exit": {
+        "defaultMessage": "Altıncı çıkıştan çıkın."
+    },
+    "take_the_6_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_6_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_7_exit": {
+        "defaultMessage": "Yedinci çıkıştan çıkın."
+    },
+    "take_the_7_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_7_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_8_exit": {
+        "defaultMessage": "Sekizinci çıkıştan çıkın."
+    },
+    "take_the_8_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_8_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_9_exit": {
+        "defaultMessage": "Dokuzuncu çıkıştan çıkın."
+    },
+    "take_the_9_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_9_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_10_exit": {
+        "defaultMessage": "Onuncu çıkıştan çıkın."
+    },
+    "take_the_10_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_10_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_11_exit": {
+        "defaultMessage": "On birinci çıkıştan çıkın."
+    },
+    "take_the_11_exit_street": {
+        "defaultMessage": "NULL"
+    },
+    "take_the_11_exit_street_verb": {
+        "defaultMessage": "NULL"
+    },
+    "in_50_feet": {
+        "defaultMessage": "Elli fit sonra"
+    },
+    "in_100_feet": {
+        "defaultMessage": "Yüz fit sonra"
+    },
+    "in_200_feet": {
+        "defaultMessage": "İki yüz fit sonra"
+    },
+    "in_300_feet": {
+        "defaultMessage": "Üç yüz fit sonra"
+    },
+    "in_400_feet": {
+        "defaultMessage": "Dört yüz fit sonra"
+    },
+    "in_500_feet": {
+        "defaultMessage": "Beş yüz fit sonra"
+    },
+    "in_600_feet": {
+        "defaultMessage": "Altı yüz fit sonra"
+    },
+    "in_700_feet": {
+        "defaultMessage": "Yedi yüz fit sonra"
+    },
+    "in_800_feet": {
+        "defaultMessage": "Sekiz yüz fit sonra"
+    },
+    "in_900_feet": {
+        "defaultMessage": "Dokuz yüz fit sonra"
+    },
+    "in_1000_feet": {
+        "defaultMessage": "Bin fit sonra"
+    },
+    "in_1500_feet": {
+        "defaultMessage": "Bin beş yüz fit sonra"
+    },
+    "in_2000_feet": {
+        "defaultMessage": "İki bin fit sonra"
+    },
+    "in_2500_feet": {
+        "defaultMessage": "İki bin beş yüz fit sonra"
+    },
+    "in_3000_feet": {
+        "defaultMessage": "Üç bin fit sonra"
+    },
+    "in_3500_feet": {
+        "defaultMessage": "Üç bin beş yüz fit sonra"
+    },
+    "in_4000_feet": {
+        "defaultMessage": "Dört bin fit sonra"
+    },
+    "in_4500_feet": {
+        "defaultMessage": "Dört bin beş yüz fit sonra"
+    },
+    "in_5000_feet": {
+        "defaultMessage": "Beş bin fit sonra"
+    },
+    "in_1_mile": {
+        "defaultMessage": "Bir mil sonra"
+    },
+    "in_1_5_miles": {
+        "defaultMessage": "Bir buçuk mil sonra"
+    },
+    "in_2_miles": {
+        "defaultMessage": "İki mil sonra"
+    },
+    "unknown_camera": {
+        "defaultMessage": "İleride kamera var"
+    },
+    "from_600_meters": {
+        "defaultMessage": "altı yüz metre"
+    },
+    "from_700_meters": {
+        "defaultMessage": "yedi yüz metre"
+    },
+    "from_750_meters": {
+        "defaultMessage": "yedi yüz elli metre"
+    },
+    "from_800_meters": {
+        "defaultMessage": "sekiz yüz metre"
+    },
+    "from_900_meters": {
+        "defaultMessage": "dokuz yüz metre"
+    },
+    "from_1_kilometer": {
+        "defaultMessage": "bir kilometre"
+    },
+    "from_1_5_kilometers": {
+        "defaultMessage": "bir buçuk kilometre"
+    },
+    "from_2_kilometers": {
+        "defaultMessage": "iki kilometre"
+    },
+    "from_2_5_kilometers": {
+        "defaultMessage": "iki buçuk kilometre"
+    },
+    "from_3_kilometers": {
+        "defaultMessage": "üç kilometre"
+    },
+    "at_the_end_of_the_road": {
+        "defaultMessage": "Yolun sonunda,"
+    },
+    "from_200_feet": {
+        "defaultMessage": "iki yüz fit"
+    },
+    "in_over_3_kilometers": {
+        "defaultMessage": "Üç kilometreden fazla bir mesafede"
+    },
+    "from_50_meters": {
+        "defaultMessage": "elli metre"
+    },
+    "from_100_meters": {
+        "defaultMessage": "yüz metre"
+    },
+    "from_200_meters": {
+        "defaultMessage": "iki yüz metre"
+    },
+    "from_250_meters": {
+        "defaultMessage": "iki yüz elli metre"
+    },
+    "from_300_meters": {
+        "defaultMessage": "üç yüz metre"
+    },
+    "from_400_meters": {
+        "defaultMessage": "dört yüz metre"
+    },
+    "from_500_meters": {
+        "defaultMessage": "beş yüz metre"
+    },
+    "from_over_3_kilometers": {
+        "defaultMessage": "üç kilometreden fazla"
+    },
+    "in_over_2_miles": {
+        "defaultMessage": "iki milden fazla mesafede"
+    },
+    "from_50_feet": {
+        "defaultMessage": "elli fit"
+    },
+    "from_100_feet": {
+        "defaultMessage": "yüz fit"
+    },
+    "from_300_feet": {
+        "defaultMessage": "üç yüz fit"
+    },
+    "from_400_feet": {
+        "defaultMessage": "dört yüz fit"
+    },
+    "from_500_feet": {
+        "defaultMessage": "beş yüz fit"
+    },
+    "from_600_feet": {
+        "defaultMessage": "altı yüz fit"
+    },
+    "from_700_feet": {
+        "defaultMessage": "yedi yüz fit"
+    },
+    "from_800_feet": {
+        "defaultMessage": "sekiz yüz fit"
+    },
+    "from_900_feet": {
+        "defaultMessage": "dokuz yüz fit"
+    },
+    "from_1000_feet": {
+        "defaultMessage": "bin fit"
+    },
+    "from_1500_feet": {
+        "defaultMessage": "bin beş yüz fit"
+    },
+    "from_2000_feet": {
+        "defaultMessage": "iki bin fit"
+    },
+    "from_2500_feet": {
+        "defaultMessage": "iki bin beş yüz fit"
+    },
+    "from_3000_feet": {
+        "defaultMessage": "üç bin fit"
+    },
+    "from_3500_feet": {
+        "defaultMessage": "üç bin beş yüz fit"
+    },
+    "from_4000_feet": {
+        "defaultMessage": "dört bin fit"
+    },
+    "from_4500_feet": {
+        "defaultMessage": "dört bin beş yüz fit"
+    },
+    "from_5000_feet": {
+        "defaultMessage": "beş bin fit"
+    },
+    "from_1_mile": {
+        "defaultMessage": "bir mil"
+    },
+    "from_1_5_miles": {
+        "defaultMessage": "bir buçuk mil"
+    },
+    "from_2_miles": {
+        "defaultMessage": "iki mil"
+    },
+    "from_over_2_miles": {
+        "defaultMessage": "iki milden fazla"
+    },
+    "route_not_recalculating": {
+        "defaultMessage": "Rota'dan %1$s"
+    }
+}

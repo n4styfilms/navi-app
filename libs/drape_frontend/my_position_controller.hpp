@@ -1,0 +1,270 @@
+#pragma once
+
+#include "drape_frontend/animation/animation.hpp"
+#include "drape_frontend/arrow3d.hpp"
+#include "drape_frontend/drape_hints.hpp"
+#include "drape_frontend/my_position.hpp"
+
+#include "drape/pointers.hpp"
+
+#include "shaders/program_manager.hpp"
+
+#include "geometry/point2d.hpp"
+#include "geometry/rect2d.hpp"
+
+#include "platform/location.hpp"
+
+#include "base/timer.hpp"
+
+#include <cstdint>
+#include <functional>
+#include <vector>
+
+class ScreenBase;
+
+namespace dp
+{
+class GraphicsContext;
+class TextureManager;
+}  // namespace dp
+
+namespace df
+{
+using TAnimationCreator = std::function<drape_ptr<Animation>(ref_ptr<Animation>)>;
+
+using TMyPositionModeChanged = std::function<void(location::EMyPositionMode, bool, bool)>;
+
+class DrapeNotifier;
+
+struct NavigationContext
+{
+  static double constexpr kSubPolylineDistanceM = 5000.0;
+
+  bool m_isNavigable = false;
+  double m_distanceToNextTurn = 0.0;
+  double m_speedLimit = 0.0;
+  m2::PointD m_currentRoutePoint = m2::PointD::Zero();
+  std::vector<m2::PointD> m_routeSubPolyline;
+
+  NavigationContext() = default;
+
+  NavigationContext(bool navigable, double distanceToTurn, double speedLimit,
+                    m2::PointD const & routePoint,
+                    std::vector<m2::PointD> && polylineSubset)
+    : m_isNavigable(navigable)
+    , m_distanceToNextTurn(distanceToTurn)
+    , m_speedLimit(speedLimit)
+    , m_currentRoutePoint(routePoint)
+    , m_routeSubPolyline(std::move(polylineSubset))
+  {}
+};
+
+class MyPositionController
+{
+public:
+  class Listener
+  {
+  public:
+    virtual ~Listener() = default;
+    virtual void PositionChanged(m2::PointD const & position, bool hasPosition) = 0;
+    // Show map with center in "center" point and current zoom.
+    virtual void ChangeModelView(m2::PointD const & center, int zoomLevel,
+                                 TAnimationCreator const & parallelAnimCreator) = 0;
+    // Change azimuth of current ModelView.
+    virtual void ChangeModelView(double azimuth, TAnimationCreator const & parallelAnimCreator) = 0;
+    // Somehow show map that "rect" will see.
+    virtual void ChangeModelView(m2::RectD const & rect, TAnimationCreator const & parallelAnimCreator) = 0;
+    // Show map where "usePos" (mercator) placed in "pxZero" on screen and map rotated around "userPos".
+    virtual void ChangeModelView(m2::PointD const & userPos, double azimuth, m2::PointD const & pxZero, int zoomLevel,
+                                 Animation::TAction const & onFinishAction,
+                                 TAnimationCreator const & parallelAnimCreator) = 0;
+    virtual void ChangeModelView(double autoScale, m2::PointD const & userPos, double azimuth,
+                                 m2::PointD const & pxZero, TAnimationCreator const & parallelAnimCreator) = 0;
+  };
+
+  struct Params
+  {
+    Params(location::EMyPositionMode initMode, location::EMyPositionMode preferredRoutingMode, double timeInBackground,
+           Hints const & hints, bool isRoutingActive, bool isAutozoomEnabled, TMyPositionModeChanged && fn)
+      : m_initMode(initMode)
+      , m_preferredRoutingMode(preferredRoutingMode)
+      , m_timeInBackground(timeInBackground)
+      , m_hints(hints)
+      , m_isRoutingActive(isRoutingActive)
+      , m_isAutozoomEnabled(isAutozoomEnabled)
+      , m_myPositionModeCallback(std::move(fn))
+    {}
+
+    location::EMyPositionMode m_initMode;
+    location::EMyPositionMode m_preferredRoutingMode;
+    double m_timeInBackground;
+    Hints m_hints;
+    bool m_isRoutingActive;
+    bool m_isAutozoomEnabled;
+    TMyPositionModeChanged m_myPositionModeCallback;
+  };
+
+  MyPositionController(Params && params, ref_ptr<DrapeNotifier> notifier);
+
+  void UpdatePosition();
+  void OnUpdateScreen(ScreenBase const & screen);
+  void SetVisibleViewport(m2::RectD const & rect);
+
+  void SetListener(ref_ptr<Listener> listener);
+
+  m2::PointD const & Position() const;
+  double GetErrorRadius() const;
+  double GetHorizontalAccuracy() const;
+
+  bool IsModeHasPosition() const;
+
+  void DragStarted();
+  void DragEnded(m2::PointD const & distance);
+
+  void ScaleStarted();
+  void ScaleEnded();
+
+  void Rotated();
+
+  void Scrolled(m2::PointD const & distance);
+
+  void ResetRoutingNotFollowTimer(bool blockTimer = false);
+  void ResetBlockAutoZoomTimer();
+
+  void CorrectScalePoint(m2::PointD & pt) const;
+  void CorrectScalePoint(m2::PointD & pt1, m2::PointD & pt2) const;
+  void CorrectGlobalScalePoint(m2::PointD & pt) const;
+
+  void SetRenderShape(ref_ptr<dp::GraphicsContext> context, ref_ptr<dp::TextureManager> texMng,
+                      drape_ptr<MyPosition> && shape, Arrow3d::PreloadedData && preloadedData);
+  void ResetRenderShape();
+
+  void ActivateRouting(int zoomLevel, bool enableAutoZoom, bool isArrowGlued, bool allowRouteRotation);
+  void DeactivateRouting();
+
+  void EnablePerspectiveInRouting(bool enablePerspective);
+  void EnableAutoZoomInRouting(bool enableAutoZoom);
+
+  void StopLocationFollow();
+  void NextMode(ScreenBase const & screen);
+  void LoseLocation();
+  location::EMyPositionMode GetCurrentMode() const { return m_mode; }
+  void StartPendingPositionMode();
+
+  void OnEnterForeground(double backgroundTime);
+  void OnEnterBackground();
+
+  void OnCompassTapped();
+  void OnLocationUpdate(location::GpsInfo const & info, df::NavigationContext const & navigationContext,
+                        ScreenBase const & screen);
+  void OnCompassUpdate(location::CompassInfo const & info, ScreenBase const & screen);
+
+  void Render(ref_ptr<dp::GraphicsContext> context, ref_ptr<gpu::ProgramManager> mng, ScreenBase const & screen,
+              int zoomLevel, FrameValues const & frameValues);
+
+  bool IsArrowRotationAvailable() const { return m_isArrowDirectionAssigned; }
+  bool IsRouteRotationAvailable() const { return m_isRouteDirectionAssigned; }
+  bool IsInRouting() const { return m_isInRouting; }
+  bool IsRouteFollowingActive() const;
+  bool IsModeChangeViewport() const;
+
+  bool IsWaitingForLocation() const;
+  m2::PointD GetDrawablePosition();
+  void UpdateRoutingOffsetY(bool useDefault, int offsetY);
+
+private:
+  void ChangeMode(location::EMyPositionMode newMode, bool persist);
+  void ChangeMode(location::EMyPositionMode newMode);
+  void SetRouteDirection(double bearing);
+  void SetArrowDirection(double bearing);
+
+  void ChangeModelView(m2::PointD const & center, int zoomLevel);
+  void ChangeModelView(double azimuth);
+  void ChangeModelView(m2::RectD const & rect);
+  void ChangeModelView(m2::PointD const & userPos, double azimuth, m2::PointD const & pxZero, int zoomLevel,
+                       Animation::TAction const & onFinishAction = nullptr);
+  void ChangeModelView(double autoScale, m2::PointD const & userPos, double azimuth, m2::PointD const & pxZero);
+
+  void UpdateViewport(int zoomLevel);
+  bool UpdateViewportWithAutoZoom();
+  m2::PointD GetRotationPixelCenter() const;
+  m2::PointD GetRoutingRotationPixelCenter() const;
+
+  double GetDrawableAzimut();
+  void CreateAnim(m2::PointD const & oldPos, double oldAzimut, ScreenBase const & screen);
+
+  bool AlmostCurrentPosition(m2::PointD const & pos) const;
+  bool AlmostCurrentAzimut(double azimut) const;
+
+  void CheckNotFollowRouting();
+  void CheckBlockAutoZoom();
+  void CheckUpdateLocation();
+
+  ref_ptr<DrapeNotifier> m_notifier;
+
+  /// @brief The current position mode
+  location::EMyPositionMode m_mode;
+  /// @brief The desired mode to switch to when the location is resolved
+  location::EMyPositionMode m_desiredInitMode;
+  /// @brief The user preferred mode when routing
+  location::EMyPositionMode m_preferredRoutingMode;
+  /// @brief The last follow mode used
+  location::EMyPositionMode m_lastFollowMode;
+
+  TMyPositionModeChanged m_modeChangeCallback;
+  Hints m_hints;
+
+  bool m_isInRouting = false;
+  bool m_isArrowGluedInRouting = false;
+
+  bool m_needBlockAnimation;
+  bool m_wasRotationInScaling;
+
+  drape_ptr<MyPosition> m_shape;
+  ref_ptr<Listener> m_listener;
+
+  double m_errorRadius;  // error radius in mercator.
+  double m_horizontalAccuracy;
+  m2::PointD m_position;  // position in mercator.
+  double m_direction;
+  double m_routeDirection;
+  double m_arrowDirection;
+  m2::PointD m_oldPosition;  // position in mercator.
+  double m_oldArrowDirection;
+
+  bool m_enablePerspectiveInRouting;
+  bool m_enableAutoZoomInRouting;
+  bool m_preferRouteDirectionInRouting;
+  double m_autoScale2d;
+  double m_autoScale3d;
+
+  base::Timer m_lastGPSBearingTimer;
+  base::Timer m_routingNotFollowTimer;
+  bool m_blockRoutingNotFollowTimer = false;
+  base::Timer m_blockAutoZoomTimer;
+  base::Timer m_updateLocationTimer;
+  double m_lastLocationTimestamp;
+
+  m2::RectD m_pixelRect;
+  m2::RectD m_visiblePixelRect;
+  double m_positionRoutingOffsetY;
+
+  bool m_isDirtyViewport;
+  bool m_isDirtyAutoZoom;
+  bool m_isPendingAnimation;
+
+  TAnimationCreator m_animCreator;
+
+  bool m_isPositionAssigned;
+  bool m_isArrowDirectionAssigned;
+  bool m_isRouteDirectionAssigned;
+  bool m_isCompassAvailable;
+
+  bool m_positionIsObsolete;
+  bool m_needBlockAutoZoom;
+
+  uint64_t m_routingNotFollowNotifyId;
+  uint64_t m_blockAutoZoomNotifyId;
+  uint64_t m_updateLocationNotifyId;
+};
+}  // namespace df

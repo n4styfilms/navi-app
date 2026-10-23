@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  style="@style/MwmWidget.M3.Editor.CardView"
+  android:layout_marginBottom="@dimen/margin_half"
+  android:layout_marginTop="@dimen/margin_half">
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="@dimen/editor_height_days"
+      android:layout_gravity="center_vertical"
+      android:baselineAligned="false"
+      android:orientation="horizontal"
+      android:padding="@dimen/margin_half_plus">
+
+      <LinearLayout
+        android:id="@+id/day1"
+        style="@style/MwmWidget.Editor.DayLayout">
+
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@+id/tv__day"
+          style="@style/MwmWidget.Editor.DayText"
+          tools:text="Su"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+          android:id="@+id/chb__day"
+          style="@style/MwmWidget.Editor.DayCheckBox"/>
+
+      </LinearLayout>
+
+      <Space
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.5"/>
+
+      <LinearLayout
+        android:id="@+id/day2"
+        style="@style/MwmWidget.Editor.DayLayout"
+        android:layout_weight="1">
+
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@id/tv__day"
+          style="@style/MwmWidget.Editor.DayText"
+          tools:text="Mo"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+          android:id="@id/chb__day"
+          style="@style/MwmWidget.Editor.DayCheckBox"/>
+
+      </LinearLayout>
+
+      <LinearLayout
+        android:id="@+id/day3"
+        style="@style/MwmWidget.Editor.DayLayout"
+        android:layout_weight="1">
+
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@id/tv__day"
+          style="@style/MwmWidget.Editor.DayText"
+          tools:text="Tu"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+          android:id="@id/chb__day"
+          style="@style/MwmWidget.Editor.DayCheckBox"/>
+
+      </LinearLayout>
+
+      <LinearLayout
+        android:id="@+id/day4"
+        style="@style/MwmWidget.Editor.DayLayout"
+        android:layout_weight="1">
+
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@id/tv__day"
+          style="@style/MwmWidget.Editor.DayText"
+          tools:text="We"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+          android:id="@id/chb__day"
+          style="@style/MwmWidget.Editor.DayCheckBox"/>
+
+      </LinearLayout>
+
+      <LinearLayout
+        android:id="@+id/day5"
+        style="@style/MwmWidget.Editor.DayLayout"
+        android:layout_weight="1">
+
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@id/tv__day"
+          style="@style/MwmWidget.Editor.DayText"
+          tools:text="Th"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+          android:id="@id/chb__day"
+          style="@style/MwmWidget.Editor.DayCheckBox"/>
+
+      </LinearLayout>
+
+      <LinearLayout
+        android:id="@+id/day6"
+        style="@style/MwmWidget.Editor.DayLayout"
+        android:layout_weight="1">
+
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@id/tv__day"
+          style="@style/MwmWidget.Editor.DayText"
+          tools:text="Fr"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+          android:id="@id/chb__day"
+          style="@style/MwmWidget.Editor.DayCheckBox"/>
+
+      </LinearLayout>
+
+      <Space
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.5"/>
+
+      <LinearLayout
+        android:id="@+id/day7"
+        style="@style/MwmWidget.Editor.DayLayout">
+
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@id/tv__day"
+          style="@style/MwmWidget.Editor.DayText"
+          tools:text="Sa"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+          android:id="@id/chb__day"
+          style="@style/MwmWidget.Editor.DayCheckBox"/>
+
+      </LinearLayout>
+
+    </LinearLayout>
+
+    <include layout="@layout/item_divider" />
+
+    <LinearLayout
+      android:id="@+id/allday"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_vertical"
+      android:background="?clickableBackground"
+      android:gravity="center_vertical"
+      android:orientation="horizontal"
+      android:padding="@dimen/margin_half">
+
+      <com.google.android.material.textview.MaterialTextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/editor_time_allday"
+        android:textAppearance="@style/MwmTextAppearance.Body1"/>
+
+      <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/sw__allday"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_quarter"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+      android:id="@+id/schedule"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:visibility="gone"
+      tools:visibility="visible">
+
+      <include layout="@layout/item_divider" />
+
+      <LinearLayout
+        android:id="@+id/time_open_close"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+          android:id="@+id/time_open"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:background="?clickableBackground"
+          android:orientation="vertical"
+          android:padding="@dimen/margin_half_plus">
+
+          <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_eighth"
+            android:text="@string/editor_time_open"
+            android:textAppearance="@style/MwmTextAppearance.Body3"/>
+
+          <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv__time_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/MwmTextAppearance.Title"
+            tools:text="09:00"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+          android:id="@+id/time_close"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:background="?clickableBackground"
+          android:orientation="vertical"
+          android:padding="@dimen/margin_half_plus">
+
+          <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_eighth"
+            android:text="@string/editor_time_close"
+            android:textAppearance="@style/MwmTextAppearance.Body3"/>
+
+          <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv__time_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/MwmTextAppearance.Title"
+            tools:text="16:00"/>
+
+        </LinearLayout>
+
+      </LinearLayout>
+
+      <include layout="@layout/item_divider" />
+
+      <LinearLayout
+        android:id="@+id/closed_host"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"/>
+
+      <com.google.android.material.button.MaterialButton
+        android:id="@+id/tv__add_closed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:textColor="?colorSecondary"
+        android:padding="@dimen/margin_half_plus"
+        android:text="@string/editor_time_add_closed"
+        android:textAppearance="@style/MwmTextAppearance.Body1" />
+
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/tv__remove_timetable"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      style="@style/Widget.Material3.Button.TextButton"
+      android:padding="@dimen/margin_half_plus"
+      android:text="@string/editor_time_delete"
+      android:textAppearance="@style/MwmTextAppearance.Body1"
+      android:textColor="@color/base_red"
+      app:rippleColor="@android:color/transparent"/>
+
+  </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

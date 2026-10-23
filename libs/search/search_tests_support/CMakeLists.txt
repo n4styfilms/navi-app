@@ -1,0 +1,35 @@
+project(search_tests_support)
+
+set(
+  SRC
+  helpers.cpp
+  helpers.hpp
+  test_results_matching.cpp
+  test_results_matching.hpp
+  test_search_engine.cpp
+  test_search_engine.hpp
+  test_search_request.cpp
+  test_search_request.hpp
+  test_with_custom_mwms.hpp
+)
+
+omim_add_library(${PROJECT_NAME} ${SRC})
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    base
+    editor
+    editor_tests_support
+    generator_tests_support
+    geometry
+    indexer
+    search
+    storage
+  PRIVATE
+    platform
+)
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    pugixml  # osm_editor.hpp -> editor_config.hpp
+)

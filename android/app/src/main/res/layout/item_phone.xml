@@ -1,0 +1,53 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/MwmWidget.M3.Editor.CardView"
+    android:layout_width="match_parent"
+    android:layout_margin="@dimen/margin_eighth"
+    android:layout_height="wrap_content">
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/margin_half"
+    android:paddingStart="@dimen/margin_half_plus"
+    android:paddingEnd="@dimen/margin_half_plus">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/phone_icon"
+        style="@style/MwmWidget.Editor.MetadataIcon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/phone_input"
+        app:srcCompat="@drawable/ic_phone" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/phone_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_half"
+        android:layout_marginEnd="@dimen/margin_half"
+        android:layout_toStartOf="@id/delete_icon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/delete_icon"
+        app:layout_constraintStart_toEndOf="@+id/phone_icon"
+        app:hintEnabled="false"
+        app:layout_constraintTop_toTopOf="parent">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input"
+            style="@style/MwmWidget.Editor.FieldLayout.EditText"
+            android:hint="@string/phone_format"
+            android:inputType="phone"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.imageview.ShapeableImageView
+      android:id="@+id/delete_icon"
+      style="@style/MwmWidget.Editor.MetadataIcon"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintStart_toEndOf="@+id/phone_input"
+      app:srcCompat="@drawable/ic_delete" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

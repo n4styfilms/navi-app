@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <item>
+    <shape android:shape="oval">
+      <solid android:color="@color/base_red"/>
+      <size
+          android:width="40dp"
+          android:height="40dp" />
+    </shape>
+  </item>
+
+  <item
+      android:bottom="8dp"
+      android:drawable="@drawable/ic_downloader_retry"
+      android:left="8dp"
+      android:right="8dp"
+      android:top="8dp" />
+</layer-list>

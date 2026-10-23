@@ -1,0 +1,269 @@
+#include "qt/preferences_dialog.hpp"
+
+#include "indexer/map_style.hpp"
+#include "map/framework.hpp"
+
+#include "platform/measurement_utils.hpp"
+#include "platform/preferred_languages.hpp"
+#include "platform/settings.hpp"
+#include "platform/style_utils.hpp"
+
+#include "i18n/localisation.hpp"
+
+#include <QLocale>
+#include <QtGui/QIcon>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QVBoxLayout>
+
+using namespace measurement_utils;
+
+#ifdef BUILD_DESIGNER
+std::string const kEnabledAutoRegenGeomIndex = "EnabledAutoRegenGeomIndex";
+#endif
+
+namespace qt
+{
+PreferencesDialog::PreferencesDialog(QWidget * parent, Framework & framework)
+  : QDialog(parent, Qt::WindowTitleHint | Qt::WindowSystemMenuHint)
+{
+  QIcon icon(":/ui/logo.png");
+  setWindowIcon(icon);
+  setWindowTitle(tr("Preferences"));
+
+  QButtonGroup * unitsGroup = new QButtonGroup(this);
+  QGroupBox * unitsRadioBox = new QGroupBox("System of measurement");
+  {
+    QHBoxLayout * layout = new QHBoxLayout();
+
+    QRadioButton * radioButton = new QRadioButton("Metric");
+    layout->addWidget(radioButton);
+    unitsGroup->addButton(radioButton, static_cast<int>(Units::Metric));
+
+    radioButton = new QRadioButton("Imperial (foot)");
+    layout->addWidget(radioButton);
+    unitsGroup->addButton(radioButton, static_cast<int>(Units::Imperial));
+
+    unitsRadioBox->setLayout(layout);
+
+    Units u;
+    if (!settings::Get(settings::kMeasurementUnits, u))
+    {
+      // Set default measurement from system locale
+      if (QLocale::system().measurementSystem() == QLocale::MetricSystem)
+        u = Units::Metric;
+      else
+        u = Units::Imperial;
+    }
+    unitsGroup->button(static_cast<int>(u))->setChecked(true);
+
+    // Temporary to pass the address of overloaded function.
+    void (QButtonGroup::*buttonClicked)(int) = &QButtonGroup::idClicked;
+    connect(unitsGroup, buttonClicked, [&framework](int i)
+    {
+      Units u = Units::Metric;
+      switch (i)
+      {
+      case 0: u = Units::Metric; break;
+      case 1: u = Units::Imperial; break;
+      }
+
+      settings::Set(settings::kMeasurementUnits, u);
+      framework.SetupMeasurementSystem();
+    });
+  }
+
+  QHBoxLayout * fontScaleFactorBox = new QHBoxLayout();
+  {
+    QLabel * fontScaleFactorLabel = new QLabel("Text size on map");
+    QSlider * fontScaleFactorSlider = new QSlider(Qt::Horizontal);
+
+    fontScaleFactorSlider->setMinimum(100);
+    fontScaleFactorSlider->setMaximum(400);
+    fontScaleFactorSlider->setSingleStep(5);
+    fontScaleFactorSlider->setPageStep(25);
+    fontScaleFactorSlider->setTickPosition(QSlider::NoTicks);
+    fontScaleFactorSlider->setValue(framework.LoadFontScaleFactor() * 100.0);
+    connect(fontScaleFactorSlider, &QSlider::valueChanged,
+            [&framework](int v) { framework.SetFontScaleFactor(static_cast<double>(v) / 100.0); });
+
+    fontScaleFactorBox->addWidget(fontScaleFactorLabel);
+    fontScaleFactorBox->addStretch();
+    fontScaleFactorBox->addWidget(fontScaleFactorSlider);
+  }
+
+  QCheckBox * transliterationCheckBox = new QCheckBox("Transliterate to Latin");
+  {
+    transliterationCheckBox->setChecked(framework.LoadTransliteration());
+    connect(transliterationCheckBox, &QCheckBox::stateChanged, [&framework](int i)
+    {
+      bool const enable = i > 0;
+      framework.SaveTransliteration(enable);
+      framework.AllowTransliteration(enable);
+    });
+  }
+
+  QCheckBox * developerModeCheckBox = new QCheckBox("Developer Mode");
+  {
+    bool developerMode;
+    if (settings::Get(settings::kDeveloperMode, developerMode) && developerMode)
+      developerModeCheckBox->setChecked(developerMode);
+    connect(developerModeCheckBox, &QCheckBox::stateChanged,
+            [](int i) { settings::Set(settings::kDeveloperMode, static_cast<bool>(i)); });
+  }
+
+  QLabel * mapLanguageLabel = new QLabel("Map Language");
+  QComboBox * mapLanguageComboBox = new QComboBox();
+  {
+    // The property maxVisibleItems is ignored for non-editable comboboxes in styles that
+    // return true for `QStyle::SH_ComboBox_Popup such as the Mac style or the Gtk+ Style.
+    // So we ensure that it returns false here.
+    mapLanguageComboBox->setStyleSheet("QComboBox { combobox-popup: 0; }");
+    mapLanguageComboBox->setMaxVisibleItems(10);
+    std::vector<localisation::Language> const supportedLanguages = localisation::GetSupportedLanguages(/* includeServiceLangs */ false);
+
+    // Create a vector of pairs (name, index) and sort by name
+    std::vector<std::pair<std::string, size_t>> languageNameIndexPairs;
+    for (size_t i = 0; i < supportedLanguages.size(); ++i)
+      languageNameIndexPairs.emplace_back(std::string(supportedLanguages[i].m_name), i);
+    std::sort(languageNameIndexPairs.begin(), languageNameIndexPairs.end(), [](auto const & a, auto const & b) { return a.first < b.first; });
+
+    QStringList languagesList = QStringList();
+    std::vector<size_t> sortedIndices;
+    languagesList << QString::fromStdString("Auto");
+    sortedIndices.push_back(0);
+    languagesList << QString::fromStdString("Local Language");
+    sortedIndices.push_back(1);
+    for (auto const & pair : languageNameIndexPairs)
+    {
+      languagesList << QString::fromStdString(pair.first);
+      sortedIndices.push_back(pair.second + 2);
+    }
+    mapLanguageComboBox->addItems(languagesList);
+
+    std::optional<std::string> const mapLanguageCode = framework.GetCustomMapLanguageCode();
+    int8_t languageIndex = localisation::kUnsupportedLanguageIndex;
+    if (mapLanguageCode.has_value())
+      languageIndex = localisation::ConvertLanguageCodeToLanguageIndex(mapLanguageCode.value());
+    if (languageIndex == localisation::kUnsupportedLanguageIndex)
+      mapLanguageComboBox->setCurrentText(QString::fromStdString("Auto"));
+    else if (languageIndex == localisation::kDefaultNameIndex)
+      mapLanguageComboBox->setCurrentText(QString::fromStdString("Local Language"));
+    else
+      mapLanguageComboBox->setCurrentText(QString::fromStdString(localisation::GetLanguageNameByLanguageIndex(languageIndex)));
+
+    connect(mapLanguageComboBox, &QComboBox::currentIndexChanged, [&framework, sortedIndices, supportedLanguages](int index) {
+      if (index == 0)
+        framework.SetCustomMapLanguageCode();
+      else if (index == 1)
+        framework.SetCustomMapLanguageCode("default");
+      else
+        framework.SetCustomMapLanguageCode(supportedLanguages[sortedIndices[index] - 2].m_languageCode);
+    });
+  }
+
+  QLabel * alternativeMapLanguageHandlingLabel = new QLabel("Alternative Map Language");
+  QComboBox * alternativeMapLanguageHandlingComboBox = new QComboBox();
+  {
+    // The property maxVisibleItems is ignored for non-editable comboboxes in styles that
+    // return true for `QStyle::SH_ComboBox_Popup such as the Mac style or the Gtk+ Style.
+    // So we ensure that it returns false here.
+    alternativeMapLanguageHandlingComboBox->setStyleSheet("QComboBox { combobox-popup: 0; }");
+    alternativeMapLanguageHandlingComboBox->setMaxVisibleItems(3);
+
+    QStringList languagesList = QStringList();
+    std::vector<size_t> sortedIndices;
+    languagesList << QString::fromStdString("Don't use alternatives");
+    sortedIndices.push_back(0);
+    languagesList << QString::fromStdString("Use in system order");
+    sortedIndices.push_back(1);
+    languagesList << QString::fromStdString("Prefer and only use where native");
+    sortedIndices.push_back(1);
+    alternativeMapLanguageHandlingComboBox->addItems(languagesList);
+
+    alternativeMapLanguageHandlingComboBox->setCurrentText(languagesList.at(framework.GetAlternativeMapLanguageHandling()));
+    connect(alternativeMapLanguageHandlingComboBox, &QComboBox::currentIndexChanged, [&framework, languagesList](int index) {
+      framework.SetAlternativeMapLanguageHandling(localisation::AlternativeMapLanguageHandling(index));
+    });
+  }
+
+  QCheckBox * showBookmarkLabelsCheckBox = new QCheckBox("Show names of favorites on map");
+  {
+    showBookmarkLabelsCheckBox->setChecked(Framework::GetShowBookmarkLabels());
+
+    connect(showBookmarkLabelsCheckBox, &QCheckBox::stateChanged,
+            [&framework](int state) { framework.SetShowBookmarkLabels(state != 0); });
+  }
+
+  QButtonGroup * mapAppearanceGroup = new QButtonGroup(this);
+  QGroupBox * mapAppearanceRadioBox = new QGroupBox("Map Appearance");
+  {
+    using namespace style_utils;
+    QHBoxLayout * layout = new QHBoxLayout();
+
+    QRadioButton * radioButton = new QRadioButton("Light");
+    layout->addWidget(radioButton);
+    mapAppearanceGroup->addButton(radioButton, static_cast<int>(MapAppearance::Light));
+
+    radioButton = new QRadioButton("Dark");
+    layout->addWidget(radioButton);
+    mapAppearanceGroup->addButton(radioButton, static_cast<int>(MapAppearance::Dark));
+
+    mapAppearanceRadioBox->setLayout(layout);
+
+    int const btn = framework.CurrentMapAppearance() == MapAppearance::Light ? 0 : 1;
+    mapAppearanceGroup->button(btn)->setChecked(true);
+
+    void (QButtonGroup::*buttonClicked)(int) = &QButtonGroup::idClicked;
+    connect(mapAppearanceGroup, buttonClicked, [&framework](int i)
+    { framework.SwitchToMapAppearance(i == 0 ? MapAppearance::Light : MapAppearance::Dark); });
+  }
+
+#ifdef BUILD_DESIGNER
+  QCheckBox * indexRegenCheckBox = new QCheckBox("Enable auto regeneration of geometry index");
+  {
+    bool enabled = false;
+    if (!settings::Get(kEnabledAutoRegenGeomIndex, enabled))
+      settings::Set(kEnabledAutoRegenGeomIndex, false);
+    indexRegenCheckBox->setChecked(enabled);
+    connect(indexRegenCheckBox, &QCheckBox::stateChanged,
+            [](int i) { settings::Set(kEnabledAutoRegenGeomIndex, static_cast<bool>(i)); });
+  }
+#endif
+
+  QHBoxLayout * bottomLayout = new QHBoxLayout();
+  {
+    QPushButton * closeButton = new QPushButton(tr("Close"));
+    closeButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    closeButton->setDefault(true);
+    connect(closeButton, &QAbstractButton::clicked, [this]() { done(0); });
+
+    bottomLayout->addStretch(1);
+    bottomLayout->setSpacing(0);
+    bottomLayout->addWidget(closeButton);
+  }
+
+  QVBoxLayout * finalLayout = new QVBoxLayout();
+  finalLayout->addWidget(unitsRadioBox);
+  finalLayout->addLayout(fontScaleFactorBox);
+  finalLayout->addWidget(transliterationCheckBox);
+  finalLayout->addWidget(developerModeCheckBox);
+  finalLayout->addWidget(mapLanguageLabel);
+  finalLayout->addWidget(mapLanguageComboBox);
+  finalLayout->addWidget(alternativeMapLanguageHandlingLabel);
+  finalLayout->addWidget(alternativeMapLanguageHandlingComboBox);
+  finalLayout->addWidget(mapAppearanceRadioBox);
+  finalLayout->addWidget(showBookmarkLabelsCheckBox);
+#ifdef BUILD_DESIGNER
+  finalLayout->addWidget(indexRegenCheckBox);
+#endif
+  finalLayout->addLayout(bottomLayout);
+  setLayout(finalLayout);
+}
+}  // namespace qt

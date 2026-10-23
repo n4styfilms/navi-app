@@ -1,0 +1,80 @@
+name: Android Beta
+on:
+  workflow_dispatch: # Manual trigger
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - .gitignore
+      - .forgejo/**
+      - '!.forgejo/workflows/android-beta.yaml'  # Run check on self change
+      - '**/*_tests/**'
+      - '**/CMakeLists.txt'
+      - CONTRIBUTORS
+      - LICENSE
+      - NOTICE
+      - README.md
+      - android/app/src/fdroid/**
+      - android/app/src/google/**
+      - iphone/**
+      - data/*-strings/**
+      - docs/**
+      - generator/**
+      - packaging/**
+      - libs/platform/*apple*
+      - libs/platform/*_ios*
+      - libs/platform/*_linux*
+      - libs/platform/*_mac*
+      - libs/platform/*qt*
+      - libs/platform/*_win*
+      - libs/pyhelpers/**
+      - qt*/**
+      - tools/**
+      - xcode/**
+
+jobs:
+  android-google-beta:
+    name: Android Google Beta
+    runs-on: comaps-android
+    environment: beta
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100 # enough to get all commits for the current day
+
+      - name: Parallel submodules checkout
+        shell: bash
+        run: git submodule update --depth 1 --init --recursive --jobs=$(($(nproc) * 20))
+
+      - name: Restore beta keys
+        shell: bash
+        run: |
+          echo "$PRIVATE_H" | base64 -d > private.h
+          echo "$FIREBASE_APP_DISTRIBUTION_JSON" | base64 -d > android/app/firebase-app-distribution.json
+          echo "$GOOGLE_SERVICES_JSON" | base64 -d > android/app/google-services.json
+          echo "$SECURE_PROPERTIES" | base64 -d > android/app/secure.properties
+          echo "$RELEASE_KEYSTORE" | base64 -d > android/app/release.keystore
+        env:
+          PRIVATE_H: ${{ secrets.PRIVATE_H }}
+          FIREBASE_APP_DISTRIBUTION_JSON: ${{ secrets.FIREBASE_APP_DISTRIBUTION_JSON }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          SECURE_PROPERTIES: ${{ secrets.SECURE_PROPERTIES }}
+          RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
+
+      - name: Compile
+        shell: bash
+        working-directory: android
+        run: |
+          ./gradlew -Pfirebase assembleGoogleBeta uploadCrashlyticsSymbolFileGoogleBeta uploadCrashlyticsMappingFileGoogleBeta
+
+      - name: Upload beta apk to App Distribution
+        shell: bash
+        working-directory: android
+        run: |
+          ./gradlew appDistributionUploadGoogleBeta
+
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@v3
+        with:
+          name: android/app/build/intermediates/merged_native_libs

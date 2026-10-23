@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="65sp"
+  android:gravity="center_vertical"
+  android:orientation="horizontal"
+  tools:background="#3000FF00">
+
+  <Space
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="0.5"/>
+
+  <!-- ETA (Estimated Time of Arrival) -->
+  <LinearLayout
+    android:id="@+id/eta_container"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:minWidth="@dimen/nav_numbers_side_min_width">
+
+    <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      tools:background="#20FF0000">
+
+      <!-- ETA value -->
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/eta_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:lines="1"
+        android:textAppearance="@style/MwmTextAppearance.NavMenu.Number"
+        tools:text="99:99"/>
+
+      <!-- ETA AM/PM -->
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/eta_am_pm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:lines="1"
+        android:textAppearance="@style/MwmTextAppearance.NavMenu.Number.Dimension"
+        tools:background="#20FF0000"
+        tools:text="AM/PM"/>
+    </LinearLayout>
+
+    <!-- Destination -->
+    <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      tools:background="#20FF0000">
+
+      <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/eta_icon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        app:srcCompat="@drawable/route_finish"/>
+
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/eta_destination"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="fill"
+        android:includeFontPadding="false"
+        android:lines="1"
+        android:textAppearance="@style/MwmTextAppearance.NavMenu.Number.Dimension"
+        tools:background="#20FF0000"
+        tools:text="@string/destination"/>
+
+    </LinearLayout>
+  </LinearLayout>
+
+  <Space
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1.25"/>
+
+  <!-- Rebuilding route progress bar -->
+  <com.google.android.material.progressindicator.CircularProgressIndicator
+    android:id="@+id/rebuilding_route_progress_bar"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="12dp"
+    android:indeterminate="true"/>
+
+  <!-- Time -->
+  <LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:minWidth="@dimen/nav_numbers_side_min_width">
+    <LinearLayout
+      android:id="@+id/time_values_container"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      tools:background="#20FF0000">
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/time_hour_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:lines="1"
+        android:textAppearance="@style/MwmTextAppearance.NavMenu.Time"
+        tools:text="999"/>
+
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/time_hour_dimen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_quarter"
+        android:includeFontPadding="false"
+        android:lines="1"
+        android:textAppearance="@style/MwmTextAppearance.NavMenu.Time.Dimension"
+        tools:text="h"/>
+
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/time_minute_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:lines="1"
+        android:textAlignment="center"
+        android:textAppearance="@style/MwmTextAppearance.NavMenu.Time"
+        tools:text="99"/>
+
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/time_minute_dimen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:lines="1"
+        android:textAppearance="@style/MwmTextAppearance.NavMenu.Time.Dimension"
+        tools:text="m"/>
+    </LinearLayout>
+
+    <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      tools:background="#20FF0000">
+
+      <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/dots_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        app:srcCompat="@drawable/switch_dots_on"/>
+
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/routing_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:clickable="false"
+        android:lines="1"
+        android:textAlignment="center"
+        android:textAppearance="@style/MwmTextAppearance.NavMenu.Number.Dimension"
+        tools:text="----"/>
+
+    </LinearLayout>
+  </LinearLayout>
+
+  <Space
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1.25"/>
+
+  <!-- Distance -->
+  <LinearLayout
+    android:id="@+id/distance_container"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:minWidth="@dimen/nav_numbers_side_min_width">
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/distance_value"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:includeFontPadding="false"
+      android:lines="1"
+      android:textAppearance="@style/MwmTextAppearance.NavMenu.Number"
+      tools:text="99999"/>
+
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/distance_dimen"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:gravity="center"
+      android:includeFontPadding="false"
+      android:lines="1"
+      android:textAppearance="@style/MwmTextAppearance.NavMenu.Number.Dimension"
+      tools:background="#20FF0000"
+      tools:text="km"/>
+  </LinearLayout>
+
+  <com.google.android.material.button.MaterialButton
+      android:id="@+id/rebuild_route"
+      android:layout_width="wrap_content"
+      android:layout_height="@dimen/nav_button_height"
+      android:minWidth="@dimen/start_button_width"
+      style="@style/MwmWidget.M3.Button"
+      android:text="@string/recalculate_route"
+      android:textAllCaps="true"
+      android:textColor="@color/button_accent_text"
+      android:textStyle="bold"
+      app:backgroundTint="@color/base_accent" />
+
+  <Space
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="0.5"/>
+</LinearLayout>

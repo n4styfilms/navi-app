@@ -1,0 +1,1151 @@
+# Mwm name	Generation time
+WorldCoasts	24988.217021
+Vietnam	96251.687552
+India_Uttar Pradesh	86292.78550000001
+Mexico_Mexico	67715.105467
+Mexico_South	58889.180098
+Pakistan	44724.235022
+Kenya	36404.959757
+Tanzania	35558.877908
+Poland_Masovian Voivodeship	32600.5327
+Poland_Lesser Poland Voivodeship	26869.406049
+Nigeria_South	25568.925918999998
+Thailand_Central	25126.639323
+Myanmar	24410.79388
+Germany_Baden-Wurttemberg_Regierungsbezirk Stuttgart_Stuttgart	23147.646763
+Germany_Baden-Wurttemberg_Regierungsbezirk Karlsruhe	23122.886386
+India_Tamil Nadu	23119.332061
+Brazil_Northeast Region_West	22852.76452
+India_Bihar	22395.171701
+Germany_Hesse_Regierungsbezirk Darmstadt	22351.310897
+India_Maharashtra	22339.005217
+India_West Bengal	22251.410799
+India_Rajasthan	21547.855012
+Germany_Rhineland-Palatinate_Koblenz	21221.685476
+India_Punjab	21050.048025
+India_Haryana	20939.120651999998
+Germany_Free State of Bavaria_Swabia	20323.960292
+Malawi	20271.763646
+World	20254.076270999998
+France_Ile-de-France_Val-dOise	996.18539
+France_Ile-de-France_Paris	572.774005
+France_Ile-de-France_Seine-Saint-Denis	565.022193
+Taiwan_North	11211.521599
+Brazil_Bahia	19877.647362
+Hungary_Northern Great Plain	19654.680039000003
+Germany_Free State of Bavaria_Lower Franconia	18700.204399
+Germany_Baden-Wurttemberg_Regierungsbezirk Tubingen	18416.957498
+Mozambique	18356.487248
+Germany_Thuringia	18306.120498
+India_Andhra Pradesh	17258.042206000002
+Spain_Castile-La Mancha	16129.925144
+Poland_Silesian Voivodeship	15751.194333
+China_Yunnan	15692.900731
+Thailand_South	15576.746868
+Nigeria_North	15535.834910000001
+Germany_Baden-Wurttemberg_Regierungsbezirk Freiburg	15494.968296
+Poland_Lower Silesian Voivodeship	15196.473304
+Germany_Hesse_Regierungsbezirk Kassel	15189.514178
+Austria_Lower Austria_West	15141.910168999999
+India_Madhya Pradesh	14996.322316999998
+Germany_Saxony_Leipzig	14606.753535999998
+France_Champagne-Ardenne	14282.228173
+Japan_Kanto_Tokyo	14277.685244
+Austria_Lower Austria_Wien	14213.792126
+Portugal_Viseu	14204.280840000001
+Indonesia_Jawa Tengah	14091.333751
+Mexico_Central_West	13197.842948
+Bangladesh	13178.074137
+Taiwan_South	6291.097009
+Poland_Subcarpathian Voivodeship	12881.225804
+Poland_Greater Poland Voivodeship	12533.583219
+Germany_Free State of Bavaria_Middle Franconia	12186.646102
+Brazil_Southeast Region_Minas Gerais_Contagem	11896.921225
+Slovenia_East	11634.504759000001
+Germany_Free State of Bavaria_Upper Palatinate	11318.358468
+Zambia	11266.429969
+China_Hebei	10995.010182999999
+Indonesia_Jawa Barat	10916.781189000001
+Uganda	10818.124806
+Iran_North	10312.55109
+Hungary_Transdanubia	10271.327809999999
+Japan_Kanto_Saitama	10206.774642999999
+Poland_Lublin Voivodeship	10079.499918
+Bulgaria_West	9701.151007999999
+Serbia	9643.819598
+Mexico_Central_East	9547.927747
+US_Texas_Dallas	9545.356597
+France_Limousin	9441.104606
+US_Indiana_North	9420.195579
+Germany_Free State of Bavaria_Lower Bavaria	9338.582202
+US_Tennessee_West	9113.488685
+US_New York_West	9101.642645
+Germany_Free State of Bavaria_Upper Franconia	8996.384054
+Germany_Baden-Wurttemberg_Regierungsbezirk Stuttgart_Heilbronn	8933.165362000002
+UK_England_West Midlands	8906.842645
+Brazil_Southeast Region_Minas Gerais_North	8758.819347
+UK_England_South East_Oxford	8650.767687
+Spain_Castile and Leon_West	8519.415962
+Brazil_Southeast Region_Sao Paulo_Campinas	8506.775471
+Japan_Kanto_Kanagawa	8497.233615000001
+Germany_Hesse_Regierungsbezirk Giessen	8494.655672
+US_Tennessee_East	8385.658809
+US_California_LA	8063.927519000001
+UK_England_East Midlands	7987.001547
+Germany_North Rhine-Westphalia_Regierungsbezirk Detmold	7963.799473
+US_Nevada	7926.82287
+US_Alabama_Montgomery	7906.177232
+Spain_Valencian Community	7856.985238
+Poland_Lodz Voivodeship	7836.310689
+Mali	7789.8269390000005
+US_Ohio_Cleveland	7699.0303779999995
+Senegal	7693.798245
+US_Colorado_Denver	7554.812206
+Portugal_Porto	7543.573431999999
+China_Jiangsu	7539.476749
+UK_England_South West England_Bristol	7422.974765
+India_Karnataka_South	7334.107445
+Indonesia_Jawa Timur	7313.387274000001
+Spain_Castile and Leon_East	7236.330701
+Morocco_Southern	7212.484957
+US_Michigan_Lansing	7189.492527
+Germany_North Rhine-Westphalia_Regierungsbezirk Koln_Koln	7181.406279000001
+China_Sichuan	7156.805661
+India_Telangana	7144.435298
+US_California_Santa_Clara_Palo Alto	7114.321795
+US_Ohio_Cincinnati	7094.079849
+Germany_North Rhine-Westphalia_Regierungsbezirk Arnsberg_Arnsberg	7035.76025
+Germany_Lower Saxony_Oldenburg	6942.7179049999995
+Czech_Jihovychod_Jihomoravsky kraj	6921.467444
+Greece_Decentralized Administration of Macedonia and Thrace	6908.2687510000005
+Germany_Rhineland-Palatinate_South	6906.951306
+Austria_Styria_Graz	6860.978206000001
+Kazakhstan_South	6791.6601
+China_Shandong	6678.594564
+US_Maryland_Baltimore	6651.287511
+Russia_Moscow Oblast_East	6647.3518300000005
+Syria	6465.184789
+US_North Carolina_Charlotte	6448.080823
+China_Henan	6443.452518
+Iran_South	6431.561104
+Spain_Aragon	6421.098697
+US_Georgia_Atlanta	6405.299991
+France_Rhone-Alpes_Rhone	6332.293403
+France_Burgundy_Saone-et-Loire	6214.917847
+Switzerland_Espace Mittelland_Bern	6176.807277
+France_Upper Normandy	6062.407908
+Spain_Catalonia_Provincia de Barcelona	5986.362201
+US_Indiana_Indianapolis	5928.077285
+India_Kerala	5907.414466
+UK_England_South East_Brighton	5904.536287
+Egypt	5886.222519
+US_Florida_Jacksonville	5843.109143000001
+US_Texas_West	5785.95135
+India_Karnataka_North	5665.5791150000005
+Germany_Brandenburg_South	5650.348293
+US_Arizona_Phoenix	5612.283592
+Germany_North Rhine-Westphalia_Regierungsbezirk Koln_Aachen	5585.002979
+Turkey_Mediterranean Region	5568.932387
+Brazil_Northeast Region_East	5567.4643
+India_Gujarat	5409.992459
+US_Michigan_Grand Rapids	5404.597192
+France_Poitou-Charentes_Charente-Maritime	5397.6119069999995
+South Africa_Gauteng	5373.26057
+Brazil_Santa Catarina	5373.226638
+US_North Carolina_Greensboro	5284.548216
+Switzerland_Eastern	5271.2216769999995
+US_Kansas_East	5237.116102999999
+US_Virginia_Lynchburg	5194.963518
+Slovakia_Region of Banska Bystrica	5184.126672
+Poland_Kuyavian-Pomeranian Voivodeship	5183.847282
+Israel	5174.533754
+US_New York_North	5153.122144999999
+Sudan_West	5133.869610000001
+Italy_Tuscany_Massa e Carrara	5118.286823
+France_Rhone-Alpes_Loire	5055.032014
+US_Connecticut	5048.849241000001
+Portugal_South	5032.41706
+South Korea_North	4998.647239
+Australia_Victoria	4954.04876
+China_Guangdong	4944.660353
+France_Centre-Val de Loire_Indre-et-Loire	4845.291428
+Uzbekistan	4844.768196999999
+Peru_North	4839.160175999999
+Spain_Catalonia_Provincia de Lleida	4833.438046
+US_Pennsylvania_Reading	4802.528959
+US_Pennsylvania_Central	4761.095096999999
+UK_England_Yorkshire and the Humber	4757.334792000001
+South Korea_South	4738.977275
+France_Midi-Pyrenees_Haute-Garonne	4729.234668
+Germany_Brandenburg_North	4682.467096
+Somalia	4672.853969000001
+Brazil_Paraiba	4670.775227
+UK_England_Greater London	4652.997088
+Switzerland_Lake Geneva region	4626.157392
+US_Texas_Austin	4601.952864
+US_Texas_Tyler	4601.703605
+US_West Virginia	4535.639784
+US_New Mexico_Roswell	4530.717850999999
+Japan_Kinki Region_Osaka_Osaka	4508.0044419999995
+Afghanistan	4461.8709929999995
+Switzerland_Zurich	4440.508664999999
+Congo-Kinshasa_West	4421.455972
+US_Virginia_Roanoke	4419.282102
+France_Auvergne_Puy-de-Dome	4361.234317
+US_Idaho_South	4354.868541
+Brazil_South Region_West	4346.942274999999
+US_Michigan_Detroit	4332.272845
+Burkina Faso	4319.329180000001
+France_Poitou-Charentes_Deux-Sevres	4313.382252
+Germany_Free State of Bavaria_Upper Bavaria_East	4299.1529550000005
+France_Centre-Val de Loire_Indre	4283.176668
+US_Pennsylvania_Pittsburgh	4274.156095
+US_Ohio_Columbus	4267.798518
+Poland_Swietokrzyskie Voivodeship	4232.837105
+Poland_Pomeranian Voivodeship	4218.161505
+Indonesia_Central	4215.742676
+Ethiopia	4193.911962
+Germany_North Rhine-Westphalia_Regierungsbezirk Arnsberg_Dortmund	4185.019977
+US_Illinois_Chickago	4171.755168
+Brazil_Southeast Region_Sao Paulo_City	4166.712416
+Russia_Tatarstan	4166.121099
+US_Texas_Houston	4163.18546
+UK_England_East of England_Essex	4113.784575
+US_Illinois_Elgin	4101.522774
+Ireland_Leinster	4089.807179
+France_Pays de la Loire_Maine-et-Loire	4085.8795999999998
+Paraguay	4074.116754
+Turkey_Southeastern Anatolia Region	4045.687184
+Czech_Moravskoslezsko	4038.750737
+Switzerland_Northwestern	4035.33409
+Croatia_Central	4024.8923910000003
+US_Utah_North	4020.176293
+US_Missouri_Springfield	4019.434484
+US_Maryland_and_DC	4016.1732230000002
+US_Wisconsin_Milwaukee	4013.0046549999997
+US_North Carolina_Raleigh	4008.2202949999996
+US_Arkansas_North	4004.3096920000003
+US_Mississippi_North	4002.270273
+Germany_Lower Saxony_Hannover	3950.909306
+Slovakia_Region of Kosice	3922.28047
+China_Zhejiang	3909.000978
+US_Texas_San Antonio	3864.579879
+US_Kansas_Wichita	3842.7269450000003
+UK_England_North West England_Manchester	3820.567447
+US_Wyoming	3820.0605100000002
+France_Nord-Pas-de-Calais_Pas-de-Calais	3808.8211469999997
+France_Ile-de-France_Seine-et-Marne	3799.84608
+Algeria_Coast	3693.2859399999998
+Slovakia_Region of Presov	3688.030553
+Germany_Free State of Bavaria_Upper Bavaria_Munchen	3678.637398
+Russia_Moscow	3671.406175
+France_Poitou-Charentes_Vienne	3634.732854
+Thailand_North	3628.594072
+US_Pennsylvania_Scranton	3608.32154
+Colombia_West	3536.8554679999997
+UK_Wales	3521.116843
+Spain_Andalusia_Sevilla	3511.375719
+US_Alabama_Birmingham	3505.939115
+France_Midi-Pyrenees_Aveyron	3499.445179
+US_Florida_Gainesville	3489.753592
+US_Florida_Tampa	3473.206366
+Germany_Lower Saxony_Braunschweig	3451.674385
+France_Aquitaine_Dordogne	3425.981155
+Czech_Stredni Cechy_West	3414.3307800000002
+Argentina_Pampas	3414.139228
+France_Lorraine_Moselle	3413.402848
+Russia_Volgograd Oblast	3397.562151
+Spain_Community of Madrid	3366.246457
+US_Oklahoma_Tulsa	3364.2774050000003
+Poland_Lubusz Voivodeship	3356.6352939999997
+Poland_West Pomeranian Voivodeship	3331.050665
+France_Languedoc-Roussillon_Herault	3326.7951199999998
+France_Brittany_Ille-et-Vilaine	3320.932429
+Germany_North Rhine-Westphalia_Regierungsbezirk Dusseldorf_Dusseldorf	3315.997344
+France_Centre-Val de Loire_Loiret	3307.370644
+US_Missouri_Kansas	3292.0517760000002
+Germany_Saxony_Dresden	3283.129812
+Japan_Kyushu Region_Fukuoka	3267.69287
+Belgium_Hainaut	3255.278628
+Niger	3250.81491
+France_Burgundy_Yonne	3240.57048
+Bolivia_South	3239.387369
+France_Free County_North	3200.126565
+Japan_Shikoku Region_Kyoto	3190.7913160000003
+Australia_Melbourne	3164.796999
+Slovakia_Region of Zilina	3146.172685
+Spain_Galicia_South	3139.2327800000003
+France_Poitou-Charentes_Charente	3138.496762
+Germany_Free State of Bavaria_Upper Bavaria_Ingolstadt	3128.845578
+Italy_Piemont_Torino	3116.800314
+Brazil_Parana_West	3106.312923
+Netherlands_Limburg	3106.312735
+Brazil_Goias_Brasilia	3091.270294
+France_Lower Normandy_Calvados	3090.313879
+Czech_Olomoucky kraj	3083.918392
+China_Guangxi	3047.134308
+Germany_Saxony-Anhalt_Halle	3041.552162
+United Arab Emirates	3035.350421
+Canada_Quebek_Montreal	3032.363049
+France_Aquitaine_Gironde	3020.17406
+US_South Dakota	3010.906229
+France_Picardy_Oise	3010.813936
+Japan_Kanto_Ibaraki	2992.303244
+India_Jharkhand	2988.005034
+France_Pays de la Loire_Vendee	2986.153527
+Czech_Jihozapad_Jihocesky kraj	2983.7737890000003
+US_Georgia_Macon	2982.308464
+US_Illinois_Springfield	2972.1081090000002
+Colombia_North	2963.173057
+Spain_Galicia_North	2957.712989
+Spain_Andalusia_Granada	2955.732083
+UK_Northern Ireland	2943.66803
+France_Alsace_Bas-Rhin	2933.157561
+US_California_San Diego	2930.4958840000004
+Czech_Ustecky kraj	2862.227796
+Poland_Opole Voivodeship	2856.1416000000004
+China_Gansu	2855.769288
+Czech_Stredni Cechy_East	2838.213002
+US_Washington_Coast	2837.604045
+South Africa_Limpopo	2814.810693
+US_New Mexico_Albuquerque	2813.831272
+Austria_Upper Austria_Linz	2798.437909
+Uruguay	2797.794088
+US_Nebraska_West	2785.702245
+Slovenia_West	2781.784506
+Malaysia	2756.6660269999998
+US_South Carolina_Columbia	2743.029382
+Belgium_Flemish Brabant	2740.973499
+Ghana	2703.000052
+Poland_Warmian-Masurian Voivodeship	2701.957257
+Brazil_Southeast Region_Sao Paulo_West	2676.232243
+Italy_Lazio	2670.2397079999996
+China_Anhui	2666.839267
+Australia_Sydney	2665.0837399999996
+Greece_Decentralized Administration of Thessaly - Central Greece	2660.3614190000003
+US_Washington_Yakima	2652.4660559999998
+Canada_Ontario_Toronto	2643.342519
+Austria_Burgenland	2607.8048049999998
+France_Midi-Pyrenees_Gers	2601.9696010000002
+Czech_Jihovychod_Kraj Vysocina	2591.1173660000004
+France_Lorraine_Meurthe-et-Moselle	2580.728034
+France_Nord-Pas-de-Calais_Nord	2570.9476369999998
+US_Kentucky_West	2570.1696420000003
+Belgium_East Flanders	2565.988023
+Finland_Southern Finland_Helsinki	2559.286711
+US_Virginia_Alexandria	2549.67623
+Turkey_Black Sea Region	2539.893373
+Finland_Western Finland_Tampere	2538.083732
+France_Aquitaine_Lot-et-Garonne	2536.507518
+US_Massachusetts_Boston	2533.417966
+US_Florida_Miami	2524.088225
+Netherlands_North Holland_Amsterdam	2497.397914
+France_Nord-Pas-de-Calais_Lille	2486.007684
+Germany_Lower Saxony_Bremen_Munster	2470.237816
+Brazil_Parana_East	2461.271729
+Russia_Rostov Oblast	2459.8566379999997
+US_Minnesota_Rochester	2458.591787
+Ukraine_Lviv Oblast	2456.699813
+Japan_Kanto_Tochigi	2451.337725
+Brazil_Southeast Region_Espirito Santo	2441.4031600000003
+India_Delhi	2426.203988
+Saudi Arabia_South	2421.128654
+Austria_Upper Austria_Wels	2418.358147
+Ukraine_Kyiv Oblast	2415.564632
+France_Languedoc-Roussillon_Aude	2403.991456
+US_Minnesota_Minneapolis	2391.684613
+US_Ohio_Toledo	2381.280268
+France_Midi-Pyrenees_Lot	2376.637918
+US_New York_East	2373.558912
+Czech_Jihozapad_Plzensky kraj	2372.54565
+Hungary_Kozep-Magyarorszag	2367.82454
+Germany_Berlin	2357.34452
+France_Rhone-Alpes_Isere	2354.918216
+Russia_Chelyabinsk Oblast	2348.729895
+France_Auvergne_Allier	2339.270338
+Croatia_West	2336.1387
+China_Hubei	2331.118293
+Japan_Kanto_Gunma	2312.253633
+Zimbabwe	2311.623544
+Cambodia	2309.390025
+Germany_Mecklenburg-Vorpommern	2302.934226
+US_Arkansas_South	2286.26897
+Italy_Apulia	2282.596269
+Italy_Campania	2281.418314
+US_Georgia_South	2278.937509
+UK_England_East of England_Norfolk	2278.379385
+US_Missouri_St Louis	2276.364532
+US_Oklahoma_Oklahoma	2265.677451
+France_Brittany_Morbihan	2262.9768750000003
+US_New Jersey_North	2256.017418
+Algeria_Central	2246.74148
+Guatemala	2243.9271830000002
+Belgium_Liege	2234.964185
+US_California_Bakersfield_Lancaster	2223.471483
+US_California_Sacramento_Stockton	2221.818752
+US_North Carolina_Asheville	2218.362928
+Denmark_Region of Southern Denmark	2215.519182
+Turkey_Central Anatolia Region_Ankara	2196.2067140000004
+Bosnia and Herzegovina_Entity Federation of Bosnia and Herzegovina	2184.656642
+Russia_Moscow Oblast_West	2177.591236
+Iraq_North	2165.315569
+Slovakia_Region of Trencin	2163.6077259999997
+France_Picardy_Aisne	2158.3196869999997
+US_Virginia_Richmond	2158.213171
+Germany_North Rhine-Westphalia_Regierungsbezirk Munster_Recklinghausen	2146.520321
+Czech_Severovychod_Pardubicky kraj	2138.5126840000003
+France_Burgundy_Cote-dOr	2128.10018
+India_Odisha	2127.223659
+Morocco_Rabat-Sale-Zemmour-Zaer	2121.397513
+Spain_Catalonia_Provincia de Tarragona	2105.779599
+US_Georgia_North	2097.241867
+South Africa_KwaZulu-Natal	2096.633911
+Iran_East	2088.384375
+Austria_Styria_Leoben	2076.232375
+Australia_New South Wales	2075.653438
+Bolivia_North	2074.4177449999997
+Belarus_Minsk Region	2072.307392
+France_Centre-Val de Loire_Loir-et-Cher	2069.959702
+Lithuania_East	2056.262905
+Czech_Zlinsky Kraj	2052.673731
+Russia_Saint Petersburg	2048.958887
+Japan_Chubu Region_Nagano	2043.455455
+Peru_Lima	2035.580638
+Finland_Southern Finland_West	2034.597137
+Italy_Lombardy_Milan	2030.571087
+Russia_Bashkortostan	2026.383637
+Chile_Central	2024.598222
+Sweden_Ostra Gotaland	2022.721571
+Germany_Lower Saxony_Bremen_Bremen	2020.691826
+Turkey_Marmara Region_Istanbul	2019.243025
+China_Inner Mongolia	2012.466539
+US_Arizona_Flagstaff	2012.361908
+France_Rhone-Alpes_Haute-Savoie	2007.078039
+Italy_Lombardy_Pavia	2001.483408
+US_Nebraska_East	1989.287897
+Turkey_Aegean Region	1987.685293
+Sweden_Bergslagen	1982.827617
+Turkey_Eastern Anatolia Region	1978.861852
+Peru_South	1964.4901380000001
+France_Auvergne_Haute-Loire	1955.9719120000002
+Spain_Extremadura	1951.491777
+US_Montana_East	1932.956977
+Cameroon_Central	1926.0526639999998
+US_Iowa_West	1913.464951
+Argentina_Buenos Aires_Buenos Aires	1912.135209
+US_California_Sacramento_Sacramento	1911.52661
+Turkey_Marmara Region_Bursa	1910.929072
+Spain_Region de Murcia	1906.751455
+US_Texas_Lubbock	1905.9918659999998
+Belgium_Antwerp	1904.14211
+Japan_Chubu Region_Aichi_Nagoya	1890.001947
+Botswana	1873.234915
+US_Idaho_North	1871.9429719999998
+France_Lorraine_Vosges	1869.2793139999999
+Italy_Tuscany_Grosseto	1863.06833
+South Africa_North West	1862.67618
+Poland_Podlaskie Voivodeship	1854.7127830000002
+Germany_Saxony-Anhalt_Magdeburg	1849.395182
+Japan_Chubu Region_Shizuoka	1847.12558
+Czech_Severovychod_Kralovehradecky kraj	1846.6863750000002
+US_New York_New York	1840.78064
+South Africa_Mpumalanga	1840.539903
+US_Oregon_West	1840.290661
+Australia_Brisbane	1838.182658
+Denmark_Central Denmark Region	1835.810429
+Sweden_Vastra Gotaland	1832.4626420000002
+Chile_South	1830.183628
+France_Brittany_Cotes-dArmor	1822.3820230000001
+Philippines_Luzon_Manila	1814.451208
+France_Ile-de-France_Yvelines	1812.817202
+Brazil_Southeast Region_Rio de Janeiro	1804.2519459999999
+Brazil_South Region_East	1804.0014489999999
+Moldova	1800.6750679999998
+US_Arizona_Tucson	1792.525062
+France_Rhone-Alpes_Drome	1790.61688
+India_Assam	1785.831889
+France_Midi-Pyrenees_Tarn-et-Garonne	1773.4931609999999
+France_Picardy_Somme	1768.32102
+US_Virginia_Norfolk	1766.173866
+France_Pays de la Loire_Loire-Atlantique_Nantes	1763.826937
+US_Kentucky_East	1761.265261
+Brazil_Mato Grosso Do Sul	1750.5030649999999
+US_Oregon_Portland	1748.759433
+Cote dIvoire	1748.337997
+Germany_North Rhine-Westphalia_Regierungsbezirk Munster_Munster	1747.591067
+Netherlands_South Holland_Den Haag	1744.53177
+France_Free County_South	1734.3721329999998
+Romania_Centre	1730.431209
+New Zealand North_Auckland	1726.076617
+Saudi Arabia_North	1723.9715110000002
+Ireland_Munster	1723.704171
+Japan_Tohoku_Miyagi	1718.340855
+US_Washington_Seattle	1710.385879
+Guinea	1708.333942
+France_Languedoc-Roussillon_Gard	1707.680789
+Lithuania_West	1689.3236299999999
+Czech_Praha	1682.429554
+Spain_Basque Country	1681.6249890000001
+Georgia	1681.1424559999998
+Netherlands_South Holland_Rotterdam	1673.3490789999998
+US_Texas_Southwest	1672.620832
+US_New Hampshire	1671.549241
+France_Aquitaine_Landes	1661.8046219999999
+US_Iowa_Des Moines	1657.2661489999998
+Switzerland_Central	1654.618232
+Belgium_Luxembourg	1654.460996
+Ecuador_East	1647.14474
+Canada_Alberta_Edmonton	1636.074195
+US_South Carolina_Florence	1632.30153
+France_Aquitaine_Pyrenees-Atlantiques	1629.5513030000002
+Mexico_East	1628.951015
+France_Rhone-Alpes_Ain	1625.620569
+Nepal_West	1619.7390509999998
+Belgium_West Flanders	1617.9296550000001
+France_Rhone-Alpes_Ardeche	1615.587151
+Ukraine_Ivano-Frankivsk Oblast	1614.316162
+US_Florida_Orlando	1612.033148
+Italy_Umbria	1611.596924
+Germany_Schleswig-Holstein_Kiel	1605.684564
+Ukraine_Donetsk Oblast	1599.631873
+US_Iowa_Waterloo	1597.131967
+US_Indiana_Evansville	1590.347349
+Germany_North Rhine-Westphalia_Regierungsbezirk Dusseldorf_Mulheim	1586.860511
+China_Shaanxi	1582.432187
+Austria_Carinthia	1579.393434
+Italy_Liguria	1576.932236
+Luxembourg	1575.558691
+Finland_Northern Finland	1558.865145
+France_Ile-de-France_Essonne	1555.5125779999998
+Russia_Voronezh Oblast	1543.8416630000002
+France_Midi-Pyrenees_Tarn	1542.620224
+Spain_Comunidad Foral de Navarra	1534.139757
+Italy_Marche	1531.645772
+US_Minnesota_Saint Cloud	1517.4150730000001
+Czech_Severovychod_Liberecky kraj	1507.9378279999999
+Netherlands_Gelderland_North	1506.583063
+France_Provence-Alpes-Cote dAzur_Bouches-du-Rhone	1502.460063
+Romania_North_West	1491.397312
+Argentina_Northwest	1489.054276
+US_Texas_Wako	1486.1349950000001
+Dominican Republic	1483.771337
+US_Louisiana_Central	1472.6471450000001
+UK_England_South West England_Cornwall	1471.902648
+Japan_Chubu Region_Gifu	1464.506565
+France_Pays de la Loire_Sarthe	1462.244526
+France_Alsace_Haut-Rhin	1457.815181
+Latvia	1454.8130509999999
+Portugal_Islands	1452.400623
+China_Hunan	1451.8348330000001
+Ecuador_West	1450.569301
+Bulgaria_East	1444.997297
+Greece_Decentralized Administration of Epirus - Western Macedonia	1443.9820379999999
+Netherlands_North Brabant_Eindhoven	1438.623296
+US_Illinois_South	1437.4442159999999
+Austria_Salzburg	1433.955792
+Japan_Kyushu Region_Kumamoto	1429.790765
+Slovakia_Region of Nitra	1426.87473
+Brazil_North Region_East	1419.962129
+US_Kansas_West	1418.17268
+Italy_Piemont_Cuneo	1396.64127
+France_Centre-Val de Loire_Eure-et-Loir	1374.6647580000001
+France_Provence-Alpes-Cote dAzur_Var	1367.0862730000001
+France_Brittany_Finistere	1361.901337
+Tunisia	1358.069133
+Sudan_East	1355.019927
+Italy_Trentino-Alto Adige Sudtirol	1354.717493
+Germany_Saarland	1348.716118
+Japan_Kyushu Region_Saga	1344.058265
+France_Provence-Alpes-Cote dAzur_Vaucluse	1342.5911
+US_Colorado_South	1337.18694
+US_Wisconsin_Madison	1329.4045159999998
+UK_Scotland_South	1326.809675
+India_Uttarakhand	1324.107554
+US_California_Chico	1322.543221
+Greenland	1313.934435
+Norway_Central	1303.416813
+Argentina_Buenos Aires_South	1295.579494
+US_Utah_South	1287.225603
+US_North Carolina_Wilmington	1283.3255020000001
+Greece_Decentralized Administration of West Greece	1283.126367
+Argentina_Santa Fe	1272.7075360000001
+US_Montana_West	1271.962411
+France_Lower Normandy_Orne	1271.535835
+Armenia	1266.063687
+Japan_Kinki Region_Osaka_West	1263.759656
+Costa Rica	1263.400458
+Romania_South	1258.592573
+US_Wisconsin_Eau Claire	1249.364191
+South Africa_Northern Cape	1239.5550700000001
+Morocco_Doukkala-Abda	1238.6875810000001
+Russia_Altai Krai	1238.348851
+Russia_Kirov Oblast	1237.15445
+Japan_Chugoku Region_Okayama	1236.080544
+Russia_Krasnodar Krai	1233.948469
+US_Oklahoma_West	1231.265044
+US_Colorado_Aspen	1229.1852350000001
+US_California_Sacramento_Fresno	1225.427938
+Angola	1215.2348029999998
+Canada_Alberta_South	1214.086554
+Italy_Piemont_Alessandria	1210.46209
+Slovakia_Region of Trnava	1205.046482
+Belgium_Limburg	1202.1441710000001
+Netherlands_Utrecht_Utrecht	1198.809028
+US_North Carolina_Wilson	1195.6372769999998
+China_Jilin	1194.364157
+Brazil_Rio Grande do Norte	1192.925396
+China_Chongqing	1175.503924
+Norway_Southern	1172.183981
+Japan_Chugoku Region_Hiroshima	1170.958216
+Australia_South Australia	1166.899929
+Italy_Abruzzo	1159.186096
+Ukraine_Dnipropetrovsk Oblast	1144.42446
+Mexico_Chihuahua	1138.362762
+Denmark_Capital Region of Denmark	1135.711998
+Spain_Catalonia_Provincia de Girona	1132.631142
+France_Centre-Val de Loire_Cher	1123.5929609999998
+US_California_LA North	1123.587188
+Russia_Nizhny Novgorod Oblast	1115.0626479999999
+Finland_Eastern Finland_South	1099.813542
+Nepal_Madhyamanchal	1096.637092
+US_Oregon_Eugene	1096.360662
+Germany_Hamburg_main	1094.5371579999999
+US_North Dakota_Bismarck	1088.973375
+Russia_Astrakhan Oblast	1088.443871
+US_Massachusetts_Central	1082.0825479999999
+China_Shanxi	1070.517597
+Japan_Tohoku_Fukushima	1068.61763
+Iraq_South	1061.709143
+Turkey_Central Anatolia Region_Kayseri	1060.115382
+Russia_Leningradskaya Oblast_Southeast	1058.558552
+US_Louisiana_New Orleans	1058.4092249999999
+Canada_Ontario_London	1049.949893
+Netherlands_Drenthe	1047.5223099999998
+Bosnia and Herzegovina_Republic of Srpska	1046.421382
+China_Jiangxi	1040.9584180000002
+Ukraine_Kharkiv Oblast	1038.452199
+Canada_Nunavut_South	1033.363578
+US_Maine	1032.663432
+Japan_Kinki Region_Mie	1025.585745
+Switzerland_Espace Mittelland_East	1015.728158
+Romania_North_East	1010.816672
+Netherlands_Friesland	1010.5310949999999
+Azerbaijan	1001.709434
+US_Texas_Amarillo	1000.4879960000001
+Japan_Kyushu Region_Kagoshima	1000.114703
+Philippines_Luzon_North	999.6654540000001
+Argentina_Patagonia	997.0315049999999
+Italy_Veneto_Treviso	996.03146
+Venezuela_South	984.9500899999999
+South Africa_Western Cape	983.242853
+France_Lower Normandy_Manche	981.967304
+China_Guizhou	981.889981
+Netherlands_Overijssel_Zwolle	978.6884289999999
+Germany_Schleswig-Holstein_Flensburg	978.1875819999999
+US_New Jersey_South	978.0710210000001
+Canada_Nunavut_North	972.674299
+UK_England_North East England	972.242019
+Togo	970.8617849999999
+China_Xinjiang	969.612296
+Denmark_Region Zealand	963.745779
+Venezuela_North	961.1265370000001
+France_Burgundy_Nievre	957.301793
+Canada_Ontario_Kingston	957.238415
+Nepal_Purwanchal	957.0508970000001
+Russia_Vladimir Oblast	954.001736
+Benin	952.871637
+US_California_Redding	948.956227
+India_Chhattisgarh	944.009321
+Finland_Eastern Finland_North	943.302969
+Russia_Udmurt Republic	934.774954
+Argentina_Buenos Aires_North	924.143071
+Italy_Veneto_Padova	922.885654
+Kazakhstan_North	922.450983
+Austria_Tyrol	921.588438
+Honduras	921.166968
+Chad	916.741518
+Netherlands_North Brabant_Tiburg	910.728525
+China_Fujian	910.711004
+Canada_Quebec_Quebec	897.957027
+US_Kentucky_Louisville	891.303393
+US_California_Bakersfield_Bakersfield	889.239292
+Tajikistan	872.707641
+Japan_Kyushu Region_Miyazaki	871.365869
+Italy_Veneto_Venezia	868.606714
+Russia_Perm Krai_South	866.66719
+Laos	864.6720329999999
+Kyrgyzstan	864.602723
+Italy_Friuli-Venezia Giulia_Udine	860.7103569999999
+Ukraine_Ternopil Oblast	860.063532
+Slovakia_Region of Bratislava	858.7678109999999
+US_Texas_Victoria	856.861163
+South Africa_Eastern Cape	853.847666
+Namibia	839.5342850000001
+France_Pays de la Loire_Mayenne	832.814865
+Finland_Western Finland_Jyvaskyla	831.954306
+Ukraine_Zakarpattia Oblast	829.4492720000001
+Sweden_Malardalen	828.468168
+France_Midi-Pyrenees_Hautes-Pyrenees	823.385262
+Lebanon	816.570972
+US_Massachusetts_Plymouth	815.010908
+US_Illinois_Rockford	810.9572569999999
+Ukraine_Vinnytsia Oblast	810.903395
+Japan_Kinki Region_Nara	809.802489
+Italy_Lombardy_Brescia	807.7679539999999
+Russia_Samara Oblast	807.14693
+France_Lorraine_Meuse	803.224596
+France_Languedoc-Roussillon_Lozere	801.914854
+Belgium_Namur	801.3979439999999
+US_North Dakota_Minot	799.904139
+US_Wisconsin_North	798.701748
+Japan_Kanto_Chiba	796.91384
+Chile_North	795.964554
+Brazil_Mato Grosso	795.292568
+New Zealand South_Canterbury	790.230439
+Ukraine_Zhytomyr Oblast	787.449295
+Germany_Free State of Bavaria_Upper Bavaria_South	787.3219590000001
+Italy_Veneto_Vicenza	787.12936
+Albania	777.468019
+Russia_Sverdlovsk Oblast_Ekaterinburg	773.555172
+Ukraine_Kirovohrad Oblast	768.3463859999999
+US_North Dakota_East	765.2087829999999
+Panama	763.402967
+Haiti	759.867567
+Japan_Chubu Region_Niigata	759.5815660000001
+Netherlands_Overijssel_Enschede	750.069903
+France_Languedoc-Roussillon_Pyrenees-Orientales	744.6322220000001
+Greece_Decentralized Administration of Attica	741.5284909999999
+France_Provence-Alpes-Cote dAzur_Alpes-de-Haute-Provence	735.9134620000001
+Netherlands_Gelderland_Nijmegen	734.621505
+Republic of Kosovo	733.9719150000001
+Canada_Saskatchewan_Saskatoon	729.981231
+US_Delaware	723.3311610000001
+Madagascar	721.259511
+Russia_Tver Oblast	718.407119
+Spain_Principado de Asturias	713.308044
+Ukraine_Cherkasy Oblast	712.87829
+Netherlands_Zeeland	711.927165
+Romania_South_West	709.0434769999999
+France_Auvergne_Cantal	706.6882049999999
+Argentina_Cuyo	706.61765
+Libya	697.350867
+US_Rhode Island	697.202455
+France_Pays de la Loire_Loire-Atlantique_Saint-Nazaire	695.135516
+Russia_Saratov Oblast	693.957719
+China_Shanghai	693.679182
+Belarus_Brest Region	689.503927
+US_Missouri_East	687.557646
+Russia_Omsk Oblast	683.962173
+Russia_Lipetsk Oblast	683.832129
+Japan_Hokkaido Region_Sapporo	679.5400010000001
+Italy_Basilicata	678.104946
+Japan_Shikoku Region_Ehime	677.591201
+Italy_Lombardy_Varese	677.1832929999999
+Ireland_Connacht	677.1447579999999
+UK_Scotland_North	675.0836410000001
+Italy_Piemont_Asti	665.2225209999999
+Indonesia_West	663.876317
+Japan_Chubu Region_Aichi_Toyohashi	661.6622
+Canada_British Columbia_Vancouver	656.674744
+Russia_Tula Oblast	656.227227
+Palestine	655.5616739999999
+Italy_Emilia-Romagna_Modena	655.475624
+Netherlands_Groningen	654.63057
+Italy_Sicily	653.163142
+France_Provence-Alpes-Cote dAzur_Maritime Alps	648.366118
+US_Vermont	647.152245
+Italy_Emilia-Romagna_Bologna	646.303637
+Italy_Sardinia	645.643598
+Netherlands_Utrecht_Amersfoort	644.7533050000001
+Russia_Leningradskaya Oblast_Karelsky	644.281821
+Antarctica	640.3530930000001
+Russia_Novosibirsk Oblast	637.635055
+Russia_Orenburg Oblast	632.294213
+Denmark_North Denmark Region	631.95259
+Russia_Belgorod Oblast	631.624597
+US_Massachusetts_West	630.19737
+US_Oklahoma_East	629.4146939999999
+Russia_Kursk Oblast	626.458853
+Russia_Ulyanovsk Oblast	625.307274
+Netherlands_South Holland_Leiden	623.908568
+New Zealand North_Wellington	620.616407
+The Gambia	620.060694
+Sweden_Sodra Gotaland	619.408652
+Brazil_Goias_North	615.703575
+Mexico_Sonora	615.218124
+Ukraine_Rivne Oblast	613.633022
+Brazil_North Region_West	607.895052
+US_Minnesota_North	606.634114
+South Sudan	602.347004
+Ukraine_Poltava Oblast	601.081023
+Australia_Western Australia	600.628391
+Russia_Ryazan Oblast	594.471578
+Romania_South_East	592.103103
+Japan_Tohoku_Iwate	585.692899
+Ukraine_Luhansk Oblast	582.907838
+Romania_West	580.545282
+India_Jammu and Kashmir	580.508236
+Macedonia	571.510912
+Canada_Quebek_Far North	569.198578
+Italy_Veneto_Verona	557.651191
+Canada_Saskatchewan_Regina	557.633224
+US_Alaska	556.899987
+Spain_Cantabria	554.926464
+Belarus_Hrodna Region	551.2246210000001
+Sweden_Mellannorrland	549.246801
+Czech_Karlovasky kraj	546.716917
+Japan_Chubu Region_Toyama	543.285606
+Japan_Chubu Region_Ishikawa	537.697648
+Belarus_Vitebsk Region	537.329019
+China_Liaoning	535.2267439999999
+Finland_Southern Finland_Lappeenranta	534.621145
+France_Rhone-Alpes_Savoie	531.350089
+Philippines_Visayas	529.511284
+Estonia_East	528.244776
+US_South Carolina_Charleston	527.4292820000001
+France_Ile-de-France_Val-de-Marne	522.4839489999999
+Oman	521.569079
+Trinidad and Tobago	519.44588
+Ireland_Northern Counties	518.649139
+Netherlands_North Holland_Alkmaar	516.7503810000001
+Mauritania	513.450558
+Philippines_Mindanao	510.576633
+Netherlands_North Holland_Zaandam	510.385522
+Japan_Kyushu Region_Nagasaki	509.23152699999997
+Russia_Mari El	507.142859
+Congo-Kinshasa_Kivu	499.67159300000003
+China_Heilongjiang	492.40299600000003
+France_Midi-Pyrenees_Ariege	487.88848199999995
+South Africa_Free State	482.88428
+Russia_Krasnodar Krai_Adygeya	480.01592
+US_Mississippi_Gulfport	478.80654100000004
+Russia_Krasnoyarsk Krai_South	477.89519800000005
+Norway_Hedmark	477.739026
+Russia_Stavropol Krai	471.108958
+Germany_North Rhine-Westphalia_Regierungsbezirk Dusseldorf_Wesel	469.72709899999995
+US_California_Santa_Clara_Santa Cruz	467.75591
+North Korea	467.22974300000004
+Ukraine_Mykolaiv Oblast	465.698147
+Russia_Tambov Oblast	463.986335
+Canada_Ontario_Bame	463.507224
+Belarus_Maglieu Region	462.458645
+Belarus_Homiel Region	460.349494
+UK_England_North West England_Lancaster	460.098507
+Russia_Kaluga Oblast	459.485276
+Sweden_Norra Sverige	457.956781
+Sweden_Stockholm	457.349154
+Netherlands_Gelderland_Zutphen	457.081008
+Belgium_Walloon Brabant	455.688842
+Italy_Friuli-Venezia Giulia_Pordenone	455.250548
+Russia_Irkutsk Oblast	454.75325
+Italy_Calabria	452.36566799999997
+Argentina_Mesopotamia	450.588423
+Norway_Northern	446.308813
+Indonesia_Nusa Tenggara	444.866921
+Estonia_West	444.274422
+Mongolia	444.219266
+Ukraine_Khmelnytskyi Oblast	441.93304
+Italy_Lombardy_Bergamo	440.312267
+Jordan	438.996345
+Australia_Queensland	436.608349
+China_Tibet Autonomous Region	436.495273
+Norway_Nordland	428.511139
+Japan_Shikoku Region_Kochi	426.852379
+Mexico_California	426.480787
+Canada_Manitoba_Winnipeg	422.368296
+Norway_Oppland	419.676119
+Canada_British Columbia_Southeast	416.044417
+US_Michigan_North	408.954365
+Rwanda	400.43269399999997
+Italy_Emilia-Romagna_Parma	399.37339
+Russia_Vologda Oblast	394.999914
+El Salvador	394.146644
+France_Ile-de-France_Hauts-de-Seine	390.161087
+Japan_Kyushu Region_Oita	389.937908
+Russia_Republic of Dagestan	389.664949
+Russia_Penza Oblast	387.350017
+Russia_Chuvashia	386.120759
+Italy_Piemont_Vercelli	384.60392399999995
+Russia_Kemerov Oblast	384.021696
+Ukraine_Volyn Oblast	381.681268
+Russia_Sakha Republic	379.42702099999997
+Central African Republic	369.167323
+Canada_Quebek_Lachute	369.15582
+Norway_Western	368.961548
+China_Qinghai	368.89178899999996
+Ukraine_Chernihiv Oblast	363.796936
+Netherlands_Flevoland	362.863451
+Italy_Lombardy_Monza and Brianza	361.352636
+Italy_Piemont_Biella	361.137989
+Russia_Republic of Mordovia	354.35066
+Canada_Northwest Territories_North	353.33576300000004
+Japan_Kinki Region_Wakayama	350.40026900000004
+New Zealand South_Southland	346.945978
+Italy_Emilia-Romagna_Forli-Cesena	345.99012799999997
+Austria_Vorarlberg	342.956526
+Japan_Tohoku_Aomori	342.254752
+US_Puerto Rico	339.727104
+Italy_Emilia-Romagna_Reggio Emilia	338.897718
+Netherlands_North Brabant_Roosendaal	337.525289
+Canada_Ontario_Northwestern	332.591071
+Kingdom of Lesotho	330.937348
+Spain_La Rioja	329.001573
+Japan_Chugoku Region_Shimane	328.543178
+Canada_Nova Scotia_Halifax	326.674205
+Japan_Shikoku Region_Tokushima	326.053101
+Nepal_Kathmandu	324.665984
+Russia_Yaroslavl Oblast	323.942592
+Turkmenistan	323.40380600000003
+Sri Lanka	322.682776
+Ukraine_Chernivtsi Oblast	321.15381199999996
+Ukraine_Odessa Oblast	320.173825
+Italy_Emilia-Romagna_Ravenna	318.97443599999997
+Japan_Chubu Region_Yamanashi	317.144447
+Italy_Emilia-Romagna_Piacenza	315.117922
+Norway_Hordaland	315.112364
+Russia_Sverdlovsk Oblast_North	311.871667
+India_Himachal Pradesh	311.482124
+Kuwait	310.376453
+Canada_British Columbia_North	309.85463
+Italy_Molise	307.61055400000004
+Russia_Khabarovsk Krai	306.331972
+Montenegro	303.30255
+Italy_Lombardy_Como	303.258186
+Singapore	302.358896
+Congo-Brazzaville	300.143293
+Netherlands_North Brabant_Uden	298.412304
+Japan_Chubu Region_Fukui	290.985348
+Canada_New Brunswick	290.006303
+Norway_South Trondelag	289.83995500000003
+Japan_Hokkaido Region_North	288.145964
+France_Provence-Alpes-Cote dAzur_Hautes-Alpes	286.82564099999996
+Russia_Pskov Oblast	286.02040999999997
+Iceland	281.204474
+Russia_Altai Republic	280.762816
+Spain_Balearic Islands	277.854014
+Russia_Smolensk Oblast	276.542714
+Yemen	272.68551
+Netherlands_South Holland_Brielle	269.615114
+Russia_Arkhangelsk Oblast_Central	269.010455
+Italy_Lombardy_Mantua	268.000794
+Switzerland_Ticino	265.058297
+Canada_British Columbia_Islands	264.71752200000003
+Ukraine_Zaporizhia Oblast	261.847098
+Spain_Canary Islands	261.764019
+France_Southern Islands	261.731222
+Nicaragua	261.687101
+Ukraine_Sumy Oblast	261.485125
+Norway_North Trondelag	257.88646
+Norway_Rogaland	253.535502
+Russia_Perm Krai_North	253.32106100000001
+Russia_Primorsky Krai	251.280427
+Russia_Tyumen Oblast	251.201572
+Russia_Bryansk Oblast	248.66629500000002
+Cameroon_West	246.08256500000002
+Italy_Emilia-Romagna_Rimini	245.705353
+Italy_Piemont_Novara	242.690485
+Italy_Emilia-Romagna_Ferrara	242.60998700000002
+Japan_Tohoku_Akita	241.37884400000002
+Russia_Komi Republic	241.36398
+Russia_Oryol Oblast	239.92520000000002
+Russia_Republic of Karelia_South	237.716272
+Australia_Tasmania	233.100393
+Burundi	232.84406199999998
+Canada_Alberta_North	227.814758
+Russia_Yugra_Surgut	227.199798
+Italy_Lombardy_Cremona	225.885761
+Russia_Krasnoyarsk Krai_North	224.302482
+Russia_Ivanovo Oblast	220.377286
+Japan_Chugoku Region_Yamaguchi	220.364119
+Italy_Veneto_Belluno	219.7558
+Sierra Leone	219.64157
+Japan_Shikoku Region_Kagawa	218.945246
+Canada_British Columbia_Central	214.89891400000002
+Morocco_Western Sahara	214.52251
+Cuba	214.228168
+Canada_Labrador_North	212.846584
+Japan_Chugoku Region_Tottori	208.76167999999998
+Russia_Arkhangelsk Oblast_North	207.55248999999998
+Canada_Ontario_Northeastern_SW	207.374154
+Liberia	207.133658
+Greece_Decentralized Administration of Aegean	206.508637
+Russia_Tomsk Oblast	202.755988
+Russia_Republic of Kalmykia	202.668141
+India_Meghalaya	201.144941
+Crimea	200.739677
+US_Massachusetts_Southeastern	200.683257
+Russia_Chukotka Autonomous Okrug	197.088449
+Canada_Manitoba_South	194.80816099999998
+Colombia_East	193.42649
+Gabon	190.124158
+Canada_Quebek_West_Rouyn-Noranda	189.50075800000002
+Indonesia_East	188.96723599999999
+US_Hawaii	187.030815
+Canada_Ontario_Northeastern_S	186.653145
+Russia_Novgorod Oblast	185.577633
+Canada_Quebek_Southeast_Saguenay	185.33989
+Japan_Tohoku_Yamagata	180.230935
+Cyprus	179.735117
+Australia_Northern Territory	178.937995
+Canada_Quebek_North	177.85014
+Canada_Quebek_Southeast_Rimouski	177.12864499999998
+Eritrea	177.048085
+Qatar	176.88368300000002
+Russia_Yugra_Khanty	174.99416599999998
+India_Tripura	174.61272
+China_Ningxia Hui	173.89820699999999
+Russia_Kabardino-Balkaria	172.526922
+France_Corsica	171.774662
+Russia_Zabaykalsky Krai	171.060938
+Papua New Guinea	168.935554
+Russia_Kamchatka Krai	168.584421
+Italy_Lombardy_Lecco	164.434587
+Suriname	163.174284
+Canada_Northwest Territories_East	163.153082
+Canada_Nova Scotia_Sydney	161.647153
+French Polynesia	161.151097
+Russia_Kostroma Oblast	161.110643
+Canada_Northwest Territories_Yellowknife	160.16709799999998
+Italy_Friuli-Venezia Giulia_Trieste	158.57832200000001
+Russia_Murmansk Oblast	158.188089
+Canada_Ontario_Northern	158.161188
+Russia_Republic of Karelia_North	157.300453
+Canada_Yukon_North	154.248589
+Bhutan	154.067955
+Japan_Hokkaido Region_East	151.858407
+Martinique	151.16435
+Italy_Lombardy_Lodi	151.058322
+Italy_Aosta Valley	148.740841
+Russia_Kaliningrad Oblast	148.283935
+Comoros	147.843295
+Nagorno-Karabakh	147.237038
+Russia_Kurgan Oblast	147.06671
+Swaziland	145.423346
+Canada_British Columbia_Northeast	145.224639
+Russia_Buryatia	145.220293
+Russia_Karachay-Cherkessia	144.910727
+Russia_Yamalo-Nenets Autonomous Okrug	143.89534
+Canada_Quebek_West_Chibougamau	141.468991
+Canada_Saskatchewan_North	141.040203
+Bahrain	140.742068
+Greece_Decentralized Administration of Crete	140.540424
+Italy_Friuli-Venezia Giulia_Gorizia	139.423715
+Canada_Manitoba_Northwest	137.899117
+Russia_Amur Oblast	137.338649
+Russia_Sakhalin Oblast	134.675138
+Philippines_Luzon_South	134.572094
+Canada_Newfoundland_East	132.143769
+Russia_Tuva	131.744244
+Ukraine_Kherson Oblast	131.057714
+Russia_Khakassia	130.438284
+Caribisch Nederland	129.5164
+India_Manipur	129.437667
+Jerusalem	128.547076
+Russia_Chechen Republic	127.87504100000001
+Japan_Kyushu Region_Okinawa	126.834777
+Canada_Manitoba_Northeast	123.986211
+India_Nagaland	123.72274
+Canada_Ontario_Northeastern_SE	123.584366
+Italy_Lombardy_Sondrio	121.675909
+Belize	120.031887
+Russia_Magadan Oblast	118.72377900000001
+Canada_Yukon_Whitehorse	118.387587
+Canada_Ontario_Northeastern_Central	118.159447
+Canada_Prince Edward Island	118.121204
+Canada_Ontario_Northeastern_Wawa	118.056
+Japan_Hokkaido Region_West	117.257368
+Russia_North Ossetia-Alania	116.971264
+Jamaica	116.647522
+Guadeloupe	115.779781
+Canada_Newfoundland_North	115.69119
+Guinea-Bissau	113.60536499999999
+Canada_Labrador_West	111.868173
+India_Mizoram	111.318797
+France_New Caledonia	110.231355
+Italy_Piemont_Verbano-Cusio-Ossola	107.6309
+Canada_Newfoundland_West	105.490403
+France_French Guiana	103.728776
+Malta	101.88269600000001
+Norway_Svalbard	101.455727
+India_Andaman and Nicobar Islands	101.33284499999999
+Italy_Veneto_Rovigo	101.17595100000001
+The Bahamas	100.384101
+Russia_Nenets Autonomous Okrug	99.738522
+Samoa	98.082408
+Canada_British Columbia_Far_North	98.081135
+Fiji	96.11101500000001
+Monaco	96.066311
+India_Arunachal Pradesh	95.98818700000001
+East Timor	95.60472299999999
+India_Goa	94.29892500000001
+Russia_Jewish Autonomous Oblast	93.572497
+Guyana	92.950849
+Solomon Islands	92.729321
+Canada_Ontario_Northeastern_North	91.418804
+Cape Verde	91.331886
+US_Guam	88.932897
+Mauritius	87.973328
+Canada_Newfoundland_South	87.735353
+India_Chandigarh	87.56564300000001
+Canada_Labrador_South	87.141717
+Brunei	86.71350799999999
+Djibouti	85.949966
+Abkhazia	83.99533699999999
+Russia_Ingushetia	83.914754
+Faroe Islands	83.072605
+Saint Lucia	80.948672
+Vanuatu	80.943654
+Barbados	79.953148
+US_United States Minor Outlying Islands	79.869211
+Kiribati	79.175168
+Equatorial Guinea	79.13075
+Isle of Man	79.115879
+Bosnia and Herzegovina_Brcko district of Bosnia and Herzegowina	76.864341
+Cook Islands	76.351785
+Maldives	75.005894
+Antigua and Barbuda	73.356652
+Dominica	72.871985
+Liechtenstein	72.504286
+Saint Martin	71.939875
+United States Virgin Islands	71.471321
+San Marino	71.345779
+India_Sikkim	71.104976
+Guernsey	70.898602
+South Ossetia	70.39236
+Seychelles	69.94317
+South Georgia and the South Sandwich Islands	69.424697
+Tokelau	68.539258
+Jersey	68.526602
+Grenada	68.478145
+Sahrawi Arab Democratic Republic	67.499419
+Sao Tome and Principe	67.336884
+Andorra	67.25376800000001
+Saint Vincent and the Grenadines	66.773422
+Bermuda	66.61098
+Saint Barthelemy	65.421133
+Falkland Islands	64.971193
+Montserrat	64.921402
+Turks and Caicos Islands	64.551425
+Saint Kitts and Nevis	64.293403
+Cayman Islands	64.103369
+Palau	62.872977999999996
+Spain_Melilla	62.840537999999995
+Marshall Islands	62.640774
+British Virgin Islands	62.21348
+Gibraltar	61.275863
+Spain_Ceuta	60.955571
+Nauru	60.050776
+Campo de Hielo Sur	57.894231999999995
+Pitcairn Islands	57.272687
+Tonga	56.771625
+Federated States of Micronesia	56.036007
+Norway_Jan Mayen	54.167984000000004
+Anguilla	52.305236
+Saint Helena Ascension and Tristan da Cunha	52.152356
+British Indian Ocean Territory	52.140699999999995
+Wallis and Futuna	51.766583
+India_Lakshadweep	51.29041
+Niue	50.30646
+Tuvalu	50.146219
+Willis Island	49.12695900000001
+Norway_Bouvet Island	48.921707000000005

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bookmarks_places</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Dim nodau tudalen</string>
+			<key>one</key>
+			<string>%lld nod tudalen</string>
+			<key>two</key>
+			<string>%lld nod tudalen</string>
+			<key>few</key>
+			<string>%lld nod tudalen</string>
+			<key>many</key>
+			<string>%lld nod tudalen</string>
+			<key>other</key>
+			<string>%lld nod tudalen</string>
+		</dict>
+	</dict>
+	<key>population</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld trigolyn</string>
+			<key>one</key>
+			<string>%lld trigolyn</string>
+			<key>two</key>
+			<string>%lld drigolyn</string>
+			<key>few</key>
+			<string>%lld thrigolyn</string>
+			<key>many</key>
+			<string>%lld o drigolion</string>
+			<key>other</key>
+			<string>%lld o drigolion</string>
+		</dict>
+	</dict>
+	<key>rooms</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld ystafell</string>
+			<key>one</key>
+			<string>%lld ystafell</string>
+			<key>two</key>
+			<string>%lld ystafell</string>
+			<key>few</key>
+			<string>%lld ystafell</string>
+			<key>many</key>
+			<string>%lld ystafell</string>
+			<key>other</key>
+			<string>%lld ystafell</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

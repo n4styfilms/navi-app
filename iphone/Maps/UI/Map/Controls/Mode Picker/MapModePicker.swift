@@ -1,0 +1,279 @@
+import SwiftUI
+
+/// View for a map mode picker
+struct MapModePicker: View {
+    /// The elements that can receive VoiceOver focus in the mode picker
+    enum AccessibilityFocus: Hashable {
+        case mode(Mode)
+        case optionsHeading
+    }
+
+    // MARK: Properties
+
+    /// The element currently focused by VoiceOver
+    @AccessibilityFocusState(for: .voiceOver) private var accessibilityFocus: AccessibilityFocus?
+
+    
+    /// The horizontal size class of the environment
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+
+    /// The vertical size class of the environment
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    
+    
+    /// The default height of a map control
+    var controlHeight: CGFloat
+    
+    
+    /// The selected mode
+    @State private var selectedMode: Mode = MapControls.mode
+    
+    
+    /// If the mode options are being presented
+    @State private var isPresentingModeOptions: Bool = false
+    
+    
+    /// If the public transport mode has transit lines
+    @State private var hasTransitLinesForPublicTransportMode: Bool = true
+    
+    
+    /// If the layers options, that might being presented via the extended layers button, should be temporarily hidden to not be weirdly overlapped by for example the mode options
+    @Binding var shouldTemporarilyHideLayersIfNecessary: Bool
+    
+    
+    /// If the dragging should be prevented, because it didn't start at the selected mode
+    @State private var preventDraging: Bool = false
+    
+    
+    /// If a mode is currently being dragged
+    @State private var isDragging: Bool = false
+    
+    
+    /// The dragged mode to not have too quick mode changes when dragging
+    @State private var draggedMode: Mode = MapControls.mode
+    
+    
+    /// The actual view
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                    ForEach(Mode.allCases) { mode in
+                        if !isPresentingModeOptions || mode == selectedMode {
+                            MapModePicker.Choice(selectedMode: $selectedMode,
+                                                 mode: mode,
+                                                 isPresentingModeOptions: isPresentingModeOptions,
+                                                 isDragging: $isDragging,
+                                                 draggedMode: $draggedMode,
+                                                 accessibilityFocus: $accessibilityFocus,
+                                                 toggleModeOptions: toggleModeOptions)
+                        }
+                    }
+                    
+                    if isPresentingModeOptions {
+                        Text(selectedMode.description)
+                            .font(.title2)
+                            .bold()
+                            .foregroundStyle(Color.white)
+                            .accessibilityAddTraits(.isHeader)
+                            .accessibilityFocused($accessibilityFocus, equals: .optionsHeading)
+
+                        Spacer(minLength: 0)
+
+                        Button {
+                            toggleModeOptions()
+                        } label: {
+                            Label("close", systemImage: "xmark.circle.fill")
+                                .labelStyle(.iconOnly)
+                                .imageScale(.large)
+                                .padding(.horizontal, 8)
+                        }
+                        .buttonStyle(.plain)
+                        .font(.title2)
+                        .dynamicTypeSize(.large)
+                        .foregroundStyle(Color.white.opacity(0.5))
+                    }
+                }
+                .padding(isPresentingModeOptions ? 4 : 0)
+                .background(alignment: .leading) {
+                    HStack(spacing: 0) {
+                        if !isPresentingModeOptions {
+                            ForEach(0..<draggedMode.id, id: \.self) { _ in
+                                Circle()
+                                    .aspectRatio(1, contentMode: .fit)
+                                    .hidden()
+                            }
+                        }
+
+                        Circle()
+                            .fill(isPresentingModeOptions ? Color.clear : draggedMode.color)
+                            .aspectRatio(1, contentMode: .fit)
+
+                        if !isPresentingModeOptions {
+                            ForEach((draggedMode.id + 1)..<Mode.allCases.count, id: \.self) { _ in
+                                Circle()
+                                    .aspectRatio(1, contentMode: .fit)
+                                    .hidden()
+                            }
+                        }
+                    }
+                    .compositingGroup()
+                    .animation(.spring.speed(1.5), value: draggedMode)
+                }
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 0, coordinateSpace: .local).onChanged({ value in
+                        if !isPresentingModeOptions, !preventDraging, let mode = Mode(rawValue: min(max(Int(Float(value.location.x / (CGFloat(Mode.allCases.count) * CGFloat(geometry.size.height - 8)) * 4).rounded(.up)), 1), Mode.allCases.count) - 1) {
+                            if isDragging {
+                                if selectedMode != mode, draggedMode != mode {
+                                    draggedMode = mode
+                                    Task {
+                                        try? await Task.sleep(nanoseconds: 160_000_000)
+                                        
+                                        if draggedMode == mode {
+                                            selectedMode = mode
+                                        }
+                                    }
+                                }
+                            } else if mode == selectedMode {
+                                if abs(value.translation.width) > 7 {
+                                    isDragging = true
+                                }
+                            } else {
+                                preventDraging = true
+                            }
+                        }
+                    }).onEnded({ _ in
+                        Task {
+                            isDragging = false
+                            preventDraging = false
+                        }
+                    })
+                )
+                .padding(isPresentingModeOptions ? 0 : 4)
+                .background {
+                    if isPresentingModeOptions {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                .fill(selectedMode.color)
+                            
+                            VStack {
+                                Color.black
+                                    .hidden()
+                                
+                                selectedMode.color
+                            }
+                        }
+                        .compositingGroup()
+                    }
+                }
+                .frame(height: geometry.size.height)
+                
+                if isPresentingModeOptions {
+                    VStack {
+                        if selectedMode == .publicTransport {
+                            Toggle("mode_option_transitlines", isOn: $hasTransitLinesForPublicTransportMode)
+                                .tint(selectedMode.color)
+                        } else {
+                            Toggle("mode_option_comingsoon", isOn: .constant(false))
+                                .hidden()
+                                .overlay {
+                                    Label("mode_option_comingsoon", systemImage: "clock")
+                                }
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .background {
+                if isPresentingModeOptions {
+                    if #unavailable(iOS 27, macOS 27) {
+                        RoundedRectangle(cornerRadius: 25, style: .continuous)
+                            .stroke(selectedMode.color, lineWidth: 1)
+                            .background {
+                                RoundedRectangle(cornerRadius: 25, style: .continuous)
+                                    .fill(Color.MapButtons.background)
+                            }
+                            .shadow(radius: 2)
+                            .foregroundStyle(Color.primary)
+                            .compositingGroup()
+                    } else {
+                        RoundedRectangle(cornerRadius: 25, style: .continuous)
+                            .stroke(selectedMode.color, lineWidth: 1)
+                            .background {
+                                RoundedRectangle(cornerRadius: 25, style: .continuous)
+                                    .fill(Color.MapButtons.background.opacity(0.5))
+                                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 25, style: .continuous))
+                            }
+                            .shadow(radius: 2)
+                            .foregroundStyle(Color.primary)
+                            .compositingGroup()
+                    }
+                } else {
+                    if #unavailable(iOS 27, macOS 27) {
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .stroke(Color.MapButtons.border, lineWidth: 1)
+                            .background {
+                                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                    .fill(EllipticalGradient(colors: [Color.MapButtons.backgroundGlow, Color.MapButtons.background]))
+                            }
+                            .shadow(radius: 2)
+                            .foregroundStyle(Color.secondary)
+                            .compositingGroup()
+                    } else {
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(Color.MapButtons.background.opacity(0.3))
+                            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                            .shadow(radius: 2)
+                    }
+                }
+            }
+            .padding(4)
+            .onTapGesture {
+                // Trick to extend the safe area around it
+            }
+            .padding(-4)
+            .contentShape(Rectangle())
+            .padding(.leading, verticalSizeClass == .compact && !isPresentingModeOptions ? (controlHeight + 24) : 0)
+            .accessibilityElement(children: .contain)
+            // Let the mode options be a modal view for accessibility purposes
+            .accessibilityAddTraits(isPresentingModeOptions ? .isModal : [])
+            .accessibilityAction(.escape) {
+                if isPresentingModeOptions {
+                    toggleModeOptions()
+                }
+            }
+            .frame(maxWidth: !isPresentingModeOptions || (horizontalSizeClass == .compact && verticalSizeClass != .compact) ? .infinity : 320, alignment: verticalSizeClass == .compact ? .leading : .center)
+            .frame(maxWidth: .infinity, alignment: verticalSizeClass == .compact ? .leading : .center)
+            .animation(.spring.speed(2), value: isPresentingModeOptions)
+            .onChange(of: isPresentingModeOptions) { isPresented in
+                Task { @MainActor in
+                    // Let the updated accessibility elements appear before moving focus.
+                    await Task.yield()
+                    guard isPresentingModeOptions == isPresented else { return }
+                    accessibilityFocus = isPresented ? .optionsHeading : .mode(selectedMode)
+                }
+            }
+            .onChange(of: selectedMode) { changedSelectedMode in
+                draggedMode = changedSelectedMode
+                selectedMode = changedSelectedMode
+                MapControls.mode = changedSelectedMode
+            }
+        }
+        .onAppear {
+            hasTransitLinesForPublicTransportMode = MapControls.publicTransportModeHasTransitLines()
+        }
+        .onChange(of: hasTransitLinesForPublicTransportMode) { changedHasTransitLinesForPublicTransport in
+            hasTransitLinesForPublicTransportMode = changedHasTransitLinesForPublicTransport
+            MapControls.publicTransportModeSetTransitLines(changedHasTransitLinesForPublicTransport)
+        }
+    }
+
+
+    /// Toggles the options for the selected mode
+    private func toggleModeOptions() {
+        isPresentingModeOptions.toggle()
+        shouldTemporarilyHideLayersIfNecessary = isPresentingModeOptions
+    }
+
+}

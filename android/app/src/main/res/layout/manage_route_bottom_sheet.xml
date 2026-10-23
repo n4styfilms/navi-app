@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical">
+
+  <FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include
+      layout="@layout/bottom_sheet_handle" />
+
+    <RelativeLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:layout_marginBottom="-2dp"
+      android:layout_marginHorizontal="@dimen/altitude_chart_container_padding_left">
+
+      <com.google.android.material.textview.MaterialTextView
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/margin_double_plus"
+        android:includeFontPadding="false"
+        android:text="@string/planning_route_manage_route"
+        android:gravity="center_vertical"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+
+      <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image_my_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:padding="12dp"
+        android:layout_alignParentEnd="true"
+        android:visibility="invisible"
+        tools:visibility="visible"
+        app:srcCompat="@drawable/ic_location_crosshair"
+        app:tint="?colorAccent"/>
+    </RelativeLayout>
+  </FrameLayout>
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_height="0dp"
+    android:layout_weight="1"
+    android:layout_width="match_parent"
+    android:layout_marginStart="@dimen/altitude_chart_container_padding_left"
+    android:layout_marginEnd="6dp">
+
+    <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/manage_route_list"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:paddingStart="0dp"
+      android:paddingEnd="10dp"
+      android:scrollbars="vertical"
+      android:scrollbarSize="4dp"
+      android:scrollbarStyle="outsideOverlay"
+      android:scrollbarThumbVertical="@drawable/scrollbar"
+      android:fadeScrollbars="false"
+      app:layout_constrainedHeight="true"
+      app:layout_constraintHeight_max="600dp"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      tools:itemCount="10"
+      tools:listitem="@layout/manage_route_list_item"/>
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/margin_double_plus"
+    android:orientation="horizontal"
+    android:layout_marginHorizontal="@dimen/altitude_chart_container_padding_left"
+    android:layout_marginVertical="@dimen/margin_half">
+
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/btn__cancel"
+      style="@style/Widget.Material3.Button.TextButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_vertical"
+      android:text="@string/cancel"
+      android:textColor="?android:textColorPrimary"
+      android:textAppearance="@style/MwmTextAppearance.Body1"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/btn__plan"
+      style="@style/MwmWidget.M3.Button.Primary"
+      android:layout_width="wrap_content"
+      android:layout_height="match_parent"
+      android:layout_gravity="center_vertical"
+      android:text="@string/button_plan"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>

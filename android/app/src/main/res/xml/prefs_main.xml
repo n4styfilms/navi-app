@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools">
+
+  <Preference
+    android:key="@string/pref_osm_profile"
+    android:title="@string/profile"
+    app:icon="@drawable/ic_profile"
+    app:singleLineTitle="false"
+    tools:summary="LongLongUsernameHere" />
+
+  <PreferenceScreen
+      android:key="pref_screen_nav"
+      android:title="@string/prefs_group_route"
+      app:fragment="app.organicmaps.settings.NavigationSettingsFragment"
+      app:icon="@drawable/ic_navigation"
+      android:summary="@string/prefs_group_route_summary" />
+
+  <PreferenceScreen
+    android:key="pref_navi_vehicle"
+    android:title="@string/navi_vehicle_title"
+    android:summary="@string/navi_vehicle_summary"
+    app:fragment="app.organicmaps.fuel.VehicleSettingsFragment"
+    app:icon="@drawable/ic_navigation" />
+
+  <PreferenceScreen
+    android:key="pref_screen_map_appearance"
+    android:title="@string/prefs_group_map_appearance"
+    app:fragment="app.organicmaps.settings.MapAppearanceSettingsFragment"
+    app:icon="@drawable/ic_show_on_map"
+    android:summary="@string/prefs_group_map_appearance_summary" />
+
+  <PreferenceScreen
+    android:key="pref_screen_interface"
+    android:title="@string/prefs_group_interface"
+    app:fragment="app.organicmaps.settings.InterfaceSettingsFragment"
+    app:icon="@drawable/ic_phone_android"
+    android:summary="@string/prefs_group_interface_summary" />
+
+  <PreferenceScreen
+      android:key="pref_screen_data_management"
+      android:title="@string/prefs_group_data_management"
+      app:fragment="app.organicmaps.settings.DataManagementSettingsFragment"
+      app:icon="@drawable/ic_sd_card"
+      android:summary="@string/prefs_group_data_management_summary" />
+
+  <PreferenceScreen
+    android:key="pref_screen_power"
+    android:title="@string/power_management"
+    app:fragment="app.organicmaps.settings.PowerSettingsFragment"
+    app:icon="@drawable/ic_eco"
+    android:summary="@string/prefs_group_power_summary" />
+
+  <PreferenceScreen
+    android:key="pref_screen_privacy"
+    android:title="@string/prefs_group_privacy"
+    app:fragment="app.organicmaps.settings.PrivacySettingsFragment"
+    app:icon="@drawable/ic_privacy"
+    android:summary="@string/prefs_group_privacy_summary" />
+
+  <PreferenceScreen
+    android:key="pref_screen_advanced"
+    android:title="@string/prefs_group_advanced"
+    app:fragment="app.organicmaps.settings.AdvancedSettingsFragment"
+    app:icon="@drawable/ic_settings_dark"
+    android:summary="@string/prefs_group_advanced_summary" />
+
+  <Preference
+    android:key="@string/pref_about"
+    android:title="@string/about_menu_title"
+    app:icon="@drawable/ic_logo_monochrome_settings"
+    app:singleLineTitle="false"
+    tools:summary="@string/pref_about_summary" />
+
+</androidx.preference.PreferenceScreen>

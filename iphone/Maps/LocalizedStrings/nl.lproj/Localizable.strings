@@ -1,0 +1,910 @@
+/* Button text (should be short) */
+"cancel" = "Annuleren";
+/* Button which interrupts country download */
+"cancel_download" = "Downloaden annuleren";
+/* Button which deletes downloaded country */
+"delete" = "Verwijderen";
+"download_maps" = "Kaarten downloaden";
+/* Settings/Downloader - info for country which started downloading */
+"downloading" = "Downloaden…";
+/* Title of offline maps explanation */
+"offline_explanation_title" = "Offline kaarten";
+/* Text of offline maps explanation */
+"offline_explanation_text" = "Er moet een kaart worden gedownload om het gebied te kunnen bekijken en erin te navigeren.\nDownload kaarten voor gebieden waar je wilt reizen.";
+/* Choose measurement on first launch alert - choose metric system button */
+"kilometres" = "Kilometers";
+/* Leave Review dialog - Review button */
+"leave_a_review" = "Laat een review achter";
+/* Choose measurement on first launch alert - choose imperial system button */
+"miles" = "Mijlen";
+/* A text for current gps location point/arrow selected on the map */
+"core_my_position" = "Mijn locatie";
+/* Update maps later button text */
+"later" = "Later";
+/* View and button titles for accessibility, please also edit it in iphone/plist.txt */
+"search" = "Zoeken";
+/* Settings/Downloader - 3G download warning dialog confirm button */
+"use_cellular_data" = "Ja";
+/* View and button titles for accessibility */
+"zoom_to_country" = "Weergeven op kaart";
+/* Button text for the button at the center of the screen when the country is not downloaded and the size should not be shown */
+"country_status_download_without_size" = "Download kaart";
+/* Message to display at the center of the screen when the country download has failed */
+"country_status_download_failed" = "Downloaden is mislukt";
+/* Text in About screen */
+"about_headline" = "Open project gedreven door de community";
+/* Text in About screen */
+"about_proposition_1" = "Offline, snel en gebruiksvriendelijk";
+/* Text in About screen */
+"about_proposition_2" = "Privacygericht en reclamevrij";
+/* Text in About screen */
+"about_proposition_3" = "Transparant en zonder winstoogmerk";
+"close" = "Sluiten";
+"download" = "Downloaden";
+/* REMOVE THIS STRING AFTER REFACTORING */
+"continue_button" = "Doorgaan";
+/* "Add new bookmark list" dialog title */
+"add_new_set" = "Nieuwe lijst toevoegen";
+/* Add Bookmark list dialog - hint when the list name is empty */
+"bookmark_set_name" = "Naam van lijst";
+/* "Bookmark Lists" dialog title */
+"bookmark_sets" = "Favorietenlijsten";
+/* Should be used in the bookmarks-only context, see bookmarks_and_tracks if tracks are also implied. */
+"bookmarks" = "Plaatsen";
+/* "Bookmarks and Tracks" dialog title, also sync it with iphone/plist.txt */
+"bookmarks_and_tracks" = "Favorieten";
+/* Default bookmark list name */
+"core_my_places" = "Mijn Favorieten";
+/* Editor title above street and house number, duplicates [type.building.address] in types_strings.txt */
+"address" = "Adres";
+/* Settings button in system menu */
+"settings" = "Instellingen";
+/* Measurement units title in settings activity */
+"measurement_units" = "Eenheid van afstand";
+/* Search category for cafes, bars, restaurants; any changes should be duplicated in categories.txt @category_eat! */
+"category_eat" = "Eetgelegenheden";
+/* Search category for grocery stores; any changes should be duplicated in categories.txt @category_food! */
+"category_food" = "Boodschappen";
+/* Search category for public transport; any changes should be duplicated in categories.txt @category_transport! */
+"category_transport" = "Transport";
+/* Search category for fuel stations; any changes should be duplicated in categories.txt @category_fuel! */
+"category_fuel" = "Tankstation";
+/* Search category for parking lots; any changes should be duplicated in categories.txt @category_parking! */
+"category_parking" = "Parkeerplaats";
+/* Search category for malls/clothes/shoes/gifts/jewellery/sport shops; any changes should be duplicated in categories.txt @category_shopping! */
+"category_shopping" = "Winkelen";
+/* Search category for second_hand/charity/antique/auction shops; any changes should be duplicated in categories.txt @category_secondhand! */
+"category_secondhand" = "Tweedehands";
+/* Search category for places to stay; any changes should be duplicated in categories.txt @category_hotel! */
+"category_hotel" = "Hotel";
+/* Search category sight seeings and touristic attractions; any changes should be duplicated in categories.txt @category_tourism! */
+"category_tourism" = "Bezienswaardigheden";
+/* Search category for entertainment; any changes should be duplicated in categories.txt @category_entertainment! */
+"category_entertainment" = "Amusement";
+/* Search category for ATMs; any changes should be duplicated in categories.txt @category_atm! */
+"category_atm" = "Geldautomaat";
+/* Search category for nightclubs/bars; any changes should be duplicated in categories.txt @category_nightlife! */
+"category_nightlife" = "Nachtleven";
+/* Search category for water park/disneyland/playground/toys store; any changes should be duplicated in categories.txt @category_children! */
+"category_children" = "Gezinsvakantie";
+/* Search category for banks; any changes should be duplicated in categories.txt @category_bank! */
+"category_bank" = "Bank";
+/* Search category for pharmacies; any changes should be duplicated in categories.txt @category_pharmacy! */
+"category_pharmacy" = "Apotheek";
+/* Search category for hospitals; any changes should be duplicated in categories.txt @category_hospital! */
+"category_hospital" = "Ziekenhuis";
+/* Search category for toilets; any changes should be duplicated in categories.txt @category_toilet! */
+"category_toilet" = "Toilet";
+/* Search category for post offices; any changes should be duplicated in categories.txt @category_post! */
+"category_post" = "Post";
+/* Search category for police; any changes should be duplicated in categories.txt @category_police! */
+"category_police" = "Politie";
+/* Search category for WiFi access; any changes should be duplicated in categories.txt @category_wifi! */
+"category_wifi" = "WiFi";
+/* Search category for recycling; any changes should be duplicated in categories.txt @category_recycling! */
+"category_recycling" = "Recycling";
+/* Search category for water; any changes should be duplicated in categories.txt @category_water! also used to sort bookmarks by type */
+"category_water" = "Water";
+/* Search category for RV facilities; any changes should be duplicated in categories.txt @category_rv! */
+"category_rv" = "Camperfaciliteiten";
+"share_bookmarks_email_body" = "Hallo! \n \nBijgevoegd zijn mijn favorieten. Je kunt ze openen in CoMaps. Heb je CoMaps niet geïnstalleerd? Download het dan hier: https://www.comaps.app/nl/download/ \n \nVeel plezier met CoMaps en een goede reis!";
+/* message title of loading file */
+"load_kmz_title" = "Favorieten laden";
+/* Kmz file successful loading */
+"load_kmz_successful" = "Favorieten succesvol geladen! Je vindt ze op de kaart of in Favorietenbeheer.";
+/* Kml file loading failed */
+"load_kmz_failed" = "Favorieten laden is mislukt. Het bestand is mogelijk beschadigd.";
+/* resource for context menu */
+"edit" = "Bewerken";
+/* Warning message when doing search around current position */
+"unknown_current_position" = "Je locatie is nog niet bepaald";
+/* Subject for emailed bookmark */
+"bookmark_share_email_subject" = "Hey, bekijk mijn pin op CoMaps!";
+/* Subject for emailed position */
+"my_position_share_email_subject" = "Hoi, bekijk mijn huidige locatie op CoMaps!";
+/* Share by email button text, also used in editor and About. */
+"email" = "E-mail";
+/* Text for message to copy something */
+"copy_to_clipboard" = "Kopiëren naar klembord";
+/* Text for message when used successfully copied something */
+"copied_to_clipboard" = "Gekopieerd naar het klembord: %@";
+/* place preview title */
+"info" = "Info";
+/* Used for bookmark editing */
+"done" = "Klaar";
+/* Prints version number in About dialog */
+"version" = "CoMaps versie: %@";
+"version %@ (%@)" = "Versie %@ (%@)";
+"version: %@ (%@)\nmap data: %@" = "Versie: %@ (%@)\nKaartgegevens: %@";
+/* Title for tracks category in bookmarks manager */
+"tracks_title" = "Routes";
+/* Length of track in cell that describes route */
+"length" = "Lengte";
+"share_my_location" = "Mijn locatie delen";
+"prefs_group_route" = "Navigatie";
+"pref_zoom_title" = "Zoomknoppen";
+/* Settings «Map» category: «Map Language» title */
+"pref_maplanguage_title" = "Kaarttaal";
+/* Settings «Map» category: «Map Language» local value */
+"pref_maplanguage_local" = "Plaatselijke taal";
+/* Settings «Map» category: «Map Appearance» title */
+"pref_mapappearance_title" = "Kaartweergave";
+/* Settings «Map» category: «Appearance» title */
+"pref_appearance_title" = "Weergave";
+/* Settings "Appearance" category: "Light" title, should be consistent with the pref_appearance_title translation. */
+"pref_appearance_light" = "Licht";
+/* Settings "Appearance" category: "Dark" title, should be consistent with the pref_appearance_title translation. */
+"pref_appearance_dark" = "Donker";
+/* Generic «Disabled» string */
+"disabled" = "Uitgeschakeld";
+/* Generic «Off» string */
+"off" = "Uit";
+/* Generic «On» string */
+"on" = "Aan";
+/* Generic «Auto» string */
+"auto" = "Automatisch";
+/* Settings «Map» category: «Perspective view» title */
+"pref_map_3d_title" = "Perspectiefbeeld";
+/* A message in Settings/Preferences explaining why is it not possible to enable 3D buildings when max power saving mode is enabled */
+"pref_map_3d_buildings_disabled_summary" = "3D-gebouwen zijn uitgeschakeld in energiebesparingsmodus";
+/* Settings «Route» category: «Tts enabled» title */
+"pref_tts_title" = "Gesproken aanwijzingen";
+/* Settings «Route» category: «Tts enable» title */
+"pref_tts_enable_title" = "Gesproken aanwijzingen inschakelen";
+/* Settings «Route» category: «Tts announce street names» title */
+"pref_tts_street_names_title" = "Straatnamen aankondigen";
+/* Settings «Route» category: «Tts announce street names» description */
+"pref_tts_street_names_description" = "Indien ingeschakeld, wordt de naam van de straat of afrit waar je afslaat hardop uitgesproken.";
+/* Settings «Route» category: «Tts language» title */
+"pref_tts_language_title" = "Gesproken taal";
+/* Settings «Route» category: «Test Voice Directions» title */
+"pref_tts_test_voice_title" = "Gesproken aanwijzingen testen";
+/* Title for "Other" section in TTS settings. */
+"pref_tts_other_section_title" = "Andere";
+"pref_map_auto_zoom" = "Automatisch zoomen";
+"placepage_distance" = "Afstand";
+"search_show_on_map" = "Weergeven op kaart";
+/* Text in menu */
+"website" = "Website";
+/* Text in About menu, opens CoMaps news website */
+"news" = "Nieuws";
+/* Text in the about screen */
+"social_codeberg" = "Codeberg";
+"social_mastodon" = "Mastodon";
+"social_lemmy" = "Lemmy";
+"social_matrix" = "Matrix";
+"social_bluesky" = "Bluesky";
+"social_pixelfed" = "Pixelfed";
+"social_email" = "E-Mail";
+/* Text in the editor */
+"fediverse" = "Mastodon";
+/* Text in menu */
+"facebook" = "Facebook";
+/* Text in menu */
+"twitter" = "X (Twitter)";
+/* Text in menu */
+"instagram" = "Instagram";
+/* Text in the editor */
+"vk" = "VK";
+/* Text in the editor */
+"line" = "Line";
+/* Text in the editor */
+"bluesky" = "Bluesky";
+/* Text in menu */
+"panoramax" = "Panoramax";
+/* Text in menu */
+"panoramax_picture" = "Panoramax-afbeelding";
+/* Text in menu */
+"rate_the_app" = "Beoordeel de app";
+/* Text in menu */
+"help" = "Hulp";
+/* Button in the main Help dialog */
+"faq" = "Veelgestelde vragen";
+/* Button in the main menu */
+"donate" = "Doneren";
+/* Button in the main Help dialog */
+"copyright" = "Auteursrechten";
+/* Text in menu + Button in the main Help dialog */
+"report_a_bug" = "Meld een fout";
+/* Button in the About screen */
+"report_incorrect_map_bug" = "Rapporteer of repareer onjuiste kaartgegevens";
+/* Button in the About screen */
+"volunteer" = "Draag bij en verbeter CoMaps";
+/* "Social media" section header in the About screen */
+"follow_us" = "Blijf met ons in contact";
+/* Alert text */
+"email_error_body" = "Het e-mailprogramma is niet ingesteld. Stel het in of neem contact met ons op via %@";
+/* Alert title */
+"email_error_title" = "E-mail verzendfout";
+/* Toast text when user hides UI with a long tap anywhere on the map */
+"long_tap_toast" = "Houd de kaart nogmaals lang ingedrukt om de interface te tonen";
+/* Update all button text */
+"downloader_update_all_button" = "Alles bijwerken";
+/* Downloaded maps list header */
+"downloader_downloaded_subtitle" = "Gedownload";
+/* Downloaded maps category */
+"downloader_available_maps" = "Beschikbaar";
+/* Country queued for download */
+"downloader_queued" = "In de wachtrij";
+"downloader_near_me_subtitle" = "In de buurt";
+/* In maps downloader and country place page shows how many maps are downloaded / to download, e.g. "Maps: 3 of 10" */
+"downloader_status_maps" = "Kaarten";
+"downloader_download_all_button" = "Alles downloaden";
+"downloader_downloading" = "Downloaden:";
+"downloader_search_results" = "Gevonden";
+/* Status of outdated country in the list */
+"downloader_status_outdated" = "Updaten";
+/* Status of failed country in the list */
+"downloader_status_failed" = "Mislukt";
+/* Displayed in a dialog that appears when a user tries to delete a map while the app is in the follow route mode */
+"downloader_delete_map_while_routing_dialog" = "Stop de navigatie om de kaart te verwijderen.";
+/* PointsInDifferentMWM */
+"routing_failed_cross_mwm_building" = "Er kunnen alleen routes worden gemaakt die volledig binnen een kaart van één regio liggen.";
+/* Context menu item for downloader. */
+"downloader_download_map" = "Kaart downloaden";
+/* Item status in downloader. */
+"downloader_retry" = "Opnieuw proberen";
+/* Item in context menu. */
+"downloader_delete_map" = "Kaart verwijderen";
+/* Text for routing error dialog */
+"routing_download_maps_along" = "Alle kaarten op de route downloaden";
+/* Text for routing error dialog */
+"routing_requires_all_map" = "Om een route te maken moeten alle kaarten van je locatie naar je bestemming gedownload en bijgewerkt zijn.";
+/* bookmark button text */
+"bookmark" = "plaats";
+"save" = "Opslaan";
+"create" = "aanmaken";
+/* red color */
+"red" = "Rood";
+/* yellow color */
+"yellow" = "Geel";
+/* blue color */
+"blue" = "Blauw";
+/* green color */
+"green" = "Groen";
+/* purple color */
+"purple" = "Paars";
+/* orange color */
+"orange" = "Oranje";
+/* brown color */
+"brown" = "Bruin";
+/* pink color */
+"pink" = "Roze";
+/* deep purple color */
+"deep_purple" = "Donkerpaars";
+/* light blue color */
+"light_blue" = "Lichtblauw";
+/* cyan color */
+"cyan" = "Cyaan";
+/* teal color */
+"teal" = "Blauwgroen";
+/* lime color */
+"lime" = "Limoengroen";
+/* deep orange color */
+"deep_orange" = "Donkeroranje";
+/* gray color */
+"gray" = "Grijs";
+/* blue gray color */
+"blue_gray" = "Grijsblauw";
+"dialog_routing_disclaimer_title" = "Belangrijk bij het volgen van een route:";
+"dialog_routing_disclaimer_priority" = "— De situatie op de weg, verkeersregels en verkeersborden gaan altijd vóór op navigatie-aanwijzingen;";
+"dialog_routing_disclaimer_precision" = "— De kaart kan onnauwkeurig zijn en de voorgestelde route is niet altijd de optimale manier om de bestemming te bereiken;";
+"dialog_routing_disclaimer_recommendations" = "— Beschouw voorgestelde routes enkel als aanbevelingen;";
+"dialog_routing_disclaimer_borders" = "— Wees voorzichtig met routes in grensgebieden: door onze app gemaakte routes kunnen soms landsgrenzen kruisen waar toegangsbeperkingen gelden.";
+"dialog_routing_disclaimer_beware" = "Blijf alert en rijd veilig!";
+"dialog_routing_check_gps" = "Controleer gps-signaal";
+"dialog_routing_error_location_not_found" = "Route samenstellen mislukt. De huidige gps-coördinaten kunnen niet worden bepaald.";
+"dialog_routing_location_turn_wifi" = "Controleer je gps-signaal. Je locatie is nauwkeuriger met wifi ingeschakeld.";
+"dialog_routing_location_turn_on" = "Schakel locatiediensten in";
+"dialog_routing_location_unknown_turn_on" = "Kan de huidige gps-coördinaten niet bepalen. Schakel locatiediensten in om de route te berekenen.";
+"dialog_routing_download_files" = "Download de vereiste bestanden";
+"dialog_routing_download_and_update_all" = "Download of update alle kaarten op de ingestelde route om een route te berekenen.";
+"dialog_routing_unable_locate_route" = "Route kan niet worden gevonden";
+"dialog_routing_change_start_or_end" = "Pas het vertrekpunt of de bestemming aan.";
+"dialog_routing_change_start" = "Startpunt aanpassen";
+"dialog_routing_start_not_determined" = "Route samenstellen mislukt. Startpunt kan niet worden gevonden.";
+"dialog_routing_select_closer_start" = "Kies een startpunt dat dichter bij een weg ligt.";
+"dialog_routing_change_end" = "Bestemming aanpassen";
+"dialog_routing_end_not_determined" = "Route samenstellen mislukt. Bestemming kan niet worden gevonden.";
+"dialog_routing_select_closer_end" = "Kies een bestemming die dichter bij een weg ligt.";
+"dialog_routing_change_intermediate" = "Kan de tussenstop niet vinden.";
+"dialog_routing_intermediate_not_determined" = "Pas de tussenstop aan.";
+"dialog_routing_system_error" = "Systeemfout";
+"dialog_routing_application_error" = "Route samenstellen mislukt door een applicatiefout.";
+"dialog_routing_try_again" = "Probeer het opnieuw";
+"dialog_routing_download_and_build_cross_route" = "Kaart(en) downloaden om een betere route samen te stellen die meer dan één kaart omvat?";
+"dialog_routing_download_cross_route" = "Download extra kaarten om een betere route samen te stellen die de grenzen van deze kaart overschrijdt.";
+/* «Show» context menu */
+"show" = "Tonen";
+/* «Hide» context menu */
+"hide" = "Verbergen";
+/* Failed planning route message in navigation view */
+"routing_planning_error" = "Routeberekening mislukt";
+/* Arrive routing message in navigation view */
+"routing_arrive" = "Aankomst: %@";
+/* Text for routing::RouterResultCode::FileTooOld dialog. */
+"dialog_routing_download_and_update_maps" = "Download of update alle kaarten op de ingestelde route om een route te berekenen.";
+"categories" = "Categorieën";
+"history" = "Geschiedenis";
+"search_not_found" = "Sorry, geen resultaten gevonden.";
+/* The message when user did not find anything in the search. */
+"search_not_found_query" = "Download de regio waar je zoekt of voeg de naam van een nabijgelegen stad of dorp toe.";
+"search_history_title" = "Zoekgeschiedenis";
+"search_history_text" = "Recente zoekopdrachten.";
+"clear_search" = "Zoekgeschiedenis wissen";
+/* Place Page link to Wikipedia article (if map object has it). */
+"read_in_wikipedia" = "Wikipedia";
+/* Place Page link to Wikimedia Commons. */
+"wikimedia_commons" = "Wikimedia Commons";
+"p2p_your_location" = "Je locatie";
+"p2p_start" = "Start";
+"p2p_from_here" = "Route van";
+"p2p_to_here" = "Route naar";
+"p2p_only_from_current" = "Navigeren kan alleen vanaf je huidige locatie.";
+"p2p_reroute_from_current" = "Wil je een route plannen vanaf je huidige locatie?";
+"editor_time_add" = "Tijdschema toevoegen";
+"editor_time_delete" = "Tijdschema verwijderen";
+/* Text for allday switch. */
+"editor_time_allday" = "Hele dag (24 uur)";
+"editor_time_open" = "Open";
+"editor_time_close" = "Gesloten";
+"editor_time_add_closed" = "Gesloten-tijden toevoegen";
+"editor_time_title" = "Openingstijden";
+"editor_time_advanced" = "Geavanceerde modus";
+"editor_time_simple" = "Eenvoudige modus";
+"editor_hours_closed" = "Gesloten-tijden";
+"editor_example_values" = "Voorbeeldwaarden";
+"editor_add_select_location" = "Locatie selecteren";
+"editor_done_dialog_1" = "Je hebt de wereldkaart gewijzigd! Hou het niet voor jezelf; vertel het je vrienden en bewerk de kaart samen.";
+"share_with_friends" = "Deel met je vrienden";
+"editor_report_problem_send_button" = "Verzenden";
+"autodownload" = "Kaarten automatisch downloaden";
+/* Voice */
+"voice" = "Stem";
+"voice_explanation" = "Het is mogelijk om een betere stem te kiezen in de systeeminstellingen onder *Toegankelijkheid*, *Lezen en spreken*, *Stemmen*.";
+"voice_explanation_before_version26" = "Het is mogelijk om een betere stem te kiezen in de systeeminstellingen onder *Toegankelijkeid*, *Gesproken tekst*, *Stemmen*.";
+"unknown" = "Onbekend";
+/* Place page confirmation messages and time ago formatting */
+"existence_confirmed_time_ago" = "Bestaan bevestigd %@";
+"hours_confirmed_time_ago" = "Bevestigd %@";
+/* Place Page opening hours text */
+"closed_now" = "Nu gesloten";
+/* Place Page opening hours text */
+"daily" = "Dagelijks";
+"twentyfour_seven" = "24/7";
+"day_off_today" = "Vandaag gesloten";
+"day_off" = "Gesloten";
+"today" = "Vandaag";
+"opens_tomorrow_at" = "Opent morgen om %@";
+"opens_dayoftheweek_at" = "Opent %1$@ om %2$@";
+"opens_at" = "Opent om %@";
+"opens_in" = "Opent over %@";
+"closes_at" = "Sluit om %@";
+"closes_in" = "Sluit over %@";
+"closed" = "Gesloten";
+"add_opening_hours" = "Openingstijden toevoegen";
+/* OpenStreetMap */
+"osm_mapdata" = "Kaartgegevens van OpenStreetMap";
+"osm_mapdata_explanation %@" = "Door de gemeenschap gemaakte kaartgegevens tot *%@*. Lees meer over hoe je de kaart kunt bewerken en bijwerken op [OpenStreetMap.org](https://openstreetmap.org).";
+"osm_more_about" = "Meer over OpenStreetMap";
+"osm_more_about_url" = "https://wiki.openstreetmap.org/wiki/NL:Wat_is_OpenStreetMap%3F";
+/* OpenStreetMap Profile */
+"osm_profile" = "OpenStreetMap-profiel";
+"osm_profile_promt" = "Maak een OpenStreetMap-account aan of log in om je kaartbewerkingen wereldwijd te publiceren.";
+"osm_profile_explanation" = "[OpenStreetMap.org](https://openstreetmap.org) (OSM) is een gemeenschapsproject voor het maken van een vrije en open kaart. Het is de belangrijkste bron van kaartgegevens voor CoMaps en werkt op een vergelijkbare manier als Wikipedia. Je kunt plaatsen toevoegen of bewerken, waarna deze beschikbaar komen voor miljoenen gebruikers wereldwijd.\nSluit je aan bij de gemeenschap en help mee de kaart voor iedereen te verbeteren!";
+"osm_profile_login" = "Inloggen bij OpenStreetMap";
+"osm_profile_reauthorize_promt" = "Het OpenStreetMap-account is losgekoppeld van deze app";
+"osm_profile_reauthorize" = "Opnieuw verbinden met OpenStreetMap";
+"osm_profile_remove_promt" = "Als je je account niet opnieuw kunt of wilt koppelen, kun je het gewoon uit deze app verwijderen";
+"osm_profile_remove" = "OpenStreetMap-account loskoppelen";
+"osm_profile_register_promt" = "Geen account bij OpenStreetMap?";
+"osm_profile_register" = "Registreer bij OpenStreetMap";
+"osm_profile_verfied_changes" = "Gecontroleerde wijzigingen";
+"osm_profile_view_edit_history" = "Bewerkingsgeschiedenis bekijken";
+"osm_profile_view_notes" = "Opmerkingen bekijken";
+"osm_profile_logout" = "Uitloggen bij OpenStreetMap-account";
+"osm_profile_delete" = "OpenStreetMap-account verwijderen";
+/* Information text: "Last upload 11.01.2016" */
+"last_upload" = "Laatste upload";
+"thank_you" = "Dankjewel";
+"edit_place" = "Locatie bewerken";
+"place_name" = "Locatienaam";
+"add_language" = "Taal toevoegen";
+/* Editable House Number text field (in address block). */
+"house_number" = "Huisnummer";
+"details" = "Details";
+/* Text field to enter non-existing street name, below list of known streets around */
+"add_street" = "Een straat toevoegen";
+"choose_language" = "Kies een taal";
+"choose_street" = "Kies een straat";
+"postal_code" = "Postcode";
+"cuisine" = "Keuken";
+"select_cuisine" = "Selecteer keuken";
+/* login text field */
+"email_or_username" = "E-mailadres of gebruikersnaam";
+"phone" = "Telefoonnummer";
+"level" = "Verdieping";
+"please_note" = "Opgelet";
+"downloader_delete_map_dialog" = "Alle wijzigingen aan de kaart zullen samen met de kaart worden verwijderd.";
+"downloader_update_maps" = "Kaarten bijwerken";
+"downloader_search_field_hint" = "Kaart zoeken";
+"migration_download_error_dialog" = "Downloadfout";
+"common_check_internet_connection_dialog" = "Controleer je instellingen en zorg ervoor dat het apparaat verbonden is met het internet.";
+"downloader_no_space_title" = "Onvoldoende opslagruimte";
+"downloader_no_space_message" = "Verwijder overbodige gegevens";
+"editor_profile_changes" = "Gecontroleerde wijzigingen";
+"editor_focus_map_on_location" = "Sleep de kaart om het kruis op de locatie van de plaats of het bedrijf te plaatsen.";
+"editor_add_select_category" = "Selecteer categorie";
+"editor_add_select_category_popular_subtitle" = "Populair";
+"editor_add_select_category_all_subtitle" = "Alle categorieën";
+"editor_edit_place_title" = "Bewerken";
+"editor_add_place_title" = "Toevoegen";
+"editor_edit_place_name_hint" = "Naam van de plaats";
+/* The second part of the editor_edit_place_name_hint to explain that name should be entered in a local language, see https://wiki.openstreetmap.org/wiki/Key:name */
+"editor_default_language_hint" = "Zoals geschreven in de plaatselijke taal";
+"editor_edit_place_category_title" = "Categorie";
+"whatsnew_editor_message_1" = "Voeg nieuwe plaatsen toe aan de kaart en bewerk de bestaande rechtstreeks vanuit de app.";
+"dialog_incorrect_feature_position" = "Wijzig locatie";
+"message_invalid_feature_position" = "Hier kan geen object worden geplaatst";
+/* Error dialog no space */
+"migration_no_space_message" = "Om te kunnen downloaden, heb je meer ruimte nodig. Verwijder overbodige gegevens.";
+"editor_sharing_title" = "Ik heb de CoMaps-kaarten verbeterd";
+/* Downloaded 10 **of** 20 <- it is that "of" */
+"downloader_of" = "%1$d van %2$d";
+"download_over_mobile_header" = "Downloaden via mobiele internetverbinding?";
+"download_over_mobile_message" = "Met sommige abonnementen of bij roaming kan dit behoorlijk duur zijn.";
+"error_enter_correct_house_number" = "Voer een geldig huisnummer in";
+"editor_storey_number" = "Aantal verdiepingen (max. %d)";
+/* Error message in Editor when a user tries to set the number of floors for a building higher than %d floors */
+"error_enter_correct_storey_number" = "Het gebouw mag niet meer dan %d verdiepingen hebben";
+"editor_zip_code" = "Postcode";
+"error_enter_correct_zip_code" = "Voer een geldige postcode in";
+/* Place Page title for long tap */
+"core_placepage_unknown_place" = "Kaartpunt";
+/* Title for OSM note section in the editor */
+"editor_other_info" = "Opmerking voor OpenStreetMap-vrijwilligers (optioneel)";
+"editor_detailed_description_hint" = "Gedetailleerde reactie";
+"editor_detailed_description" = "Je voorgestelde wijzigingen worden naar de OpenStreetMap-gemeenschap gestuurd. Beschrijf details die niet in CoMaps kunnen worden bewerkt.";
+"editor_more_about_osm" = "Meer over OpenStreetMap";
+"editor_operator" = "Exploitant";
+/* To indicate the operator of ATMs, bicycle rentals, electric vehicle charging stations... */
+"operator" = "Exploitant: %@";
+"editor_category_unsuitable_title" = "Geen passende categorie gevonden?";
+"editor_category_unsuitable_text" = "CoMaps kan alleen eenvoudige puntcategorieën toevoegen, dus geen steden, wegen, meren, contouren van gebouwen, enz. Voeg dergelijke categorieën direct toe aan <a href=\"https://www.openstreetmap.org\">OpenStreetMap.org</a>. Lees onze <a href=\"https://www.comaps.app/support/advanced-map-editing/\">handleiding</a> voor gedetailleerde stapsgewijze instructies.";
+"downloader_no_downloaded_maps_title" = "Je hebt geen kaarten gedownload";
+"downloader_no_downloaded_maps_message" = "Download kaarten om offline te zoeken en navigeren.";
+"current_location_unknown_error_title" = "Huidige locatie is onbekend.";
+"current_location_unknown_error_message" = "Er is een fout opgetreden tijdens het bepalen van je locatie. Controleer of je apparaat goed werkt en probeer het later opnieuw.";
+"location_services_disabled_header" = "Locatiediensten zijn uitgeschakeld";
+"location_services_disabled_message" = "Schakel de toegang tot geolocatie in in de instellingen van het apparaat";
+"location_services_disabled_1" = "1. Instellingen openen";
+"location_services_disabled_2" = "2. Tik op locatie";
+/* iOS Dialog for the case when the location permission is not granted; you might find the exact wording for your language here: https://support.apple.com/en-us/102647 (replace 'en-us' in URL with your language/region) */
+"location_services_disabled_3" = "3. Selecteer Bij gebruik van app";
+"location_services_disabled_on_device_2" = "2. Selecteer Privacy en beveiliging";
+"location_services_disabled_on_device_3" = "3. Selecteer Locatievoorzieningen";
+"location_services_disabled_on_device_4" = "4. Locatiediensten inschakelen";
+"location_services_disabled_on_device_additional_message" = "Of blijf CoMaps gebruiken zonder locatie";
+/* abbreviation for meters */
+"m" = "m";
+/* abbreviation for kilometers */
+"km" = "km";
+/* abbreviation for kilometers per hour */
+"kilometers_per_hour" = "km/u";
+/* abbreviation for mile(s) */
+"mi" = "mi";
+/* A unit of measure */
+"ft" = "ft";
+"miles_per_hour" = "mph";
+"hour" = "u";
+"minute" = "min";
+"day" = "d";
+"placepage_more_button" = "Meer";
+"book_button" = "Boek";
+"placepage_call_button" = "Bel";
+"placepage_edit_bookmark_button" = "Opgeslagen plaats bewerken";
+"placepage_bookmark_name_hint" = "Plaatsnaam";
+"placepage_personal_notes_hint" = "Persoonlijke aantekeningen (tekst of html)";
+"placepage_delete_bookmark_button" = "Verwijder plaats";
+"editor_edits_sent_message" = "Je opmerking wordt verzonden naar OpenStreetMap";
+"editor_comment_hint" = "Reactie…";
+"editor_reset_edits_message" = "Alle lokale wijzigingen verwerpen?";
+"editor_reset_edits_button" = "Wijzigingen verwerpen";
+"editor_remove_place_message" = "Toegevoegde locatie verwijderen?";
+"editor_remove_place_button" = "Verwijderen";
+"editor_place_doesnt_exist" = "Locatie bestaat niet";
+"editor_place_doesnt_exist_description" = "Beschrijf hoe de plaats er nu uitziet om een foutbericht te sturen naar de OpenStreetMap-gemeenschap";
+"text_more_button" = "…meer";
+/* Phone number error message */
+"error_enter_correct_phone" = "Voer een geldig telefoonnummer in";
+"error_enter_correct_web" = "Voer een geldig webadres in";
+"error_enter_correct_email" = "Voer een geldig e-mailadres in";
+"refresh" = "Update";
+"placepage_add_place_button" = "Plaats toevoegen aan OpenStreetMap";
+/* Displayed when saving some edits to the map to warn against publishing personal data */
+"editor_share_to_all_dialog_title" = "Wijzigingen publiceren voor alle gebruikers?";
+/* Dialog before publishing the modifications to the public map. */
+"editor_share_to_all_dialog_message_1" = "Controleer dat je geen persoonlijke gegevens hebt ingevoerd.";
+"editor_share_to_all_dialog_message_2" = "Vrijwilligers van OpenStreetMap zullen de wijzigingen controleren en contact met je opnemen als ze vragen hebben.";
+"navigation_stop_button" = "Stop";
+/* iOS dialog for the case when recent track recording is on and the app comes back from background */
+"recent_track_background_dialog_title" = "Vastleggen van je recent afgelegde route uitschakelen?";
+"off_recent_track_background_button" = "Uitschakelen";
+/* For sharing via SMS and so on */
+"sharing_call_action_look" = "Bekijk";
+"recent_track_background_dialog_message" = "CoMaps gebruikt je locatie op de achtergrond om je recent afgelegde route vast te leggen.";
+"general_settings" = "Algemene instellingen";
+/* For the first routing */
+"accept" = "Accepteren";
+/* For the first routing */
+"decline" = "Weigeren";
+"mobile_data_dialog" = "Mobiel internet gebruiken om gedetailleerde informatie weer te geven?";
+"mobile_data_option_always" = "Gebruik altijd";
+"mobile_data_option_today" = "Alleen vandaag";
+"mobile_data_option_not_today" = "Gebruik vandaag niet";
+"mobile_data" = "Mobiel internet";
+/* NOTE to translators: please synchronize your translation with the English one. */
+"mobile_data_description" = "Internet is vereist voor notificaties over kaartupdates en voor het uploaden van bewerkingen.";
+"mobile_data_option_never" = "Gebruik nooit";
+"mobile_data_option_ask" = "Vraag altijd";
+"traffic_update_maps_text" = "Om verkeersgegevens weer te geven, moeten de kaarten bijgewerkt worden.";
+/* "traffic" as in road congestion */
+"traffic_update_app_message" = "Om verkeersgegevens weer te geven, moet de applicatie bijgewerkt worden.";
+/* "traffic" as in "road congestion" */
+"traffic_data_unavailable" = "Verkeersgegevens zijn niet beschikbaar";
+"enable_logging" = "Logboekregistratie inschakelen";
+"log_file_size" = "Grootte logbestand: %@";
+"pref_alt_map_lang_handling" = "Alternatieve kaarttalen";
+"pref_alt_map_lang_handling_ignore_alternatives" = "Geen alternatieven gebruiken";
+"pref_alt_map_lang_handling_system_order" = "Gebruik in systeemvolgorde";
+"pref_alt_map_lang_handling_local_only" = "Voorkeur voor lokale taal";
+"transliteration_title" = "Transliteratie naar Latijns alfabet";
+"transliteration_title_disabled_summary" = "Uitgeschakeld wanneer altijd de lokale taal voor de kaart wordt gebruikt";
+/* Subway exits for public transport marks on the map */
+"core_exit" = "Uitgang";
+/* User selected the destination by pressing Route To, but the current position is unknown. User needs to select a starting point of a route using search or by tapping on the map and then pressing "Route From". */
+"routing_add_start_point" = "Gebruik zoeken of tik op de kaart om een startpunt voor de route toe te voegen";
+/* User selected the start of a route by pressing Route From. Now the destination of a route should be selected using search or by tapping on the map and then pressing "Route To". */
+"routing_add_finish_point" = "Gebruik Zoeken of tik op de kaart om een punt van bestemming toe te voegen";
+"planning_route_manage_route" = "Route beheren";
+"button_plan" = "Plannen";
+"placepage_remove_stop" = "Verwijder tussenstop";
+"planning_route_remove_title" = "Sleep hier om te verwijderen";
+"placepage_add_stop" = "Tussenstop toevoegen";
+"start_from_my_position" = "Start vanaf";
+/* Title for button when a route was saved. */
+"saved" = "Opgeslagen";
+"core_entrance" = "Ingang";
+"error_enter_correct_name" = "Voer een geldige naam in";
+"bookmark_lists" = "Lijsten";
+/* Do not display all bookmark lists on the map */
+"bookmark_lists_hide_all" = "Alles verbergen";
+"bookmark_lists_show_all" = "Toon alles";
+"bookmarks_create_new_group" = "Nieuwe lijst aanmaken";
+/* Bookmark categories screen, button that opens folder selection dialog to import KML/KMZ/GPX/KMB files */
+"bookmarks_import" = "Favorieten importeren";
+"downloader_hide_screen" = "Verberg scherm";
+"downloader_percent" = "%@ (%@ van %@)";
+"downloader_process" = "%@ downloaden…";
+"downloader_applying" = "%@ toepassen…";
+"bookmarks_error_message_share_general" = "Delen mislukt door een applicatiefout";
+"bookmarks_error_title_share_empty" = "Deelfout";
+"bookmarks_error_message_share_empty" = "Een lege lijst kan niet gedeeld worden";
+"bookmarks_error_message_empty_list_name" = "Voer de lijstnaam in";
+"bookmarks_error_title_list_name_already_taken" = "Deze naam is al in gebruik";
+"bookmarks_error_title_list_name_too_long" = "Deze naam is te lang";
+"profile" = "OpenStreetMap-profiel";
+"bookmarks_detect_title" = "Nieuwe bestanden gedetecteerd";
+"button_convert" = "Converteren";
+"bookmarks_convert_error_title" = "Fout";
+"bookmarks_convert_error_message" = "Sommige bestanden zijn niet geconverteerd.";
+"restore" = "Herstellen";
+"privacy_policy" = "Privacybeleid";
+"terms_of_use" = "Gebruiksvoorwaarden";
+"subway_data_unavailable" = "Metrokaart is niet beschikbaar";
+"title_error_downloading_bookmarks" = "Er is een fout opgetreden";
+"popular_place" = "Populair";
+"export_file" = "KMZ exporteren";
+"export_file_gpx" = "GPX exporteren";
+"delete_list" = "Verwijder lijst";
+"hide_from_map" = "Verbergen op kaart";
+"tags_loading_error_subtitle" = "Er is een fout opgetreden tijdens het laden van tags, probeer het opnieuw";
+"download_button" = "Download";
+"speedcams_alert_title" = "Flitspalen";
+"place_description_title" = "Plaatsbeschrijving";
+/* "Speed cameras" settings menu option (should be short! no more than 47-50 chars) to warn a driver if there is a risk of exceeding the speed limit */
+"pref_tts_speedcams_auto" = "Waarschuw bij overschrijden snelheidslimiet";
+/* Speed camera settings menu option - Always warn (about speedcams) */
+"pref_tts_speedcams_always" = "Waarschuw altijd";
+/* Speed camera settings menu option - Never warn (about speedcams) */
+"pref_tts_speedcams_never" = "Waarschuw nooit";
+"power_managment_title" = "Energiebesparende modus";
+"power_managment_description" = "Probeer energieverbruik te verminderen ten koste van enkele functies.";
+"power_managment_setting_never" = "Nooit";
+"power_managment_setting_auto" = "Wanneer batterij bijna leeg is";
+"power_managment_setting_manual_max" = "Altijd";
+"enable_logging_warning_message" = "Schakel deze optie tijdelijk in om gedetailleerde diagnostische loggegevens over je probleem te verzamelen en deze handmatig naar ons te sturen via ‘Meld een fout’ in het Help-dialoogvenster. Loggegevens kunnen locatiegegevens bevatten.";
+"driving_options_title" = "Route-instellingen";
+/* Recommended length for CarPlay and Android Auto is around 25-27 characters */
+"avoid_tolls" = "Tolwegen vermijden";
+/* Recommended length for CarPlay and Android Auto is around 25-27 characters */
+"avoid_unpaved" = "Onverharde wegen vermijden";
+"avoid_paved" = "Verharde wegen vermijden";
+/* Recommended length for CarPlay and Android Auto is around 25-27 characters */
+"avoid_steps" = "Trappen vermijden";
+"avoid_ferry" = "Veerboten vermijden";
+"avoid_motorways" = "Snelwegen vermijden";
+"unable_to_calc_alert_title" = "Kan geen route berekenen";
+"unable_to_calc_alert_subtitle" = "Er is geen route gevonden. Dit kan liggen aan je route-instellingen of aan onvolledige OpenStreetMap-gegevens. Wijzig je route-instellingen en probeer het opnieuw.";
+"define_to_avoid_btn" = "Te vermijden wegen instellen";
+"change_driving_options_btn" = "Route-instellingen ingeschakeld";
+"toll_road" = "Tolweg";
+"unpaved_road" = "Onverharde weg";
+"ferry_crossing" = "Veerboot";
+"trip_start" = "Laten we gaan";
+"pick_destination" = "Bestemming";
+"follow_my_position" = "Centreer";
+"search_results" = "Zoekresultaten";
+"then_turn" = "Dan";
+"redirect_route_alert" = "Wil je de route opnieuw plannen?";
+/* A generic "Yes" button in dialogs */
+"yes" = "Ja";
+/* A generic "No" button in dialogs */
+"no" = "Nee";
+/* E.g. "WiFi:Yes" */
+"yes_available" = "Ja";
+/* E.g. "WiFi:No" */
+"no_available" = "Nee";
+/* To indicate the network of ATMs, bicycle rentals, electric vehicle charging stations... */
+"network" = "Netwerk: %@";
+"trip_finished" = "Bestemming bereikt!";
+"keyboard_availability_alert" = "Toetsenbord is niet beschikbaar tijdens het rijden";
+"dialog_routing_change_start_carplay" = "Kan route vanaf huidige positie niet opbouwen";
+"dialog_routing_change_end_carplay" = "Kan geen route naar de bestemming vinden. Kies een ander eindpunt";
+"dialog_routing_check_gps_carplay" = "Geen GPS-signaal. Ga naar een open omgeving";
+"dialog_routing_unable_locate_route_carplay" = "Kan route niet berekenen. Selecteer andere tussenpunten";
+"dialog_routing_download_files_carplay" = "Om een route te berekenen, download de ontbrekende kaarten";
+"dialog_routing_system_error_carplay" = "Iets is fout gegaan. Start de app opnieuw";
+"dialog_routing_rebuild_from_current_location_carplay" = "De route wordt opnieuw berekend vanaf je huidige locatie";
+"dialog_routing_rebuild_for_vehicle_carplay" = "De route wordt veranderd naar een autoroute";
+"not_all_shown_bookmarks_carplay" = "Niet alle favorieten worden getoond";
+"switch_to_phone_bookmarks_carplay" = "Schakel over naar de telefoon om alle favorieten te zien";
+"ok" = "Oké";
+"speedcams_alert_title_carplay_1" = "Snelheidscamera's";
+"speedcams_alert_title_carplay_2" = "Over snelheidscamera's";
+"download_map_carplay" = "Download kaarten in de CoMaps-app op je apparaat";
+"carplay_roundabout_exit" = "Afrit nr. %@";
+/* max. 10 symbols, both iOS and Android */
+"sort" = "Sorteren…";
+/* iOS */
+"sort_default" = "Standaard sortering";
+"sort_type" = "Sorteren op type";
+"sort_distance" = "Sorteer op afstand";
+"sort_date" = "Sorteer op datum";
+"sort_name" = "Sorteer op naam";
+"week_ago_sorttype" = "Een week geleden";
+"month_ago_sorttype" = "Een maand geleden";
+"moremonth_ago_sorttype" = "Meer dan een maand geleden";
+"moreyear_ago_sorttype" = "Meer dan een jaar geleden";
+"near_me_sorttype" = "Dichtbij";
+"others_sorttype" = "Overig";
+"food_places" = "Eten";
+"tourist_places" = "Bezienswaardigheden";
+"museums" = "Musea";
+"parks" = "Parken";
+"swim_places" = "Zwemmen";
+"mountains" = "Bergen";
+"animals" = "Dieren";
+"hotels" = "Hotels";
+"buildings" = "Gebouwen";
+"money" = "Geld";
+"shops" = "Winkels";
+"parkings" = "Parkeerplaatsen";
+"fuel_places" = "Tankstations";
+"medicine" = "Geneeskunde";
+"search_in_the_list" = "Zoek in de lijst";
+"religious_places" = "Religieuze plaatsen";
+"transit_not_found" = "Metro-navigatie is nog niet beschikbaar in deze regio";
+"dialog_pedestrian_route_is_long_header" = "Geen metroroute gevonden";
+"dialog_pedestrian_route_is_long_message" = "Kies een begin- of eindpunt dichter bij een metrostation";
+"isolines_activation_error_dialog" = "Om hoogtelijnen weer te geven, moeten kaartgegevens voor dit gebied worden gedownload";
+"isolines_location_error_dialog" = "Hoogtelijnen zijn nog niet beschikbaar in deze regio";
+"elevation_profile_diff_level" = "Moeilijkheidsgraad";
+"elevation_profile_diff_level_easy" = "Gemakkelijk";
+"elevation_profile_diff_level_moderate" = "Middelmatig";
+"elevation_profile_diff_level_hard" = "Moeilijk";
+"elevation_profile_ascent" = "Stijging";
+"elevation_profile_descent" = "Daling";
+"elevation_profile_min_elevation" = "Min. hoogte";
+"elevation_profile_max_elevation" = "Max. hoogte";
+"isolines_toast_zooms_1_10" = "Zoom in om hoogtelijnen te bekijken";
+"downloader_updating_ios" = "Updaten";
+"downloader_loading_ios" = "Downloaden";
+/* Autoupdate dialog on start */
+"whats_new_auto_update_title" = "Werk de gedownloade kaarten bij";
+/* Autoupdate dialog on start */
+"whats_new_auto_update_message" = "Kaarten bijwerken houdt de informatie over objecten actueel";
+/* Autoupdate dialog on start */
+"whats_new_auto_update_button_size" = "Werk bij (%@)";
+/* Autoupdate dialog on start */
+"whats_new_auto_update_button_later" = "Werk later handmatig bij";
+/* Delete track button on track edit screen */
+"placepage_delete_track_button" = "Verwijder route";
+/* The track deletion confirmaion alert message. */
+"placepage_delete_track_confirmation_alert_message" = "Weet je zeker dat je deze route wilt verwijderen?";
+/* Placeholder for track name input on track edit screen */
+"placepage_track_name_hint" = "Routenaam";
+/* move track or bookmark from the list button text */
+"move" = "Verplaats";
+/* edit track screen title */
+"track_title" = "Track";
+/* Translated CoMaps site */
+"translated_om_site_url" = "https://www.comaps.app/nl/";
+/* App Tip #00 */
+"app_tip_00" = "Bedankt voor het gebruik van onze gemeenschappelijk gemaakte kaarten!";
+/* App tip #01 */
+"app_tip_01" = "Met jouw donaties en steun kunnen we de beste kaarten ter wereld maken!";
+/* App tip #02 */
+"app_tip_02" = "Bevalt onze app? Steun de ontwikkeling met een donatie! Bevalt de app nog niet? Laat ons weten waarom, dan lossen we het op!";
+/* App tip #03 */
+"app_tip_03" = "Als je een softwareontwikkelaar kent, kun je deze vragen om een functie te implementeren die je nodig hebt.";
+/* App tip #04 */
+"app_tip_04" = "Tik ergens op de kaart om iets te selecteren. Tik lang om de interface te verbergen en weer te geven.";
+/* App tip #05 */
+"app_tip_05" = "Wist je dat je je huidige locatie op de kaart kunt selecteren?";
+/* App tip #06 */
+"app_tip_06" = "Je kunt helpen onze app in jouw taal te vertalen.";
+/* App tip #07 */
+"app_tip_07" = "Onze app is ontwikkeld door een paar enthousiastelingen en de community.";
+/* App tip #08 */
+"app_tip_08" = "Je kunt de kaartgegevens eenvoudig corrigeren en verbeteren.";
+/* App tip #09 */
+"app_tip_09" = "Ons belangrijkste doel is om snelle, privacygerichte, gebruiksvriendelijke kaarten te maken waar jij van houdt.";
+/* Text on the Android Auto or CarPlay placeholder screen that maps are displayed on the phone screen */
+"car_used_on_the_phone_screen" = "Je gebruikt CoMaps nu op het telefoonscherm";
+/* Text on the phone placeholder screen that maps are displayed on the car screen */
+"car_used_on_the_car_screen" = "Je gebruikt CoMaps nu op het autoscherm";
+/* Displayed on the phone screen. Button to display maps on the phone screen instead of a car */
+"car_continue_on_the_phone" = "Ga verder op de telefoon";
+/* Displayed on the Android Auto or CarPlay screen. Button to display maps on the car screen instead of a phone. Must be no more than 18 symbols! */
+"car_continue_in_the_car" = "Naar het autoscherm";
+/* Bookmark categories screen, button that opens share dialog to export all bookmarks and tracks */
+"bookmarks_export" = "Alle Favorieten exporteren";
+/* Text for the editing the Track's color button. */
+"change_color" = "Verander kleur";
+/* Main screen title "Map" displayed in the navigation back button's menu. */
+"map" = "Kaart";
+"drive_through" = "Drive-though";
+/* Restaurant or other food place's menu URL field in the Editor */
+"website_menu" = "Link naar menu";
+/* Message for the bug report alert. */
+"bugreport_alert_message" = "Wil je een bugrapport naar de ontwikkelaars sturen?\nWe zijn afhankelijk van onze gebruikers, omdat CoMaps niet automatisch foutgegevens verzamelt. Alvast bedankt voor je steun aan CoMaps!";
+/* Title for the iCloud synchronization setting */
+"icloud_sync" = "iCloud-synchronisatie (bèta)";
+/* Title for the "Enable iCloud Synchronization" alert. */
+"enable_icloud_synchronization_title" = "Schakel iCloud-synchronisatie in";
+/* Message for the "Enable iCloud Synchronization" alert. */
+"enable_icloud_synchronization_message" = "iCloud-synchronisatie is een experimentele functie in ontwikkeling. Zorg ervoor dat je een back-up hebt gemaakt van al je Favorieten.";
+/* Title for the "iCloud Is Disabled" alert. */
+"icloud_disabled_title" = "iCloud is uitgeschakeld";
+/* Message for the "iCloud is Disabled" alert. */
+"icloud_disabled_message" = "Activeer iCloud in de instellingen van je Apple account om deze functie te gebruiken.";
+/* Title for the "Enable iCloud Synchronization" alert's "Enable" action button. */
+"enable" = "Schakel in";
+/* Title for the "Enable iCloud Synchronization" alert's "Backup" action button. */
+"backup" = "Back-up";
+/* Title for the "iCloud synchronization failure" alert. */
+"icloud_synchronization_error_alert_title" = "iCloud-synchronisatiefout";
+/* iCloud error message: Failed to synchronize due to connection error */
+"icloud_synchronization_error_connection_error" = "Fout: Synchronisatie mislukt door verbindingsfout";
+/* iCloud error message: Failed to synchronize due to iCloud quota exceeded */
+"icloud_synchronization_error_quota_exceeded" = "Fout: Synchronisatie mislukt vanwege overschrijding iCloud-quota";
+/* iCloud error message: iCloud is not available */
+"icloud_synchronization_error_cloud_is_unavailable" = "Fout: iCloud is niet beschikbaar";
+/* Title for the "Open in Another App" button on the PlacePage. */
+"open_in_app" = "Openen in een andere app";
+/* To indicate if the place proposed self service... */
+"self_service" = "Zelfbediening";
+/* To indicate if restaurant or other place has outdoor seating */
+"outdoor_seating" = "Zitplaatsen buiten";
+/* Title for the "Recently Deleted Lists" button on the Bookmarks and Lists screen. */
+"bookmarks_recently_deleted" = "Onlangs verwijderde lijsten";
+/* Title for the "Clear" button on the Recently Deleted Lists screen. */
+"clear" = "Wissen";
+/* Title for the "Delete All" button on the Recently Deleted Lists screen. */
+"delete_all" = "Alles verwijderen";
+/* Title for the "Recover" button on the Recently Deleted Lists screen. */
+"recover" = "Herstel";
+/* Title for the "Recover All" button on the Recently Deleted Lists screen. */
+"recover_all" = "Alles herstellen";
+/* Title for the "Stop Without Saving" action for the alert when saving a track recording. */
+"stop_without_saving" = "Stoppen zonder op te slaan";
+/* Title for the "Stop Without Saving" action for the alert when saving a track recording. */
+"continue_recording" = "Opname voortzetten";
+/* Title for the alert when saving a track recording. */
+"track_recording_alert_title" = "Opslaan in Favorieten?";
+/* Message for the toast when saving the track recording is finished but nothing to save. */
+"track_recording_toast_nothing_to_save" = "Geen route - niets op te slaan";
+"edit_track" = "Route bewerken";
+/* Title of the general section in settings */
+"general" = "Algemeen";
+/* Title of the interface section in settings */
+"interface" = "Interface";
+/* OpenStreetMap contribution section on the PlacePage. */
+"contribute_to_osm" = "Draag bij aan OpenStreetMap";
+"contribute_to_osm_add_place" = "Voeg plaats toe";
+"contribute_to_osm_update_map" = "Update de kaart om bij te dragen";
+"contribute_to_osm_update_map_description" = "Je moet de kaart %@ bijwerken naar de nieuwste versie voordat je kunt bijdragen aan de OpenStreetMap-gegevens";
+"downloader_check_updates_button" = "Controleren op updates";
+"downloader_check_updates_checking" = "Controleren op updates...";
+"downloader_check_updates_updated" = "Kaartupdates beschikbaar!";
+"downloader_check_updates_no_updates" = "Geen updates beschikbaar";
+"downloader_check_updates_eol" = "Geen kaartupdates meer voor deze appversie. Update de app!";
+"downloader_check_updates_error" = "Fout bij het controleren op updates";
+"editor_add_select_category_recent_subtitle" = "Recentelijk gebruikt";
+"oh_unknown" = "Openingstijden onbekend";
+"carplay_highway_exit" = "Afslag %@";
+"capacity_disabled_yes" = "Heeft gehandicaptenparkeerplaatsen";
+"capacity_disabled_no" = "Geen gehandicaptenparkeerplaatsen";
+"capacity_charging_yes" = "Heeft plaatsen met laders";
+"capacity_charging_no" = "Geen plaatsen met laders";
+"planning_route_preview" = "Voorbeeld";
+"planning_route_preview_sheet_title" = "Routevoorbeeld";
+"discard" = "Negeren";
+"pref_custom_button_type" = "Aanpasbare knop";
+"osm" = "OpenStreetMap";
+"mode" = "Transportmodus";
+"mode_walking" = "Lopen";
+"mode_cycling" = "Fietsen";
+"mode_driving" = "Rijden";
+"mode_public-transport" = "Openbaar vervoer";
+"mode_option_traffic" = "Verkeer tonen";
+"mode_option_transitlines" = "OV-lijnen tonen";
+"mode_option_comingsoon" = "Opties komen binnenkort";
+"layers" = "Lagen";
+"layers_option_contour-lines" = "Hoogtelijnen";
+"layers_option_outdoor" = "Buitensport";
+"layers_option_buildings-3d" = "3D-gebouwen";
+"layers_power-saving" = "Deze laag is momenteel uitgeschakeld vanwege je instelling voor de energiebesparende modus";
+"postionmode_locate" = "Eigen locatie vinden";
+"postionmode_locating" = "Eigen locatie vinden…";
+"postionmode_following" = "Locatie volgen met kaart gericht op het noorden";
+"postionmode_following-and-rotated" = "Locatie volgen met kaart gericht op bewegingsrichting";
+"zoom_in" = "Zoom in";
+"zoom_out" = "Zoom uit";
+"record_track" = "Route opnemen";
+"recording_track" = "Route opnemen";
+"bookmarks_text_placement_title" = "Namen van favorieten op kaart tonen";
+"pref_font_size" = "Lettergrootte voor kaartlabels";
+"font_size" = "Lettergrootte";
+"mode_options_accessibility_hint" = "Toont opties voor deze modus";
+"stars_5" = "5-sterren";
+"custom_map_server_error_scheme" = "De URL moet beginnen met http:// of https://";
+"stars_4" = "4-sterren";
+"stars_2" = "2-sterren";
+"custom_map_server_map_series" = "Deze CoMaps-versie gebruikt kaartserie %@.";
+"not_set" = "Niet ingesteld";
+"custom_map_server" = "Aangepaste kaartserver";
+"stars_3" = "3-sterren";
+"stars_1" = "1-ster";
+"custom_map_server_message" = "Overschrijf de standaard server voor het downloaden van kaarten. Laat leeg om de standaardserver van CoMaps te gebruiken.";

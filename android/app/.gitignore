@@ -1,0 +1,29 @@
+/build
+/nativeOutputs
+
+# ignore private keys
+/secure.properties.test
+/secure.properties.release
+/comaps-test.keystore
+/comaps-release.keystore
+/libnotify.properties
+/google-play.json
+/huawei-appgallery.json
+/agconnect-services.json
+
+# ignore flags symlinks
+/src/main/res/drawable-xhdpi/??.png
+/src/main/res/drawable-xhdpi/do_hack.png
+/src/main/res/drawable-xhdpi/uk_england.png
+/src/main/res/drawable-xhdpi/uk_northern_ireland.png
+/src/main/res/drawable-xhdpi/uk_scotland.png
+/src/main/res/drawable-xhdpi/uk_wales.png
+/src/main/res/drawable-mdpi/??.png
+/src/main/res/drawable-mdpi/do_hack.png
+/src/main/res/drawable-mdpi/uk_england.png
+/src/main/res/drawable-mdpi/uk_northern_ireland.png
+/src/main/res/drawable-mdpi/uk_scotland.png
+/src/main/res/drawable-mdpi/uk_wales.png
+
+# Symlinked to F-Droid relnotes by tools/unix/link_gplay_relnotes.sh
+/src/google/play/release-notes

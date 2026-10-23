@@ -1,0 +1,29 @@
+name: Android Check Store Metadata
+on:
+  workflow_dispatch: # Manual trigger
+  # TODO: These always fail until we fix how we seed the metadata files
+  # pull_request:
+  #   paths:
+  #     - .forgejo/workflows/android-check-metadata.yaml  # Run check on self change
+  #     - android/app/src/fdroid/play/**
+  #     - android/app/src/google/play/**
+  #     - tools/python/check_store_metadata.py
+
+jobs:
+  android-check-metadata:
+    name: Check app metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            android
+            tools/python/check_store_metadata.py
+
+      - name: Check Google Play metadata
+        run: ./tools/python/check_store_metadata.py gplay
+
+      - name: Check F-Droid metadata
+        run: ./tools/python/check_store_metadata.py fdroid

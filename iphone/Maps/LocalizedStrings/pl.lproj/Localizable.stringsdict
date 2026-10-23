@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bookmarks_places</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>brak zakładek</string>
+			<key>one</key>
+			<string>%lld zakładka</string>
+			<key>few</key>
+			<string>%lld zakładki</string>
+			<key>many</key>
+			<string>%lld zakładek</string>
+		</dict>
+	</dict>
+	<key>bookmarks_detect_message</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Znaleziono %lld plików.</string>
+			<key>one</key>
+			<string>Znaleziono %lld plik. Zobaczysz go po konwersji.</string>
+			<key>few</key>
+			<string>Znaleziono %lld pliki. Zobaczysz je po konwersji.</string>
+			<key>many</key>
+			<string>Znaleziono %lld plików. Zobaczysz je po konwersji.</string>
+		</dict>
+	</dict>
+	<key>tracks</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld tras</string>
+			<key>one</key>
+			<string>%lld trasa</string>
+			<key>few</key>
+			<string>%lld trasy</string>
+			<key>many</key>
+			<string>%lld tras</string>
+		</dict>
+	</dict>
+	<key>population</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld mieszkańców</string>
+			<key>one</key>
+			<string>%lld mieszkaniec</string>
+			<key>few</key>
+			<string>%lld mieszkańców</string>
+			<key>many</key>
+			<string>%lld mieszkańców</string>
+		</dict>
+	</dict>
+	<key>rooms</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld pokoi</string>
+			<key>one</key>
+			<string>%lld pokój</string>
+			<key>few</key>
+			<string>%lld pokoje</string>
+			<key>many</key>
+			<string>%lld pokoi</string>
+		</dict>
+	</dict>
+	<key>capacity_disabled</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld miejsc dedykowanych osobom niepełnosprawnym</string>
+			<key>one</key>
+			<string>%lld miejsce dedykowane osobom niepełnosprawnym</string>
+			<key>few</key>
+			<string>%lld miejsca dedykowane osobom niepełnosprawnym</string>
+			<key>many</key>
+			<string>%lld miejsc dedykowane osobom niepełnosprawnym</string>
+		</dict>
+	</dict>
+	<key>capacity_charging</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld miejsc z ładowarką</string>
+			<key>one</key>
+			<string>%lld miejsce z ładowarką</string>
+			<key>few</key>
+			<string>%lld miejsca z ładowarką</string>
+			<key>many</key>
+			<string>%lld miejsc z ładowarką</string>
+		</dict>
+	</dict>
+	<key>capacity</key>
+	<dict>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld miejsc</string>
+			<key>one</key>
+			<string>%lld miejsce</string>
+			<key>few</key>
+			<string>%lld miejsca</string>
+			<key>many</key>
+			<string>%lld miejsc</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

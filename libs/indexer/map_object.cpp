@@ -1,0 +1,322 @@
+#include "map_object.hpp"
+
+#include "indexer/feature.hpp"
+#include "indexer/feature_algo.hpp"
+#include "indexer/ftypes_matcher.hpp"
+#include "indexer/ftypes_subtypes.hpp"
+#include "indexer/road_shields_parser.hpp"
+
+#include "geometry/mercator.hpp"
+
+#include "platform/distance.hpp"
+#include "platform/measurement_utils.hpp"
+
+#include "i18n/localisation.hpp"
+#include "i18n/localisation_translation.hpp"
+
+#include "base/logging.hpp"
+#include "base/string_utils.hpp"
+
+namespace osm
+{
+using namespace std;
+
+void MapObject::SetFromFeatureType(FeatureType & ft)
+{
+  Classificator const & cl = classif();
+  m_types = feature::TypesHolder(ft);
+  m_types.RemoveIf([&cl](uint32_t t) { return !cl.IsTypeValid(t); });
+  // All types might be either deprecated or unsupported (new maps in old app).
+  if (m_types.Empty())
+    return;
+
+  m_mercator = feature::GetCenter(ft);
+  m_name = ft.GetNames();
+
+  m_metadata = ft.GetMetadata();
+  m_houseNumber = ft.GetHouseNumber();
+  m_roadShields = ftypes::GetRoadShieldsNames(ft);
+  m_featureID = ft.GetID();
+  m_geomType = ft.GetGeomType();
+  m_layer = ft.GetLayer();
+
+  // TODO: BEST_GEOMETRY is likely needed for some special cases only,
+  // i.e. matching an edited OSM feature, in other cases like opening
+  // a place page WORST_GEOMETRY is going to be enough?
+  if (m_geomType == feature::GeomType::Area)
+    assign_range(m_triangles, ft.GetTrianglesAsPoints(FeatureType::BEST_GEOMETRY));
+  else if (m_geomType == feature::GeomType::Line)
+    assign_range(m_points, ft.GetPoints(FeatureType::BEST_GEOMETRY));
+
+  // Fill runtime metadata
+  m_metadata.Set(feature::Metadata::EType::FMD_WHEELCHAIR, feature::GetReadableWheelchairType(m_types));
+
+#ifdef DEBUG
+  if (ftypes::IsWifiChecker::Instance()(ft))
+    ASSERT(m_metadata.Has(MetadataID::FMD_INTERNET), ());
+#endif
+}
+
+FeatureID const & MapObject::GetID() const
+{
+  return m_featureID;
+}
+ms::LatLon MapObject::GetLatLon() const
+{
+  return mercator::ToLatLon(m_mercator);
+}
+m2::PointD const & MapObject::GetMercator() const
+{
+  return m_mercator;
+}
+vector<m2::PointD> const & MapObject::GetTriangesAsPoints() const
+{
+  return m_triangles;
+}
+vector<m2::PointD> const & MapObject::GetPoints() const
+{
+  return m_points;
+}
+feature::TypesHolder const & MapObject::GetTypes() const
+{
+  return m_types;
+}
+
+string_view MapObject::GetDefaultName() const
+{
+  string_view name;
+  UNUSED_VALUE(m_name.GetString(localisation::kDefaultNameIndex, name));
+  return name;
+}
+
+StringUtf8Multilang const & MapObject::GetNameMultilang() const
+{
+  return m_name;
+}
+
+string const & MapObject::GetHouseNumber() const
+{
+  return m_houseNumber;
+}
+
+std::string_view MapObject::GetPostcode() const
+{
+  return m_metadata.Get(MetadataID::FMD_POSTCODE);
+}
+
+std::string MapObject::GetLocalizedType() const
+{
+  if (m_types.Empty())
+    return {};
+
+  feature::TypesHolder copy(m_types);
+  copy.SortBySpec();
+
+  return localisation::TranslatedFeatureType(classif().GetReadableObjectName(copy.GetBestType()));
+}
+
+std::string MapObject::GetLocalizedAllTypes(bool withMainType) const
+{
+  if (m_types.Empty())
+    return {};
+
+  feature::TypesHolder copy(m_types);
+  copy.SortBySpec();
+
+  auto const & isPoi = ftypes::IsPoiChecker::Instance();
+  auto const & isNeverMainTypeChecker = ftypes::IsNeverMainTypeChecker::Instance();
+  auto const & isTourismAttraction = ftypes::IsTourismAttractionChecker::Instance();
+  auto const & subtypes = ftypes::Subtypes::Instance();
+  auto const & amenityChecker = ftypes::IsAmenityChecker::Instance();
+
+  std::ostringstream oss;
+  bool isMainType = true;
+  // The tourist attraction type can get added to features as main type for which their original main type usually only would be shown, if it is the main type, because it is no POI according to the POI checker. They also should be shown though, if the main type is tourist attraction.
+  bool isOnlyTypeTouristAttraction = false;
+  bool isFirst = true;
+  for (auto const type : copy)
+  {
+    if (isMainType)
+    {
+      isOnlyTypeTouristAttraction = isTourismAttraction(type);
+      if (!withMainType)
+      {
+        isMainType = false;
+        continue;
+      }
+    }
+
+    // Ignore types that never should be main types
+    if ((isMainType || isOnlyTypeTouristAttraction) && isNeverMainTypeChecker(type))
+      continue;
+
+    // Ignore types that are neither POI or known subtypes
+    if (!isMainType && !isOnlyTypeTouristAttraction && !isPoi(type) && !subtypes.IsTypeWithSubtypesOrSubtype(type))
+      continue;
+
+    // Ignore general amenity
+    if (!isMainType && !isOnlyTypeTouristAttraction && amenityChecker.GetType() == type)
+      continue;
+
+    if (!isMainType)
+      isOnlyTypeTouristAttraction = false;
+    isMainType = false;
+
+    // Add fields separator between types
+    if (isFirst)
+      isFirst = false;
+    else
+      oss << feature::kFieldsSeparator;
+
+    oss << localisation::TranslatedFeatureType(classif().GetReadableObjectName(type));
+  }
+
+  return oss.str();
+}
+
+std::string MapObject::GetAllReadableTypes() const
+{
+  ASSERT(!m_types.Empty(), ());
+  feature::TypesHolder copy(m_types);
+  copy.SortBySpec();
+
+  std::ostringstream oss;
+
+  for (auto const type : copy)
+    oss << classif().GetReadableObjectName(type) << feature::kFieldsSeparator;
+
+  return oss.str();
+}
+
+std::string_view MapObject::GetMetadata(MetadataID type) const
+{
+  return m_metadata.Get(type);
+}
+
+std::string_view MapObject::GetOpeningHours() const
+{
+  return m_metadata.Get(MetadataID::FMD_OPEN_HOURS);
+}
+
+ChargeSocketDescriptors MapObject::GetChargeSockets() const
+{
+  auto s = std::string(m_metadata.Get(MetadataID::FMD_CHARGE_SOCKETS));
+  return ChargeSocketsHelper(s).GetSockets();
+}
+
+feature::Internet MapObject::GetInternet() const
+{
+  return feature::InternetFromString(m_metadata.Get(MetadataID::FMD_INTERNET));
+}
+
+vector<string> MapObject::GetCuisines() const
+{
+  return feature::GetCuisines(m_types);
+}
+
+vector<string> MapObject::GetLocalizedCuisines() const
+{
+  return feature::GetLocalizedCuisines(m_types);
+}
+
+string MapObject::GetLocalizedFeeType() const
+{
+  return feature::GetLocalizedFeeType(m_types);
+}
+
+bool MapObject::HasAtm() const
+{
+  return feature::HasAtm(m_types);
+}
+
+bool MapObject::HasToilets() const
+{
+  return feature::HasToilets(m_types);
+}
+
+string MapObject::FormatCuisines() const
+{
+  return strings::JoinStrings(GetLocalizedCuisines(), feature::kFieldsSeparator);
+}
+
+string MapObject::FormatRoadShields() const
+{
+  return strings::JoinStrings(m_roadShields, feature::kFieldsSeparator);
+}
+
+int MapObject::GetStars() const
+{
+  uint8_t count = 0;
+
+  auto const sv = m_metadata.Get(MetadataID::FMD_STARS);
+  if (!sv.empty())
+  {
+    if (!strings::to_uint(sv, count))
+      count = 0;
+  }
+
+  return count;
+}
+
+std::string MapObject::GetCapacity() const
+{
+  return std::string(m_metadata.Get(MetadataID::FMD_CAPACITY));
+}
+
+std::string MapObject::GetRooms() const
+{
+  return std::string(m_metadata.Get(MetadataID::FMD_ROOMS));
+}
+std::string MapObject::GetCapacityDisabled() const
+{
+  return std::string(m_metadata.Get(MetadataID::FMD_CAPACITY_DISABLED));
+}
+
+std::string MapObject::GetCapacityCharging() const
+{
+  return std::string(m_metadata.Get(MetadataID::FMD_CAPACITY_CHARGING));
+}
+
+std::string MapObject::GetPopulation() const
+{
+  return std::string(m_metadata.Get(MetadataID::FMD_POPULATION));
+}
+
+std::string MapObject::GetOrganic() const
+{
+  auto const & isOrganic = ftypes::IsOrganicChecker::Instance();
+
+  for (auto const type : m_types) {
+    if (isOrganic(type))
+      return localisation::TranslatedFeatureType(classif().GetReadableObjectName(type));
+  }
+
+  return {};
+}
+
+std::string MapObject::GetSecondHand() const
+{
+  auto const & isSecondHand = ftypes::IsSecondHandChecker::Instance();
+
+  for (auto const type : m_types) {
+    if (isSecondHand(type))
+      return localisation::TranslatedFeatureType(classif().GetReadableObjectName(type));
+  }
+
+  return {};
+}
+
+bool MapObject::IsPointType() const
+{
+  return m_geomType == feature::GeomType::Point;
+}
+bool MapObject::IsBuilding() const
+{
+  return ftypes::IsBuildingChecker::Instance()(m_types);
+}
+bool MapObject::IsPublicTransportStop() const
+{
+  return ftypes::IsPublicTransportStopChecker::Instance()(m_types);
+}
+
+}  // namespace osm

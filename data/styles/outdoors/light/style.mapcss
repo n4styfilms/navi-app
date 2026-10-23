@@ -1,0 +1,6 @@
+@import("../../default/light/colors.mapcss");
+@import("colors.mapcss");
+
+@import("../include/main.mapcss");
+
+@import("../../default/light/drape_colors.mapcss");

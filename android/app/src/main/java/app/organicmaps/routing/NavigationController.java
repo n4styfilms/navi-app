@@ -1,0 +1,316 @@
+package app.organicmaps.routing;
+
+import static androidx.core.content.ContextCompat.getString;
+import static app.organicmaps.sdk.util.Utils.dimen;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.location.Location;
+import android.text.TextUtils;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
+import app.organicmaps.MwmApplication;
+import app.organicmaps.R;
+import app.organicmaps.maplayer.MapButtonsViewModel;
+import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.Router;
+import app.organicmaps.sdk.maplayer.traffic.TrafficManager;
+import app.organicmaps.sdk.routing.CarDirection;
+import app.organicmaps.sdk.routing.RoutingController;
+import app.organicmaps.sdk.routing.RoutingInfo;
+import app.organicmaps.sdk.util.StringUtils;
+import app.organicmaps.sdk.widget.roadshield.RoadShieldUtils;
+import app.organicmaps.util.UiUtils;
+import app.organicmaps.util.Utils;
+import app.organicmaps.util.WindowInsetUtils;
+import app.organicmaps.widget.CurrentSpeedView;
+import app.organicmaps.widget.LanesView;
+import app.organicmaps.widget.SpeedLimitView;
+import app.organicmaps.widget.menu.NavMenu;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.textview.MaterialTextView;
+
+public class NavigationController implements TrafficManager.TrafficCallback, NavMenu.NavMenuListener
+{
+  private final View mFrame;
+
+  private final ImageView mNextTurnImage;
+  private final MaterialTextView mNextTurnDistance;
+  private final MaterialTextView mCircleExit;
+
+  private final View mNextNextTurnFrame;
+  private final ImageView mNextNextTurnImage;
+
+  private final View mStreetFrame;
+  private final MaterialTextView mNextStreet;
+
+  @NonNull
+  private final LanesView mLanesView;
+  @NonNull
+  private final SpeedLimitView mSpeedLimit;
+  @NonNull
+  private final CurrentSpeedView mCurrentSpeed;
+
+  private final MapButtonsViewModel mMapButtonsViewModel;
+
+  private final NavMenu mNavMenu;
+  View.OnClickListener mOnSettingsClickListener;
+  View.OnClickListener mOnTrackRecordingClickListener;
+  private final SharedPreferences mSharedPreferences;
+
+  private void addWindowsInsets(@NonNull View topFrame)
+  {
+    ViewCompat.setOnApplyWindowInsetsListener(
+        topFrame.findViewById(R.id.nav_next_turn_container), (view, windowInsets) -> {
+          view.setPadding(windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left, view.getPaddingTop(),
+                          view.getPaddingEnd(), view.getPaddingBottom());
+          return windowInsets;
+        });
+  }
+
+  public NavigationController(AppCompatActivity activity, View.OnClickListener onSettingsClickListener,
+                              View.OnClickListener onTrackRecordingClickListener,
+                              NavMenu.OnMenuSizeChangedListener onMenuSizeChangedListener)
+  {
+    mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+    boolean mSpeedLimitEnabled = mSharedPreferences.getBoolean(getString(activity, R.string.pref_speedlimit), true);
+    mMapButtonsViewModel = new ViewModelProvider(activity).get(MapButtonsViewModel.class);
+
+    mFrame = activity.findViewById(R.id.navigation_frame);
+    mNavMenu = new NavMenu(activity, this, onMenuSizeChangedListener);
+    mOnSettingsClickListener = onSettingsClickListener;
+    mOnTrackRecordingClickListener = onTrackRecordingClickListener;
+
+    // Top frame
+    View topFrame = mFrame.findViewById(R.id.nav_top_frame);
+    View turnFrame = topFrame.findViewById(R.id.nav_next_turn_frame);
+    mNextTurnImage = turnFrame.findViewById(R.id.turn);
+    mNextTurnDistance = turnFrame.findViewById(R.id.distance);
+    mCircleExit = turnFrame.findViewById(R.id.circle_exit);
+
+    addWindowsInsets(topFrame);
+
+    mNextNextTurnFrame = topFrame.findViewById(R.id.nav_next_next_turn_frame);
+    mNextNextTurnImage = mNextNextTurnFrame.findViewById(R.id.turn);
+
+    mStreetFrame = topFrame.findViewById(R.id.street_frame);
+    mNextStreet = mStreetFrame.findViewById(R.id.street);
+
+    mLanesView = topFrame.findViewById(R.id.lanes);
+
+    mSpeedLimit = topFrame.findViewById(R.id.nav_speed_limit);
+    mCurrentSpeed = topFrame.findViewById(R.id.nav_current_speed);
+
+    UiUtils.showIf(mSpeedLimitEnabled, mSpeedLimit);
+    View mTopbar = topFrame.findViewById(R.id.statutbar);
+    ViewCompat.setOnApplyWindowInsetsListener(mTopbar, (v, windowInsets) -> {
+      UiUtils.setViewNavigationTopInsetsMargin(v, windowInsets);
+      return windowInsets;
+    });
+    // Show a blank view below the navbar to hide the menu content
+    final View navigationBarBackground = mFrame.findViewById(R.id.nav_bottom_sheet_nav_bar);
+    final View nextTurnContainer = mFrame.findViewById(R.id.nav_next_turn_container);
+    ViewCompat.setOnApplyWindowInsetsListener(mStreetFrame, (v, windowInsets) -> {
+      UiUtils.setViewInsetsPaddingNoTopNoBottom(v, windowInsets);
+
+      final Insets safeDrawingInsets = windowInsets.getInsets(WindowInsetUtils.TYPE_SAFE_DRAWING);
+      nextTurnContainer.setPadding(safeDrawingInsets.left, nextTurnContainer.getPaddingTop(),
+                                   nextTurnContainer.getPaddingEnd(), nextTurnContainer.getPaddingBottom());
+      navigationBarBackground.getLayoutParams().height = safeDrawingInsets.bottom;
+      // The gesture navigation bar stays at the bottom in landscape
+      // We need to add a background only above the nav menu
+      navigationBarBackground.getLayoutParams().width = mFrame.findViewById(R.id.nav_bottom_sheet).getWidth();
+      return windowInsets;
+    });
+  }
+
+  private void updateVehicle(@NonNull RoutingInfo info)
+  {
+    mNextTurnDistance.setText(Utils.formatDistance(mFrame.getContext(), info.distToTurn));
+    info.carDirection.setTurnDrawable(mNextTurnImage);
+
+    if (CarDirection.isRoundAbout(info.carDirection))
+      UiUtils.setTextAndShow(mCircleExit, String.valueOf(info.exitNum));
+    else
+      UiUtils.hide(mCircleExit);
+
+    UiUtils.visibleIf(info.nextCarDirection.containsNextTurn(), mNextNextTurnFrame);
+    if (info.nextCarDirection.containsNextTurn())
+      info.nextCarDirection.setNextTurnDrawable(mNextNextTurnImage);
+
+    mLanesView.setLanes(info.lanes);
+
+    updateSpeedWidgets(info);
+  }
+
+  private void updatePedestrian(@NonNull RoutingInfo info)
+  {
+    mNextTurnDistance.setText(Utils.formatDistance(mFrame.getContext(), info.distToTurn));
+
+    info.pedestrianTurnDirection.setTurnDrawable(mNextTurnImage);
+    updateSpeedWidgets(info);
+  }
+
+  public void updateNorth()
+  {
+    if (!RoutingController.get().isNavigating())
+      return;
+
+    update(Framework.nativeGetRouteFollowingInfo());
+  }
+
+  public void update(@Nullable RoutingInfo info)
+  {
+    if (info == null)
+      return;
+
+    if (Router.get() == Router.Pedestrian)
+      updatePedestrian(info);
+    else
+      updateVehicle(info);
+
+    updateStreetView(info);
+    mNavMenu.update(info);
+  }
+
+  private void updateStreetView(@NonNull RoutingInfo info)
+  {
+    final CharSequence instruction = RoadShieldUtils.composeInstruction(info, mNextStreet.getTextSize());
+    boolean hasStreet = !TextUtils.isEmpty(instruction);
+    // Sic: don't use UiUtils.showIf() here because View.GONE breaks layout
+    // https://github.com/organicmaps/organicmaps/issues/3732
+    UiUtils.visibleIf(hasStreet, mStreetFrame);
+    if (hasStreet)
+      mNextStreet.setText(instruction);
+    int margin = dimen(mFrame.getContext(), R.dimen.nav_frame_padding);
+    final boolean hasLanes = UiUtils.isVisible(mLanesView);
+    if (hasStreet || hasLanes)
+      margin += mStreetFrame.getHeight();
+    if (hasLanes)
+    {
+      final ViewGroup.MarginLayoutParams lanesParams = (ViewGroup.MarginLayoutParams) mLanesView.getLayoutParams();
+      margin += lanesParams.topMargin + lanesParams.height;
+    }
+    mMapButtonsViewModel.setTopButtonsMarginTop(margin);
+  }
+
+  public void show(boolean show)
+  {
+    if (show && !UiUtils.isVisible(mFrame))
+      collapseNavMenu();
+    UiUtils.showIf(show, mFrame);
+  }
+
+  public boolean isNavMenuCollapsed()
+  {
+    return mNavMenu.getBottomSheetState() == BottomSheetBehavior.STATE_COLLAPSED;
+  }
+
+  public boolean isNavMenuHidden()
+  {
+    return mNavMenu.getBottomSheetState() == BottomSheetBehavior.STATE_HIDDEN;
+  }
+
+  public void collapseNavMenu()
+  {
+    mNavMenu.collapseNavBottomSheet();
+  }
+
+  public void refresh(Context context)
+  {
+    mNavMenu.refreshTts();
+    UiUtils.showIf(mSharedPreferences.getBoolean(getString(context, R.string.pref_speedlimit), true), mSpeedLimit);
+
+    // Update intermediate stops in progress bar in navigation panel.
+    mNavMenu.setIntermediateStopsProgress(Framework.nativeGetIntermediateStopsProgress());
+  }
+
+  @Override
+  public void onEnabled()
+  {
+    // mNavMenu.refreshTraffic();
+  }
+
+  @Override
+  public void onDisabled()
+  {
+    // mNavMenu.refreshTraffic();
+  }
+
+  @Override
+  public void onWaitingData()
+  {
+    // no op
+  }
+
+  @Override
+  public void onOutdated()
+  {
+    // no op
+  }
+
+  @Override
+  public void onNoData()
+  {
+    // no op
+  }
+
+  @Override
+  public void onNetworkError()
+  {
+    // no op
+  }
+
+  @Override
+  public void onExpiredData()
+  {
+    // no op
+  }
+
+  @Override
+  public void onExpiredApp()
+  {
+    // no op
+  }
+
+  @Override
+  public void onSettingsClicked()
+  {
+    mOnSettingsClickListener.onClick(null);
+  }
+
+  @Override
+  public void onTrackRecordingClicked()
+  {
+    mOnTrackRecordingClickListener.onClick(null);
+  }
+  @Override
+  public void onStopClicked()
+  {
+    RoutingController.get().cancel();
+  }
+
+  private void updateSpeedWidgets(@NonNull final RoutingInfo info)
+  {
+    final Location location = MwmApplication.from(mFrame.getContext()).getLocationHelper().getSavedLocation();
+    if (location == null)
+    {
+      mSpeedLimit.setSpeedLimit(-1, false);
+      mCurrentSpeed.setCurrentSpeed(-1);
+      return;
+    }
+    final int fSpeedLimit = StringUtils.nativeFormatSpeed(info.speedLimitMps);
+    final boolean speedLimitExceeded = fSpeedLimit < StringUtils.nativeFormatSpeed(location.getSpeed());
+    mSpeedLimit.setSpeedLimit(fSpeedLimit, speedLimitExceeded);
+    mCurrentSpeed.setCurrentSpeed(location.getSpeed());
+  }
+}

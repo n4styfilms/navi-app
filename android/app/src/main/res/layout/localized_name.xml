@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/name"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical"
+  android:paddingEnd="@dimen/margin_base"
+  android:paddingStart="@dimen/margin_base"
+  android:animateLayoutChanges="true">
+
+  <com.google.android.material.textview.MaterialTextView
+    android:id="@+id/show_additional_names"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/height_block_base"
+    android:background="?clickableBackground"
+    android:fontFamily="@string/robotoMedium"
+    android:gravity="center_vertical"
+    android:text="@string/editor_edit_place_name_hint"
+    android:textAppearance="@style/MwmTextAppearance.Body3"
+    tools:drawableEnd="@drawable/ic_expand_more" />
+
+  <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/recycler"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:scrollbars="vertical"/>
+
+  <com.google.android.material.button.MaterialButton
+    android:id="@+id/more_names"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/height_block_base"
+    style="@style/Widget.Material3.Button.TextButton"
+    android:gravity="center"
+    android:text="@string/placepage_more_button"
+    android:textColor="?colorSecondary"
+    android:textAppearance="@style/MwmTextAppearance.Button" />
+
+  <com.google.android.material.button.MaterialButton
+    android:id="@+id/add_langs"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/height_block_base"
+    style="@style/Widget.Material3.Button.TextButton"
+    android:gravity="center"
+    android:text="@string/add_language"
+    android:textColor="?colorSecondary"
+    android:textAppearance="@style/MwmTextAppearance.Button" />
+
+</LinearLayout>

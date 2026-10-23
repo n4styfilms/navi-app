@@ -1,0 +1,226 @@
+# Please use android/.gitignore for all Android stuff
+
+syntax: glob
+# Private build outputs and generated provenance
+.private-build/
+**/__pycache__/
+android/sdk/src/main/assets/private-build.json
+*.p12
+*.jks
+*~
+.DS_Store
+Makefile
+Makefile.Debug
+Makefile.Release
+object_script.*.Debug
+object_script.*.Release
+compile_commands.json
+*.local.*
+
+stxxl.errlog
+stxxl.log
+screenlog.0
+
+# Following files are auto-generated at build time via configure.sh
+# ...from data/styles/default/*/symbols/* by tools/unix/generate_symbols.sh
+data/symbols/**/symbols.png
+data/symbols/**/symbols.sdf
+# ...from data/translations/* by tools/unix/generate_json_strings.sh
+data/sound-strings/*/localize.json
+data/countries-strings/*/localize.json
+data/categories-strings/*/localize.json
+# ...from data/categories-strings/* by tools/unix/generate_categories.sh
+data/categories.txt
+
+data/bm.json
+data/edits.xml
+data/World.mwm
+data/WorldCoasts.mwm
+data/world_mwm/*
+data/*_hash
+data/drules_proto*
+data/classificator.txt*
+data/types.txt*
+data/visibility.txt*
+data/colors.txt*
+data/patterns.txt*
+data/symbols/*/design/
+data/colors_design.txt
+data/patterns_design.txt
+
+# Compiled Python
+*.pyc
+
+# Windows generated files
+*.vcxproj*
+ipch/*
+omim.sdf
+*.vcproj
+*.icproj
+*.sln
+*.idb
+*.user
+*.pro.user*
+*.ncb
+*.suo
+*.aps
+*.rc
+!qt/res/windows/windows.rc
+*.pdb
+out/
+
+# XCode
+xcode/keys/*
+xcode/build/*
+xcode/metadata/review_information/*
+xcode/fastlane/report.xml
+xcode/fastlane/README.md
+iphone/*/*.xcodeproj/*.pbxuser
+iphone/*/*.xcodeproj/*.perspectivev3
+iphone/*/*.xcodeproj/project.xcworkspace/*
+iphone/*/build/*
+tools/emacsmode/build
+**/DerivedData/*
+**/xcshareddata/*
+!iphone/Maps/Maps.xcodeproj/xcshareddata/xcschemes/CoMaps.xcscheme
+**/xcuserdata
+**/xcschemes
+iphone/**/*.moved-aside
+iphone/**/*.swp
+iphone/**/*.mode1v3
+iphone/**/*.mode2v3
+iphone/**/*.perspectivev3
+*.xcresult
+*.xcarchive
+*.ipa
+Payload/
+
+# Carthage
+iphone/Maps/3party/Carthage/Checkouts
+iphone/Maps/3party/Carthage/Build/Mac/*.bcsymbolmap
+iphone/Maps/3party/Carthage/Build/Mac/*.dSYM
+iphone/Maps/3party/Carthage/Build/tvOS
+iphone/Maps/3party/Carthage/Build/watchOS
+iphone/Maps/3party/Carthage/Build/iOS/*.bcsymbolmap
+iphone/Maps/3party/Carthage/Build/iOS/*.dSYM
+iphone/Maps/3party/Carthage/Build/*.version
+
+# GeneratedFiles
+tools/win/MapsWithMe*
+GeneratedFiles
+
+# data
+data/[0-9][0-9][0-9][0-9][0-9][0-9]
+data/gps_track.dat
+# temporary files for downloader
+data/settings.ini
+data/test_data/world_feed_integration_tests_data
+
+# benchmark results
+data/benchmarks/*.trace
+data/benchmarks/iphone3g/*
+data/benchmarks/ipod4/*
+data/benchmarks/ipad/*
+data/benchmarks/mac/*
+data/benchmarks/kindle-fire/*
+data/benchmarks/galaxy-s-2/*
+data/benchmarks/ipad3/*
+data/benchmarks/ipad2/*
+data/benchmarks/iphone5/*
+data/benchmarks/maps/*
+
+qtc_packaging
+
+tools/twine/.git
+
+# shader preprocessing moc files
+drape/shader_def.hpp
+drape/shader_def.cpp
+drape_frontend/shader_def.hpp
+drape_frontend/shader_def.cpp
+drape_frontend/drape_frontend_tests/shader_def_for_tests.hpp
+drape_frontend/drape_frontend_tests/shader_def_for_tests.cpp
+
+tizen/*/Debug/*
+tizen/*/.*
+!tizen/*/.cproject
+!tizen/*/.project
+
+3party/osrm/osrm-backend/util/fingerprint_impl.hpp
+3party/osrm/osrm-backend/util/git_sha.cpp
+3party/osrm/osrm-backend/build/
+
+tizen/*/crash-info/*
+.idea/*
+.idea
+!android/.idea/icon.svg
+
+# Private repository files.
+.private_repository_url
+.private_repository_branch
+private.h
+# ignore old android secrets during the transition period to the new project structure
+android/release.keystore
+android/secure.properties
+android/libnotify.properties
+android/google-play.json
+android/huawei-appgallery.json
+android/res/xml/network_security_config.xml
+./server/
+iphone/Maps/app.omaps/
+# Generated file
+libs/platform/localized_types_map.cpp
+
+*.li
+
+*.autosave
+
+# CMake
+cmake-build-*
+build/
+build_skin_generator_tool/
+
+qt/res/Info.plist
+
+designer_version.h
+
+# Vim files
+*.sw?
+
+# AI coding agents
+AGENTS.md
+.pi/
+
+# Build version
+platform/platform_qt_version.cpp
+
+#python modules building
+tools/python/*/build
+tools/python/*/dist
+tools/python/*/*.egg-info
+tools/python/data/*/build
+tools/python/data/*/dist
+tools/python/data/*/*.egg-info
+tools/python/*/venv/
+
+# Repo-local Python virtual environment provisioned by configure.sh
+/.venv/
+
+# Auto-generated from sr by tools/unix/generate_serbian_latin_strings.sh
+android/app/src/fdroid/play/listings/sr-Latn/
+android/app/src/main/res/values-b+sr+Latn/
+android/sdk/src/main/res/values-b+sr+Latn/
+iphone/Maps/LocalizedStrings/sr-Latn.lproj/
+data/countries-strings/sr_Latn.json/
+
+# Configs
+tools/python/maps_generator/var/etc/map_generator.ini
+tools/python/routing/etc/*.ini
+tools/unix/maps/settings.sh
+
+# Visual Studio
+.vs
+
+# VS Code
+.vscode
+.cache

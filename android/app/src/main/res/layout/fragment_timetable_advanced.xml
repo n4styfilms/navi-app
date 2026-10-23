@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="?colorSurfaceContainerLow">
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/margin_half">
+
+    <com.google.android.material.card.MaterialCardView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      style="@style/MwmWidget.M3.Editor.CardView">
+
+      <LinearLayout
+        android:id="@+id/examples"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:animateLayoutChanges="true">
+          <com.google.android.material.textfield.TextInputLayout
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:padding="@dimen/margin_half"
+              android:layout_marginBottom="@dimen/margin_half"
+              app:hintEnabled="false">
+
+          <com.google.android.material.textfield.TextInputEditText
+              android:id="@+id/et__timetable"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_alignParentBottom="true"
+              android:background="@null"
+              android:gravity="top|start"
+              android:inputType="textMultiLine"
+              android:padding="@dimen/margin_base"
+              android:textAppearance="@style/MwmTextAppearance.Body3"
+              tools:hint="hint"
+              tools:text="trololo \ntrololo \ntrololo"/>
+          </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@+id/tv__examples_title"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:background="?clickableBackground"
+          android:drawablePadding="@dimen/margin_base"
+          android:gravity="center_vertical"
+          android:padding="@dimen/margin_base"
+          android:text="@string/editor_example_values"
+          android:textAppearance="@style/MwmTextAppearance.Body3"
+          android:textColor="?colorSecondary"/>
+
+        <include layout="@layout/item_divider" />
+
+        <WebView
+          android:id="@+id/wv__examples"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:padding="@dimen/margin_base"/>
+
+      </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+  </LinearLayout>
+
+</ScrollView>

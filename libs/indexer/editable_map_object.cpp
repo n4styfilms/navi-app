@@ -1,0 +1,1060 @@
+#include "indexer/editable_map_object.hpp"
+
+#include "indexer/classificator.hpp"
+#include "indexer/edit_journal.hpp"
+#include "indexer/feature_charge_sockets.hpp"
+#include "indexer/feature_data.hpp"
+#include "indexer/feature_decl.hpp"
+#include "indexer/feature_meta.hpp"
+#include "indexer/feature_utils.hpp"
+#include "indexer/ftypes_matcher.hpp"
+#include "indexer/mwm_set.hpp"
+#include "indexer/postcodes_matcher.hpp"
+#include "indexer/validate_and_format_contacts.hpp"
+
+#include "i18n/string_utf8_multilang.hpp"
+
+#include "base/assert.hpp"
+#include "base/logging.hpp"
+#include "base/macros.hpp"
+#include "base/stl_helpers.hpp"
+#include "base/string_utils.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <ctime>
+#include <iomanip>
+#include <regex>
+#include <sstream>
+
+#include <utf8/unchecked.h>
+
+namespace osm
+{
+using namespace std;
+
+namespace
+{
+bool ExtractName(StringUtf8Multilang const & names, localisation::LanguageIndex const languageIndex, vector<osm::LocalizedName> & result)
+{
+  if (localisation::kUnsupportedLanguageIndex == languageIndex)
+    return false;
+
+  // Exclude languages that are already present.
+  auto const it = base::FindIf(
+      result, [languageIndex](osm::LocalizedName const & localizedName) { return localizedName.m_languageIndex == languageIndex; });
+
+  if (result.end() != it)
+    return false;
+
+  string_view name;
+  names.GetString(languageIndex, name);
+  result.emplace_back(languageIndex, std::string{name});
+
+  return true;
+}
+std::string GetCurrentDate()
+{
+  auto const t = std::time(nullptr);
+  auto const tm = *std::localtime(&t);
+  std::ostringstream oss;
+  oss << std::put_time(&tm, "%Y-%m-%d");
+  return oss.str();
+}
+}  // namespace
+
+// LocalizedName -----------------------------------------------------------------------------------
+
+LocalizedName::LocalizedName(localisation::LanguageIndex languageIndex, std::string name)
+  : m_languageIndex(languageIndex)
+  , m_languageCode(localisation::ConvertLanguageIndexToLanguageCode(languageIndex))
+  , m_languageName(localisation::GetLanguageNameByLanguageIndex(languageIndex))
+  , m_name(name)
+{}
+
+LocalizedName::LocalizedName(localisation::LanguageCode const & languageCode, std::string const & name)
+  : m_languageIndex(localisation::ConvertLanguageCodeToLanguageIndex(languageCode))
+  , m_languageCode(languageCode)
+  , m_languageName(localisation::GetLanguageNameByLanguageCode(languageCode))
+  , m_name(name)
+{}
+
+// EditableMapObject -------------------------------------------------------------------------------
+
+bool EditableMapObject::IsNameEditable() const
+{
+  return m_editableProperties.m_name;
+}
+bool EditableMapObject::IsAddressEditable() const
+{
+  return m_editableProperties.m_address;
+}
+
+vector<MapObject::MetadataID> EditableMapObject::GetEditableProperties() const
+{
+  auto props = m_editableProperties.m_metadata;
+
+  if (m_editableProperties.m_cuisine)
+  {
+    // Props are already sorted by Metadata::EType value.
+    auto insertBefore = props.begin();
+    if (insertBefore != props.end() && *insertBefore == MetadataID::FMD_OPEN_HOURS)
+      ++insertBefore;
+    props.insert(insertBefore, MetadataID::FMD_CUISINE);
+  }
+
+  return props;
+}
+
+bool EditableMapObject::CanMarkPlaceAsDisused() const
+{
+  if (GetEditingLifecycle() == EditingLifecycle::CREATED)
+    return false;
+
+  auto types = GetTypes();
+  types.SortBySpec();
+  uint32_t mainType = *types.begin();
+  std::string mainTypeStr = classif().GetReadableObjectName(mainType);
+
+  constexpr string_view typePrefixes[] = {
+      "shop",
+      "amenity-restaurant",
+      "amenity-fast_food",
+      "amenity-cafe",
+      "amenity-pub",
+      "amenity-bar",
+      "amenity-ice_cream",
+      "amenity-pharmacy",
+      "amenity-post_office",
+      "amenity-bank",
+      "amenity-bureau_de_change",
+      "amenity-car_rental",
+      "amenity-motorcycle_rental",
+      "amenity-casino",
+      "amenity-gambling",
+      "amenity-internet_cafe",
+      "craft-confectionery",
+      "craft-electronics_repair",
+      "raft-shoemaker",
+      "craft-tailor",
+      "craft-key_cutter",
+      "craft-locksmith",
+      "office-estate_agent",
+      "office-insurance",
+  };
+
+  for (auto const & typePrefix : typePrefixes)
+    if (mainTypeStr.starts_with(typePrefix))
+      return true;
+
+  return false;
+}
+
+NamesDataSource EditableMapObject::GetNamesDataSource()
+{
+  auto const mwmInfo = GetID().m_mwmId.GetInfo();
+
+  if (!mwmInfo)
+    return NamesDataSource();
+
+  vector<localisation::LanguageIndex> mwmLanguages;
+  mwmInfo->GetRegionData().GetLanguages(mwmLanguages);
+
+  return GetNamesDataSource(m_name, mwmLanguages);
+}
+
+// static
+NamesDataSource EditableMapObject::GetNamesDataSource(StringUtf8Multilang const & source,
+                                                      vector<localisation::LanguageIndex> const & mwmLanguages)
+{
+  NamesDataSource result;
+  auto & names = result.names;
+  auto & mandatoryCount = result.mandatoryNamesCount;
+
+  // Push default/native for country language.
+  if (ExtractName(source, localisation::kDefaultNameIndex, names))
+    ++mandatoryCount;
+
+  // Push other languages.
+  source.ForEach([&names, mandatoryCount](localisation::LanguageIndex const languageIndex, string_view name)
+  {
+    auto const mandatoryNamesEnd = names.begin() + mandatoryCount;
+    // Exclude languages which are already in container (languages with top priority).
+    auto const it = find_if(names.begin(), mandatoryNamesEnd,
+                            [languageIndex](LocalizedName const & localizedName) { return localizedName.m_languageIndex == languageIndex; });
+
+    if (mandatoryNamesEnd == it)
+      names.emplace_back(languageIndex, string{name});
+  });
+
+  return result;
+}
+
+vector<LocalizedStreet> const & EditableMapObject::GetNearbyStreets() const
+{
+  return m_nearbyStreets;
+}
+
+void EditableMapObject::ForEachMetadataItem(function<void(string_view tag, string_view value)> const & fn) const
+{
+  m_metadata.ForEach([&fn](MetadataID type, std::string_view value)
+  {
+    switch (type)
+    {
+    // Multilang description may produce several tags with different values.
+    case MetadataID::FMD_DESCRIPTION:
+    {
+      auto const mlDescr = StringUtf8Multilang::FromBuffer(std::string(value));
+      mlDescr.ForEach([&fn](int8_t code, string_view v)
+      {
+        if (code == localisation::kDefaultNameIndex)
+          fn("description", v);
+        else
+          fn(string("description:").append(localisation::ConvertLanguageIndexToLanguageCode(code)), v);
+      });
+      break;
+    }
+    // Skip non-string values (they are not related to OSM anyway).
+    case MetadataID::FMD_CUSTOM_IDS:
+    case MetadataID::FMD_PRICE_RATES:
+    case MetadataID::FMD_RATINGS:
+    case MetadataID::FMD_EXTERNAL_URI:
+    case MetadataID::FMD_WHEELCHAIR:  // Value is runtime only, data is taken from the classificator types, should not
+                                      // be used to update the OSM database
+    case MetadataID::FMD_CHARGE_SOCKETS:  // multiple keys; handled via the edit journal
+      break;
+    default: fn(ToString(type), value); break;
+    }
+  });
+}
+
+void EditableMapObject::SetTestId(uint64_t id)
+{
+  m_metadata.Set(feature::Metadata::FMD_TEST_ID, std::to_string(id));
+}
+
+void EditableMapObject::SetEditableProperties(osm::EditableProperties const & props)
+{
+  m_editableProperties = props;
+}
+
+void EditableMapObject::SetName(StringUtf8Multilang const & name)
+{
+  m_name = name;
+}
+
+void EditableMapObject::SetName(string_view name, localisation::LanguageIndex languageIndex)
+{
+  strings::Trim(name);
+  m_name.AddString(languageIndex, name);
+}
+
+// static
+bool EditableMapObject::CanUseAsDefaultName(localisation::LanguageIndex const languageIndex, vector<localisation::LanguageIndex> const & mwmLanguageIndexes)
+{
+  for (auto const & mwmLanguageIndex : mwmLanguageIndexes)
+  {
+    if (localisation::kUnsupportedLanguageIndex == mwmLanguageIndex)
+      continue;
+
+    if (languageIndex == mwmLanguageIndex)
+      return true;
+  }
+
+  return false;
+}
+
+void EditableMapObject::SetMercator(m2::PointD const & center)
+{
+  m_mercator = center;
+}
+
+void EditableMapObject::SetType(uint32_t featureType)
+{
+  if (m_types.GetGeomType() == feature::GeomType::Undefined)
+  {
+    // Support only point type for newly created features.
+    m_types = feature::TypesHolder(feature::GeomType::Point);
+    m_types.Assign(featureType);
+  }
+  else
+  {
+    // Correctly replace "main" type in cases when feature holds more types.
+    ASSERT(!m_types.Empty(), ());
+    feature::TypesHolder copy = m_types;
+    // TODO(mgsergio): Replace by correct sorting from editor's config.
+    copy.SortBySpec();
+    m_types.Remove(*copy.begin());
+    m_types.Add(featureType);
+  }
+}
+
+void EditableMapObject::SetTypes(feature::TypesHolder const & types)
+{
+  m_types = types;
+}
+
+void EditableMapObject::SetID(FeatureID const & fid)
+{
+  m_featureID = fid;
+}
+void EditableMapObject::SetStreet(LocalizedStreet const & st)
+{
+  m_street = st;
+}
+
+void EditableMapObject::SetNearbyStreets(vector<LocalizedStreet> && streets)
+{
+  m_nearbyStreets = std::move(streets);
+}
+
+void EditableMapObject::SetHouseNumber(string const & houseNumber)
+{
+  m_houseNumber = houseNumber;
+}
+
+void EditableMapObject::SetPostcode(std::string const & postcode)
+{
+  m_metadata.Set(MetadataID::FMD_POSTCODE, postcode);
+}
+
+bool EditableMapObject::IsValidMetadata(MetadataID type, std::string const & value)
+{
+  switch (type)
+  {
+  case MetadataID::FMD_WEBSITE: return ValidateWebsite(value);
+  case MetadataID::FMD_WEBSITE_MENU: return ValidateWebsite(value);
+  case MetadataID::FMD_CONTACT_FACEBOOK: return ValidateFacebookPage(value);
+  case MetadataID::FMD_CONTACT_INSTAGRAM: return ValidateInstagramPage(value);
+  case MetadataID::FMD_CONTACT_TWITTER: return ValidateTwitterPage(value);
+  case MetadataID::FMD_CONTACT_VK: return ValidateVkPage(value);
+  case MetadataID::FMD_CONTACT_LINE: return ValidateLinePage(value);
+  case MetadataID::FMD_CONTACT_FEDIVERSE: return ValidateFediversePage(value);
+  case MetadataID::FMD_CONTACT_BLUESKY: return ValidateBlueskyPage(value);
+
+  case MetadataID::FMD_STARS:
+  {
+    uint32_t stars;
+    return strings::to_uint(value, stars) && stars > 0 && stars <= feature::kMaxStarsCount;
+  }
+  case MetadataID::FMD_ELE:
+  {
+    /// @todo Reuse existing validadors in generator (osm2meta).
+    double ele;
+    return strings::to_double(value, ele) && ele > -11000 && ele < 9000;
+  }
+
+  case MetadataID::FMD_BUILDING_LEVELS: return ValidateBuildingLevels(value);
+  case MetadataID::FMD_LEVEL: return ValidateLevel(value);
+  case MetadataID::FMD_FLATS: return ValidateFlats(value);
+  case MetadataID::FMD_POSTCODE: return ValidatePostCode(value);
+  case MetadataID::FMD_PHONE_NUMBER: return ValidatePhoneList(value);
+  case MetadataID::FMD_EMAIL: return ValidateEmail(value);
+
+  default: return true;
+  }
+}
+
+void EditableMapObject::SetMetadata(MetadataID type, std::string value)
+{
+  switch (type)
+  {
+  case MetadataID::FMD_WEBSITE: value = ValidateAndFormat_website(value); break;
+  case MetadataID::FMD_WEBSITE_MENU: value = ValidateAndFormat_website(value); break;
+  case MetadataID::FMD_CONTACT_FACEBOOK: value = ValidateAndFormat_facebook(value); break;
+  case MetadataID::FMD_CONTACT_INSTAGRAM: value = ValidateAndFormat_instagram(value); break;
+  case MetadataID::FMD_CONTACT_TWITTER: value = ValidateAndFormat_twitter(value); break;
+  case MetadataID::FMD_CONTACT_VK: value = ValidateAndFormat_vk(value); break;
+  case MetadataID::FMD_CONTACT_LINE: value = ValidateAndFormat_contactLine(value); break;
+  case MetadataID::FMD_CONTACT_FEDIVERSE: value = ValidateAndFormat_fediverse(value); break;
+  case MetadataID::FMD_CONTACT_BLUESKY: value = ValidateAndFormat_bluesky(value); break;
+  default: break;
+  }
+
+  m_metadata.Set(type, std::move(value));
+}
+
+bool EditableMapObject::UpdateMetadataValue(string_view key, string value)
+{
+  MetadataID type;
+  if (!feature::Metadata::TypeFromString(key, type))
+    return false;
+
+  SetMetadata(type, std::move(value));
+  return true;
+}
+
+void EditableMapObject::SetOpeningHours(std::string oh)
+{
+  m_metadata.Set(MetadataID::FMD_OPEN_HOURS, std::move(oh));
+}
+
+void EditableMapObject::SetChargeSockets(std::string sockets)
+{
+  // parse the list of sockets provided by the frontend, and re-generate the
+  // socket list, thus ensuring it is valid & sorted.
+  ChargeSocketsHelper helper(sockets);
+  m_metadata.Set(MetadataID::FMD_CHARGE_SOCKETS, helper.ToString());
+}
+
+void EditableMapObject::SetInternet(feature::Internet internet)
+{
+  m_metadata.Set(MetadataID::FMD_INTERNET, DebugPrint(internet));
+
+  uint32_t const wifiType = ftypes::IsWifiChecker::Instance().GetType();
+  bool const hasWiFi = m_types.Has(wifiType);
+
+  if (hasWiFi && internet != feature::Internet::Wlan)
+    m_types.Remove(wifiType);
+  else if (!hasWiFi && internet == feature::Internet::Wlan)
+    m_types.SafeAdd(wifiType);
+}
+
+LocalizedStreet const & EditableMapObject::GetStreet() const
+{
+  return m_street;
+}
+
+template <class T>
+void EditableMapObject::SetCuisinesImpl(vector<T> const & cuisines)
+{
+  FeatureParams params;
+
+  // Ignore cuisine types as these will be set from the cuisines param
+  auto const & isCuisine = ftypes::IsCuisineChecker::Instance();
+  for (uint32_t const type : m_types)
+    if (!isCuisine(type))
+      params.m_types.push_back(type);
+
+  Classificator const & cl = classif();
+  for (auto const & cuisine : cuisines)
+    params.m_types.push_back(cl.GetTypeByPath({string_view("cuisine"), cuisine}));
+
+  // Move useless types to the end and resize to fit TypesHolder.
+  params.FinishAddingTypes();
+
+  m_types.Assign(params.m_types.begin(), params.m_types.end());
+}
+
+void EditableMapObject::SetCuisines(std::vector<std::string_view> const & cuisines)
+{
+  SetCuisinesImpl(cuisines);
+}
+
+void EditableMapObject::SetCuisines(std::vector<std::string> const & cuisines)
+{
+  SetCuisinesImpl(cuisines);
+}
+
+void EditableMapObject::SetPointType()
+{
+  m_geomType = feature::GeomType::Point;
+}
+
+void EditableMapObject::RemoveBlankNames()
+{
+  StringUtf8Multilang editedName;
+
+  m_name.ForEach([&editedName](int8_t langCode, string_view name)
+  {
+    if (!name.empty())
+      editedName.AddString(langCode, name);
+  });
+
+  m_name = editedName;
+}
+
+// static
+bool EditableMapObject::ValidateBuildingLevels(string const & buildingLevels)
+{
+  if (buildingLevels.empty())
+    return true;
+
+  if (buildingLevels.size() > 18 /* max number of digits in uint_64 */)
+    return false;
+
+  if ('0' == buildingLevels.front())
+    return false;
+
+  uint64_t levels;
+  return strings::to_uint64(buildingLevels, levels) && levels > 0 && levels <= kMaximumLevelsEditableByUsers;
+}
+
+// static
+bool EditableMapObject::ValidateHouseNumber(string const & houseNumber)
+{
+  // TODO(mgsergio): Use LooksLikeHouseNumber!
+
+  if (houseNumber.empty())
+    return true;
+
+  strings::UniString us = strings::MakeUniString(houseNumber);
+  // TODO: Improve this basic limit - it was choosen by @Zverik.
+  auto constexpr kMaxHouseNumberLength = 15;
+  if (us.size() > kMaxHouseNumberLength)
+    return false;
+
+  // TODO: Should we allow arabic numbers like U+0661 ١	Arabic-Indic Digit One?
+  strings::NormalizeDigits(us);
+  for (auto const c : us)
+  {
+    // Valid house numbers contain at least one digit.
+    if (strings::IsASCIIDigit(c))
+      return true;
+  }
+  return false;
+}
+
+bool EditableMapObject::CheckHouseNumberWhenIsAddress() const
+{
+  // House number is mandatory for the address type. For other types it's optional.
+  return !m_houseNumber.empty() || !m_types.Has(classif().GetTypeByReadableObjectName("building-address"));
+}
+
+// static
+bool EditableMapObject::ValidateFlats(string const & flats)
+{
+  if (strings::CountChar(flats) > kMaximumOsmChars)
+    return false;
+
+  for (auto it = strings::SimpleTokenizer(flats, ";"); it; ++it)
+  {
+    string_view token = *it;
+    strings::Trim(token);
+
+    auto range = strings::Tokenize(token, "-");
+    if (range.empty() || range.size() > 2)
+      return false;
+
+    for (auto const & rangeBorder : range)
+      if (!all_of(begin(rangeBorder), end(rangeBorder), ::isalnum))
+        return false;
+  }
+  return true;
+}
+
+// static
+bool EditableMapObject::ValidatePostCode(string const & postCode)
+{
+  if (postCode.empty())
+    return true;
+  return search::LooksLikePostcode(postCode, false /* IsPrefix */);
+}
+
+// static
+bool EditableMapObject::ValidatePhoneList(string const & phone)
+{
+  // BNF:
+  // <digit>            ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+  // <available_char>   ::= ' ' | '+' | '-' | '(' | ')'
+  // <delimeter>        ::= ',' | ';'
+  // <phone>            ::= (<digit> | <available_chars>)+
+  // <phone_list>       ::= '' | <phone> | <phone> <delimeter> <phone_list>
+
+  if (phone.empty())
+    return true;
+
+  if (strings::CountChar(phone) > kMaximumOsmChars)
+    return false;
+
+  auto constexpr kMaxNumberLen = 15;
+  auto constexpr kMinNumberLen = 5;
+
+  if (phone.size() < kMinNumberLen)
+    return false;
+
+  auto curr = phone.begin();
+  auto last = phone.begin();
+
+  do
+  {
+    last = find_if(curr, phone.end(), [](string::value_type const & ch) { return ch == ',' || ch == ';'; });
+
+    auto digitsCount = 0;
+    string const symbols = "+-() ";
+    for (; curr != last; ++curr)
+    {
+      if (!isdigit(*curr) && find(symbols.begin(), symbols.end(), *curr) == symbols.end())
+        return false;
+
+      if (isdigit(*curr))
+        ++digitsCount;
+    }
+
+    if (digitsCount < kMinNumberLen || digitsCount > kMaxNumberLen)
+      return false;
+
+    curr = last;
+  }
+  while (last != phone.end() && ++curr != phone.end());
+
+  return true;
+}
+
+// static
+bool EditableMapObject::ValidateEmail(string const & email)
+{
+  if (email.empty())
+    return true;
+
+  if (strings::CountChar(email) > kMaximumOsmChars)
+    return false;
+
+  if (strings::IsASCIIString(email))
+  {
+    static std::regex const s_emailRegex(R"(^(?!mailto:)[^@\s]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$)", std::regex_constants::icase);
+    return regex_match(email, s_emailRegex);
+  }
+
+  if ('@' == email.front() || '@' == email.back())
+    return false;
+
+  if ('.' == email.back())
+    return false;
+
+  auto const atPos = find(begin(email), end(email), '@');
+  if (atPos == end(email))
+    return false;
+
+  // There should be only one '@' sign.
+  if (find(next(atPos), end(email), '@') != end(email))
+    return false;
+
+  // There should be at least one '.' sign after '@'
+  if (find(next(atPos), end(email), '.') == end(email))
+    return false;
+
+  return true;
+}
+
+// static
+bool EditableMapObject::ValidateLevel(string const & level)
+{
+  if (level.empty())
+    return true;
+
+  if (strings::CountChar(level) > kMaximumOsmChars)
+    return false;
+
+  if (level.front() == ';' || level.back() == ';' || level.find(";;") != std::string::npos)
+    return false;
+
+  // validate ";" separated values separately
+  vector<std::string_view> const tokenizedValues = strings::Tokenize(level, ";");
+
+  for (std::string_view const & value : tokenizedValues)
+  {
+    auto const isValidNumber = [](std::string_view const & s)
+    {
+      auto constexpr kMinBuildingLevel = -9;
+      double valueDouble;
+      return strings::to_double(s, valueDouble) && valueDouble > kMinBuildingLevel &&
+             valueDouble <= kMaximumLevelsEditableByUsers;
+    };
+
+    // Check for simple value (e.g. "42")
+    if (!isValidNumber(value))
+    {
+      // Check for range (e.g. "-3-12")
+      size_t rangeSymbol = value.find('-', 1);  // skip first as it could be a negative sign
+      if (rangeSymbol == std::string::npos)
+        return false;
+
+      std::string_view from = value.substr(0, rangeSymbol);
+      std::string_view to = value.substr(rangeSymbol + 1, value.size());
+
+      if (!isValidNumber(from) || !isValidNumber(to))
+        return false;
+    }
+
+    // Forbid leading zero (e.g. "04")
+    if (value.front() == '0' && value.size() >= 2 && value[1] != '.')
+      return false;
+  }
+
+  return true;
+}
+
+// static
+bool EditableMapObject::ValidateName(string const & name)
+{
+  if (name.empty())
+    return true;
+
+  if (strings::CountChar(name) > kMaximumOsmChars)
+    return false;
+
+  static std::u32string_view constexpr excludedSymbols = U"^§><*=_±√•÷×¶";
+
+  using Iter = utf8::unchecked::iterator<string::const_iterator>;
+  for (Iter it{name.cbegin()}; it != Iter{name.cend()}; ++it)
+  {
+    auto const ch = *it;
+    // Exclude ASCII control characters.
+    if (ch <= 0x1F)
+      return false;
+    // Exclude {|}~ DEL and C1 control characters.
+    if (ch >= 0x7B && ch <= 0x9F)
+      return false;
+    // Exclude arrows, mathematical symbols, borders, geometric shapes.
+    if (ch >= 0x2190 && ch <= 0x2BFF)
+      return false;
+    // Emoji modifiers https://en.wikipedia.org/wiki/Emoji#Emoji_versus_text_presentation
+    if (ch == 0xFE0E || ch == 0xFE0F)
+      return false;
+    // Exclude format controls, musical symbols, emoticons, ornamental and pictographs,
+    // ancient and exotic alphabets.
+    if (ch >= 0xFFF0 && ch <= 0x1F9FF)
+      return false;
+
+    if (excludedSymbols.find(ch) != std::u32string_view::npos)
+      return false;
+  }
+  return true;
+}
+
+EditJournal const & EditableMapObject::GetJournal() const
+{
+  return m_journal;
+}
+
+void EditableMapObject::SetJournal(EditJournal && editJournal)
+{
+  m_journal = std::move(editJournal);
+}
+
+EditingLifecycle EditableMapObject::GetEditingLifecycle() const
+{
+  return m_journal.GetEditingLifecycle();
+}
+
+void EditableMapObject::MarkAsCreated(uint32_t type, feature::GeomType geomType, m2::PointD mercator)
+{
+  m_journal.MarkAsCreated(type, geomType, std::move(mercator));
+}
+
+void EditableMapObject::MarkAsDisused()
+{
+  auto types = GetTypes();
+  types.SortBySpec();
+  uint32_t old_type = *types.begin();
+  uint32_t new_type = classif().GetTypeByReadableObjectName("disusedbusiness");
+  ApplyBusinessReplacement(new_type);
+  m_journal.AddBusinessReplacement(old_type, new_type);
+}
+
+void EditableMapObject::ClearJournal()
+{
+  m_journal.Clear();
+}
+
+void EditableMapObject::ApplyEditsFromJournal(EditJournal const & editJournal)
+{
+  LOG(LDEBUG, ("Applying JournalHistory entries..."));
+  for (JournalEntry const & entry : editJournal.GetJournalHistory())
+    ApplyJournalEntry(entry);
+
+  LOG(LDEBUG, ("Applying Journal entries..."));
+  for (JournalEntry const & entry : editJournal.GetJournal())
+    ApplyJournalEntry(entry);
+}
+
+void EditableMapObject::ApplyJournalEntry(JournalEntry const & entry)
+{
+  LOG(LDEBUG, (osm::EditJournal::ToString(entry)));
+
+  switch (entry.journalEntryType)
+  {
+  case JournalEntryType::TagModification:
+  {
+    TagModData const & tagModData = std::get<TagModData>(entry.data);
+
+    // Metadata
+    MetadataID type;
+    if (feature::Metadata::TypeFromString(tagModData.key, type))
+    {
+      if (type == MetadataID::FMD_CHARGE_SOCKETS)
+      {
+        // Charge sockets need special handling: we need to aggregate the new entry
+        // to existing ones, not just replace the whole string.
+        ChargeSocketsHelper helper(GetChargeSockets());
+        helper.AggregateChargeSocketKey(tagModData.key, tagModData.new_value);
+        m_metadata.Set(type, helper.ToString());
+      }
+      else
+        m_metadata.Set(type, tagModData.new_value);
+
+      if (type == MetadataID::FMD_INTERNET)
+      {
+        uint32_t const wifiType = ftypes::IsWifiChecker::Instance().GetType();
+        if (tagModData.new_value == "wifi")
+          m_types.SafeAdd(wifiType);
+        else
+          m_types.Remove(wifiType);
+      }
+      break;
+    }
+
+    // Names
+    localisation::LanguageIndex languageIndex = StringUtf8Multilang::GetCodeByOSMTag(tagModData.key);
+    if (languageIndex != localisation::kUnsupportedLanguageIndex)
+    {
+      m_name.AddString(languageIndex, tagModData.new_value);
+      break;
+    }
+
+    if (tagModData.key == "addr:street")
+      m_street.m_defaultName = tagModData.new_value;
+
+    else if (tagModData.key == "addr:housenumber")
+      m_houseNumber = tagModData.new_value;
+
+    else if (tagModData.key == "cuisine")
+    {
+      Classificator const & cl = classif();
+      // Remove old cuisine values
+      vector<std::string_view> oldCuisines = strings::Tokenize(tagModData.old_value, ";");
+      for (std::string_view const & cuisine : oldCuisines)
+        m_types.Remove(cl.GetTypeByPath({string_view("cuisine"), cuisine}));
+      // Add new cuisine values
+      vector<std::string_view> newCuisines = strings::Tokenize(tagModData.new_value, ";");
+      for (std::string_view const & cuisine : newCuisines)
+        m_types.SafeAdd(cl.GetTypeByPath({string_view("cuisine"), cuisine}));
+    }
+    else if (tagModData.key == "diet:vegetarian")
+    {
+      Classificator const & cl = classif();
+      uint32_t const vegetarianType = cl.GetTypeByPath({string_view("cuisine"), "vegetarian"});
+      if (tagModData.new_value == "yes")
+        m_types.SafeAdd(vegetarianType);
+      else
+        m_types.Remove(vegetarianType);
+    }
+    else if (tagModData.key == "diet:vegan")
+    {
+      Classificator const & cl = classif();
+      uint32_t const veganType = cl.GetTypeByPath({string_view("cuisine"), "vegan"});
+      if (tagModData.new_value == "yes")
+        m_types.SafeAdd(veganType);
+      else
+        m_types.Remove(veganType);
+    }
+    else
+      LOG(LWARNING, ("OSM key \"", tagModData.key, "\" is unknown, skipped"));
+
+    break;
+  }
+  case JournalEntryType::ObjectCreated:
+  {
+    ObjCreateData const & objCreatedData = std::get<ObjCreateData>(entry.data);
+    ASSERT_EQUAL(feature::GeomType::Point, objCreatedData.geomType,
+                 ("At the moment only new nodes (points) can be created."));
+    SetPointType();
+    SetMercator(objCreatedData.mercator);
+    m_types.Add(objCreatedData.type);
+    break;
+  }
+  case JournalEntryType::LegacyObject:
+  {
+    ASSERT_FAIL(("Legacy Objects can not be loaded from Journal"));
+    break;
+  }
+  case JournalEntryType::BusinessReplacement:
+  {
+    BusinessReplacementData const & businessReplacementData = std::get<BusinessReplacementData>(entry.data);
+    ApplyBusinessReplacement(businessReplacementData.new_type);
+    break;
+  }
+  }
+}
+
+void EditableMapObject::LogDiffInJournal(EditableMapObject const & unedited_emo)
+{
+  LOG(LDEBUG, ("Executing LogDiffInJournal"));
+
+  // Capture the initial size of the journal to detect if changes occur later
+  auto const initialJournalSize = m_journal.GetJournal().size();
+
+  // Name
+  for (localisation::Language const & language : localisation::GetSupportedLanguages())
+  {
+    localisation::LanguageIndex const languageIndex = localisation::ConvertLanguageCodeToLanguageIndex(language.m_languageCode);
+    std::string_view new_name, old_name;
+    UNUSED_VALUE(m_name.GetString(languageIndex, new_name));
+    UNUSED_VALUE(unedited_emo.GetNameMultilang().GetString(languageIndex, old_name));
+
+    if (new_name != old_name)
+    {
+      m_journal.AddTagChange(StringUtf8Multilang::GetOSMTagByCode(languageIndex), std::string(old_name),
+                             std::string(new_name));
+    }
+  }
+
+  // Address
+  if (m_street.m_defaultName != unedited_emo.GetStreet().m_defaultName)
+    m_journal.AddTagChange("addr:street", unedited_emo.GetStreet().m_defaultName, m_street.m_defaultName);
+
+  if (m_houseNumber != unedited_emo.GetHouseNumber())
+    m_journal.AddTagChange("addr:housenumber", unedited_emo.GetHouseNumber(), m_houseNumber);
+
+  // Metadata
+  for (uint8_t i = 0; i < static_cast<uint8_t>(feature::Metadata::FMD_COUNT); ++i)
+  {
+    auto const type = static_cast<feature::Metadata::EType>(i);
+
+    // CHARGE_SOCKETS have multiple keys/values; handled separately further down
+    if (type == feature::Metadata::FMD_CHARGE_SOCKETS)
+      continue;
+    std::string_view const & value = GetMetadata(type);
+    std::string_view const & old_value = unedited_emo.GetMetadata(type);
+
+    if (value != old_value)
+      m_journal.AddTagChange(ToString(type), std::string(old_value), std::string(value));
+  }
+
+  // cuisine and diet
+  std::vector<std::string> new_cuisines = GetCuisines();
+  std::vector<std::string> old_cuisines = unedited_emo.GetCuisines();
+
+  auto const findAndErase = [](std::vector<std::string> & cuisinesPtr, std::string_view s)
+  {
+    auto it = std::find(cuisinesPtr.begin(), cuisinesPtr.end(), s);
+    if (it != cuisinesPtr.end())
+    {
+      cuisinesPtr.erase(it);
+      return "yes";
+    }
+    return "";
+  };
+
+  std::string new_vegetarian = findAndErase(new_cuisines, "vegetarian");
+  std::string old_vegetarian = findAndErase(old_cuisines, "vegetarian");
+  if (new_vegetarian != old_vegetarian)
+    m_journal.AddTagChange("diet:vegetarian", old_vegetarian, new_vegetarian);
+
+  std::string new_vegan = findAndErase(new_cuisines, "vegan");
+  std::string old_vegan = findAndErase(old_cuisines, "vegan");
+  if (new_vegan != old_vegan)
+    m_journal.AddTagChange("diet:vegan", old_vegan, new_vegan);
+
+  bool cuisinesModified = false;
+
+  if (new_cuisines.size() != old_cuisines.size())
+    cuisinesModified = true;
+  else
+  {
+    for (auto const & new_cuisine : new_cuisines)
+    {
+      if (!base::IsExist(old_cuisines, new_cuisine))
+      {
+        cuisinesModified = true;
+        break;
+      }
+    }
+  }
+
+  if (cuisinesModified)
+    m_journal.AddTagChange("cuisine", strings::JoinStrings(old_cuisines, ";"), strings::JoinStrings(new_cuisines, ";"));
+
+  // charge sockets
+  auto chargeSocketsDiff = ChargeSocketsHelper(GetChargeSockets()).Diff(unedited_emo.GetChargeSockets());
+  for (auto const & kvdiff : chargeSocketsDiff)
+  {
+    std::string key, old_value, new_value;
+    std::tie(key, old_value, new_value) = kvdiff;
+    m_journal.AddTagChange(key, old_value, new_value);
+  }
+
+  // check_date logic
+  // Check if any changes were detected (Journal grew)
+  if (m_journal.GetJournal().size() > initialJournalSize)
+  {
+    // Auto-fill check_date only if other changes exist
+    if (ftypes::IsCheckDateChecker::Instance()(GetTypes()))
+    {
+      std::string const currentDate = GetCurrentDate();
+
+      // Update check_date
+      std::string_view const oldCheckDate = unedited_emo.GetMetadata(feature::Metadata::FMD_CHECK_DATE);
+      if (oldCheckDate != currentDate)
+      {
+        SetMetadata(feature::Metadata::FMD_CHECK_DATE, currentDate);
+        m_journal.AddTagChange("check_date", std::string(oldCheckDate), currentDate);
+      }
+
+      // Update check_date:opening_hours if Opening Hours changed
+      std::string_view const newOH = GetMetadata(feature::Metadata::FMD_OPEN_HOURS);
+      std::string_view const oldOH = unedited_emo.GetMetadata(feature::Metadata::FMD_OPEN_HOURS);
+
+      if (!newOH.empty() && newOH != oldOH)
+      {
+        std::string_view const oldOHDate = unedited_emo.GetMetadata(feature::Metadata::FMD_CHECK_DATE_OPEN_HOURS);
+        if (oldOHDate != currentDate)
+        {
+          SetMetadata(feature::Metadata::FMD_CHECK_DATE_OPEN_HOURS, currentDate);
+          m_journal.AddTagChange("check_date:opening_hours", std::string(oldOHDate), currentDate);
+        }
+      }
+    }
+  }
+}
+
+void EditableMapObject::ApplyBusinessReplacement(uint32_t new_type)
+{
+  // Types
+  feature::TypesHolder new_feature_types;
+
+  new_feature_types.Add(new_type);  // Update feature type
+
+  std::string wheelchairType = feature::GetReadableWheelchairType(m_types);
+  if (!wheelchairType.empty())
+    new_feature_types.SafeAdd(classif().GetTypeByReadableObjectName(wheelchairType));
+
+  std::vector<uint32_t> const buildingTypes = ftypes::IsBuildingChecker::Instance().GetTypes();
+  for (uint32_t const & type : buildingTypes)
+    if (m_types.Has(type))
+      new_feature_types.SafeAdd(type);
+
+  m_types = new_feature_types;
+
+  // Names
+  m_name.Clear();
+
+  // Metadata
+  feature::Metadata new_metadata;
+
+  constexpr MetadataID metadataToKeep[] = {MetadataID::FMD_WHEELCHAIR,      MetadataID::FMD_POSTCODE,
+                                           MetadataID::FMD_LEVEL,           MetadataID::FMD_ELE,
+                                           MetadataID::FMD_HEIGHT,          MetadataID::FMD_MIN_HEIGHT,
+                                           MetadataID::FMD_BUILDING_LEVELS, MetadataID::FMD_BUILDING_MIN_LEVEL};
+
+  for (MetadataID const & metadataID : metadataToKeep)
+    new_metadata.Set(metadataID, std::string(m_metadata.Get(metadataID)));
+
+  m_metadata = new_metadata;
+}
+
+bool AreObjectsEqualIgnoringStreet(EditableMapObject const & lhs, EditableMapObject const & rhs)
+{
+  feature::TypesHolder const & lhsTypes = lhs.GetTypes();
+  feature::TypesHolder const & rhsTypes = rhs.GetTypes();
+
+  if (!lhsTypes.Equals(rhsTypes))
+    return false;
+
+  if (lhs.GetHouseNumber() != rhs.GetHouseNumber())
+    return false;
+
+  if (lhs.GetCuisines() != rhs.GetCuisines())
+    return false;
+
+  if (!lhs.m_metadata.Equals(rhs.m_metadata))
+    return false;
+
+  if (lhs.GetNameMultilang() != rhs.GetNameMultilang())
+    return false;
+
+  return true;
+}
+
+}  // namespace osm

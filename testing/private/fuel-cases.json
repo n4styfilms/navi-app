@@ -1,0 +1,17 @@
+[
+  {"name":"wltp","distanceMeters":120000,"wltp":6,"price":1.8,"personal":null,"status":"READY","liters":7.2,"euros":12.96,"source":"WLTP"},
+  {"name":"personal_overrides","distanceMeters":120000,"wltp":6,"price":1.8,"personal":7,"status":"READY","liters":8.4,"euros":15.12,"source":"PERSONAL"},
+  {"name":"zero_route","distanceMeters":0,"wltp":6,"price":1.8,"personal":null,"status":"READY","liters":0,"euros":0,"source":"WLTP"},
+  {"name":"unrounded_meters","distanceMeters":125.25,"wltp":8,"price":2,"personal":null,"status":"READY","liters":0.01002,"euros":0.02004,"source":"WLTP"},
+  {"name":"zero_price","distanceMeters":100000,"wltp":6,"price":0,"personal":null,"status":"READY","liters":6,"euros":0,"source":"WLTP"},
+  {"name":"missing_wltp","distanceMeters":1000,"wltp":null,"price":1.8,"personal":null,"status":"NEED_CONSUMPTION"},
+  {"name":"missing_price","distanceMeters":1000,"wltp":6,"price":null,"personal":null,"status":"NEED_PRICE"},
+  {"name":"negative_distance","distanceMeters":-1,"wltp":6,"price":1.8,"personal":null,"status":"INVALID_DISTANCE"},
+  {"name":"zero_consumption","distanceMeters":1000,"wltp":0,"price":1.8,"personal":null,"status":"NEED_CONSUMPTION"},
+  {"name":"negative_personal","distanceMeters":1000,"wltp":6,"price":1.8,"personal":-1,"status":"NEED_CONSUMPTION"},
+  {"name":"negative_price","distanceMeters":1000,"wltp":6,"price":-1,"personal":null,"status":"NEED_PRICE"},
+  {"name":"infinite_distance","distanceMeters":"Infinity","wltp":6,"price":1.8,"personal":null,"status":"INVALID_DISTANCE"},
+  {"name":"nan_consumption","distanceMeters":1000,"wltp":"NaN","price":1.8,"personal":null,"status":"NEED_CONSUMPTION"},
+  {"name":"infinite_price","distanceMeters":1000,"wltp":6,"price":"Infinity","personal":null,"status":"NEED_PRICE"},
+  {"name":"overflow","distanceMeters":1e308,"wltp":1e308,"price":1.8,"personal":null,"status":"INVALID_DISTANCE"}
+]

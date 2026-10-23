@@ -1,0 +1,111 @@
+name: Android Check
+on:
+  workflow_dispatch: # Manual trigger
+  push:
+    paths: &paths
+      - 3party/**
+      - android/**
+      - '!android/app/src/fdroid/**'
+      - '!android/app/src/google/**'
+      - configure.sh
+      - cmake/**
+      - '!cmake/windows/**'
+      - CMakeLists.txt
+      - defines.hpp
+      - .forgejo/workflows/android-check.yaml  # Run check on self change
+      - libs/**
+      - '!**/*_tests/**'
+      - '!libs/**/*apple*'
+      - '!libs/**/*_ios*'
+      - '!libs/platform/apple/**'
+      - '!libs/platform/*_linux*'
+      - '!libs/platform/*_mac*'
+      - '!libs/platform/*qt*'
+      - '!libs/platform/*_win*'
+      - '!libs/pyhelpers/**'
+      - '!iphone/**'
+      - '!xcode/**'
+      - private.h
+    branches:
+      - main
+  pull_request:
+    paths: *paths
+
+jobs:
+  lint:
+    name: Android Lint
+    runs-on: comaps-android-large
+    # This still has some lingering errors.
+    # Allow failures so that the fail/pass results from CI can be helpful
+    # in the assesment of code changes with the workflows that work on main.
+    # Let's remove this line after the errors are resolved.
+    continue-on-error: true
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Update submodules
+        uses: ./.forgejo/actions/update-submodules
+
+      - name: Cache world map
+        uses: actions/cache@v4
+        with:
+          path: data/world_mwm
+          key: world-mwm
+
+      - name: Lint
+        shell: bash
+        working-directory: android
+        run: ./gradlew -Pandroidauto=true lint
+
+  android-check:
+    name: Build Android Debug ${{ matrix.flavor }}
+    runs-on: comaps-android-large
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [FdroidBeta, FdroidDebug]
+        include:
+          - flavor: FdroidBeta
+            type: Beta
+            arch: arm64
+          - flavor: FdroidDebug
+            type: Debug
+            # Both ARM ABIs, so this actually installs on 64-bit-only phones.
+            arch: "arm32 -Parm64"
+    # Cancels previous jobs if the same branch or PR was updated again.
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.flavor }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 200 # enough to get all commits for the current day
+
+      - name: Update submodules
+        uses: ./.forgejo/actions/update-submodules
+
+      - name: Cache world map
+        uses: actions/cache@v4
+        with:
+          path: data/world_mwm
+          key: world-mwm
+
+      - name: Compile
+        shell: bash
+        working-directory: android
+        env:
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+        run: ./gradlew -P${{ matrix.arch }} test${{ matrix.flavor }}UnitTest test${{ matrix.type }}UnitTest assemble${{ matrix.flavor }}
+
+      - name: Upload apk
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-${{ matrix.flavor }}
+          path: android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error

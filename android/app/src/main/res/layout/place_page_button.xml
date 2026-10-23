@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  style="@style/PlacePageButton"
+  tools:layout_width="100dp"
+  tools:layout_height="@dimen/place_page_buttons_height"
+  tools:background="#40202020">
+  <com.google.android.material.imageview.ShapeableImageView
+    android:id="@+id/icon"
+    style="@style/PlacePageButtonImage"
+    android:contentDescription="@string/back"
+    tools:src="@drawable/ic_share"/>
+
+  <com.google.android.material.textview.MaterialTextView
+    android:id="@+id/title"
+    style="@style/PlacePageButtonText"
+    tools:text="@string/back"/>
+</LinearLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="navi_surface">#1A1D19</color>
+  <color name="navi_ink">#F1F2E9</color>
+  <color name="navi_field">#252A23</color>
+  <color name="navi_muted">#B7BDB1</color>
+</resources>

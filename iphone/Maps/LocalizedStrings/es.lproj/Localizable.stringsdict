@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bookmarks_places</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld marcadores</string>
+			<key>one</key>
+			<string>%lld marcador</string>
+			<key>many</key>
+			<string>%lld marcadores</string>
+			<key>other</key>
+			<string>%lld marcadores</string>
+		</dict>
+	</dict>
+	<key>bookmarks_detect_message</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Se han encontrado %lld archivos. Los verá después de la conversión.</string>
+			<key>one</key>
+			<string>Se encontró %lld archivo. Lo verá después de la conversión.</string>
+			<key>many</key>
+			<string>Se han encontrado %lld archivos. Los verá después de la conversión.</string>
+			<key>other</key>
+			<string>Se han encontrado %lld archivos. Los verá después de la conversión.</string>
+		</dict>
+	</dict>
+	<key>tracks</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>%lld trayectos</string>
+			<key>one</key>
+			<string>%lld trayecto</string>
+			<key>many</key>
+			<string>%lld trayectos</string>
+			<key>other</key>
+			<string>%lld trayectos</string>
+		</dict>
+	</dict>
+	<key>population</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld residente</string>
+			<key>many</key>
+			<string>%lld residentes</string>
+			<key>other</key>
+			<string>%lld residents</string>
+		</dict>
+	</dict>
+	<key>rooms</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld habitación</string>
+			<key>many</key>
+			<string>%lld habitaciones</string>
+			<key>other</key>
+			<string>%lld rooms</string>
+		</dict>
+	</dict>
+	<key>capacity_disabled</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Sin plazas de aparcamiento reservadas para personas con discapacidad</string>
+			<key>one</key>
+			<string>%lld plaza de aparcamiento reservada para personas con discapacidad</string>
+			<key>many</key>
+			<string>%lld plazas de aparcamiento reservadas para personas con discapacidad</string>
+			<key>other</key>
+			<string>%lld plazas de aparcamiento reservadas para personas con discapacidad</string>
+		</dict>
+	</dict>
+	<key>capacity_charging</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Sin cargadores</string>
+			<key>one</key>
+			<string>%lld plaza con un cargador</string>
+			<key>many</key>
+			<string>%lld plazas con cargadores</string>
+			<key>other</key>
+			<string>%lld plazas con cargadores</string>
+		</dict>
+	</dict>
+	<key>capacity</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@nevertranslate@</string>
+		<key>nevertranslate</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>zero</key>
+			<string>Sin plazas</string>
+			<key>one</key>
+			<string>%lld plaza</string>
+			<key>many</key>
+			<string>%lld plazas</string>
+			<key>other</key>
+			<string>%lld plazas</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

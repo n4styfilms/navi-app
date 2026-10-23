@@ -1,0 +1,10 @@
+/* Used in home screen quick actions. */
+"search" = "Serĉi";
+/* Used in home screen quick actions. */
+"bookmarks_and_tracks" = "Favoratoj";
+/* Used in home screen quick actions. */
+"route" = "Itinero";
+/* Needed to explain why we always require access to GPS coordinates, and not only when the app is active. */
+NSLocationAlwaysUsageDescription = "Fona trovado de via pozicio necesas por provizi la funkciojn de la apo. Ĝi estas uzata por navigado, kaj la konservado de ĵusaj trakoj.";
+/* Needed to explain why we require access to GPS coordinates when the app is active. */
+NSLocationWhenInUseUsageDescription = "La trovado de via pozicio necesas por navigado kaj por konservado de viaj trakoj.";

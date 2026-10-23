@@ -1,0 +1,30 @@
+name: Validate .desktop file
+on:
+  workflow_dispatch: # Manual trigger
+  pull_request:
+    paths:
+      - qt/res/linux/app.comaps.comaps.desktop
+      - .forgejo/workflows/desktop-file-check.yaml # Run check on self change
+
+jobs:
+  validate-desktop-file:
+    name: Validate .desktop file
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            qt/res/linux/app.comaps.comaps.desktop
+
+      - name: Install desktop-file-validate tool
+        shell: bash
+        run: |
+          apt update -y
+          apt install -y \
+              desktop-file-utils
+
+      - name: Validate desktop file
+        shell: bash
+        run: desktop-file-validate qt/res/linux/app.comaps.comaps.desktop && echo "Successfully validated .desktop file"

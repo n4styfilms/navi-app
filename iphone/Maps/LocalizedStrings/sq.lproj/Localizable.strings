@@ -1,0 +1,910 @@
+/* Button text (should be short) */
+"cancel" = "Anulo";
+/* Button which interrupts country download */
+"cancel_download" = "Anullo shkarkimin";
+/* Button which deletes downloaded country */
+"delete" = "Fshi";
+"download_maps" = "Shkarko";
+/* Settings/Downloader - info for country which started downloading */
+"downloading" = "Duke shkarkuar…";
+/* Title of offline maps explanation */
+"offline_explanation_title" = "Harta Jashtë Linje";
+/* Text of offline maps explanation */
+"offline_explanation_text" = "Një hartë e caktuar duhet shkarkuar që të mund të shihet një zonë dhe të udhëtoni aty.\nShkarkoni hartat për zonat ku dëshironi të udhëtoni.";
+/* Choose measurement on first launch alert - choose metric system button */
+"kilometres" = "Kilometra";
+/* Leave Review dialog - Review button */
+"leave_a_review" = "Lini një vlerësim";
+/* Choose measurement on first launch alert - choose imperial system button */
+"miles" = "Milje";
+/* A text for current gps location point/arrow selected on the map */
+"core_my_position" = "Pozicioni im";
+/* Update maps later button text */
+"later" = "Më vonë";
+/* View and button titles for accessibility, please also edit it in iphone/plist.txt */
+"search" = "Kërko";
+/* Settings/Downloader - 3G download warning dialog confirm button */
+"use_cellular_data" = "Po";
+/* View and button titles for accessibility */
+"zoom_to_country" = "Trego në hartë";
+/* Button text for the button at the center of the screen when the country is not downloaded and the size should not be shown */
+"country_status_download_without_size" = "Shkarko";
+/* Message to display at the center of the screen when the country download has failed */
+"country_status_download_failed" = "Shkarkimi dështoi";
+/* Text in About screen */
+"about_headline" = "Projekt i hapur i mundësuar nga komuniteti";
+/* Text in About screen */
+"about_proposition_1" = "Jashtë linje, i shpejtë dhe i lehtë për t'u përdorur";
+/* Text in About screen */
+"about_proposition_2" = "I fokusuar te privatësia dhe pa reklama";
+/* Text in About screen */
+"about_proposition_3" = "Transparent dhe jo për përfitime financiare";
+"close" = "Mbyll";
+"download" = "Shkarko";
+/* REMOVE THIS STRING AFTER REFACTORING */
+"continue_button" = "Vazhdo";
+/* "Add new bookmark list" dialog title */
+"add_new_set" = "Shto në listë të re";
+/* Add Bookmark list dialog - hint when the list name is empty */
+"bookmark_set_name" = "Emri i listës";
+/* "Bookmark Lists" dialog title */
+"bookmark_sets" = "Lista e të pëlqyerave";
+/* Should be used in the bookmarks-only context, see bookmarks_and_tracks if tracks are also implied. */
+"bookmarks" = "Vendet";
+/* "Bookmarks and Tracks" dialog title, also sync it with iphone/plist.txt */
+"bookmarks_and_tracks" = "Të pëlqyerat";
+/* Default bookmark list name */
+"core_my_places" = "Vendet e mia";
+/* Editor title above street and house number, duplicates [type.building.address] in types_strings.txt */
+"address" = "Adresa";
+/* Settings button in system menu */
+"settings" = "Cilësimet";
+/* Measurement units title in settings activity */
+"measurement_units" = "Njësitë e matjes";
+/* Search category for cafes, bars, restaurants; any changes should be duplicated in categories.txt @category_eat! */
+"category_eat" = "Vende për ushqim";
+/* Search category for grocery stores; any changes should be duplicated in categories.txt @category_food! */
+"category_food" = "Ushqimore";
+/* Search category for public transport; any changes should be duplicated in categories.txt @category_transport! */
+"category_transport" = "Transport";
+/* Search category for fuel stations; any changes should be duplicated in categories.txt @category_fuel! */
+"category_fuel" = "Karburant";
+/* Search category for parking lots; any changes should be duplicated in categories.txt @category_parking! */
+"category_parking" = "Parkim";
+/* Search category for malls/clothes/shoes/gifts/jewellery/sport shops; any changes should be duplicated in categories.txt @category_shopping! */
+"category_shopping" = "Blerje";
+/* Search category for second_hand/charity/antique/auction shops; any changes should be duplicated in categories.txt @category_secondhand! */
+"category_secondhand" = "Dyqan të përdorurash";
+/* Search category for places to stay; any changes should be duplicated in categories.txt @category_hotel! */
+"category_hotel" = "Hotel";
+/* Search category sight seeings and touristic attractions; any changes should be duplicated in categories.txt @category_tourism! */
+"category_tourism" = "Pamje";
+/* Search category for entertainment; any changes should be duplicated in categories.txt @category_entertainment! */
+"category_entertainment" = "Argëtim";
+/* Search category for ATMs; any changes should be duplicated in categories.txt @category_atm! */
+"category_atm" = "Bankomat (ATM)";
+/* Search category for nightclubs/bars; any changes should be duplicated in categories.txt @category_nightlife! */
+"category_nightlife" = "Jetë nate";
+/* Search category for water park/disneyland/playground/toys store; any changes should be duplicated in categories.txt @category_children! */
+"category_children" = "Pushime familjare";
+/* Search category for banks; any changes should be duplicated in categories.txt @category_bank! */
+"category_bank" = "Bankë";
+/* Search category for pharmacies; any changes should be duplicated in categories.txt @category_pharmacy! */
+"category_pharmacy" = "Farmaci";
+/* Search category for hospitals; any changes should be duplicated in categories.txt @category_hospital! */
+"category_hospital" = "Spital";
+/* Search category for toilets; any changes should be duplicated in categories.txt @category_toilet! */
+"category_toilet" = "Tualet";
+/* Search category for post offices; any changes should be duplicated in categories.txt @category_post! */
+"category_post" = "Postë";
+/* Search category for police; any changes should be duplicated in categories.txt @category_police! */
+"category_police" = "Polici";
+/* Search category for WiFi access; any changes should be duplicated in categories.txt @category_wifi! */
+"category_wifi" = "WiFi";
+/* Search category for recycling; any changes should be duplicated in categories.txt @category_recycling! */
+"category_recycling" = "Riciklim";
+/* Search category for water; any changes should be duplicated in categories.txt @category_water! also used to sort bookmarks by type */
+"category_water" = "Ujë";
+/* Search category for RV facilities; any changes should be duplicated in categories.txt @category_rv! */
+"category_rv" = "Objekte për karavan (RV)";
+"share_bookmarks_email_body" = "Tungjatjeta!\n\nKam bashkëngjitur vendet e ruajtura; ju lutem hapini në aplikacionin CoMaps. Nëse nuk e keni shkarkuar akoma aplikacionin, mund ta bëni këtu: https://www.comaps.app/download/\n\nShijojeni udhëtimin me CoMaps!";
+/* message title of loading file */
+"load_kmz_title" = "Duke ngarkuar të pëlqyerat";
+/* Kmz file successful loading */
+"load_kmz_successful" = "Vendet e pëlqyera u ngarkuan me sukses! Mund t'i gjeni ato në hartë ose te Të pëlqyerat.";
+/* Kml file loading failed */
+"load_kmz_failed" = "Dështoi ngarkimi i të pëlqyerave. Dosja mund të jetë e korruptuar ose defektive.";
+/* resource for context menu */
+"edit" = "Redakto";
+/* Warning message when doing search around current position */
+"unknown_current_position" = "Vendndodhja juaj nuk është caktuar akoma";
+/* Subject for emailed bookmark */
+"bookmark_share_email_subject" = "Hej, shiko pikën time në hartë me CoMaps!";
+/* Subject for emailed position */
+"my_position_share_email_subject" = "Hej, shiko vendndodhjen time aktuale në hartën e CoMaps!";
+/* Share by email button text, also used in editor and About. */
+"email" = "Posta Elektronike";
+/* Text for message to copy something */
+"copy_to_clipboard" = "Kopjoje te kujtesa e përkohshme";
+/* Text for message when used successfully copied something */
+"copied_to_clipboard" = "U kopjua te kujtesa e përkohshme: %@";
+/* place preview title */
+"info" = "Informacion";
+/* Used for bookmark editing */
+"done" = "Përfundo";
+/* Prints version number in About dialog */
+"version" = "Versioni i CoMaps: %@";
+"version %@ (%@)" = "Versioni %@ (%@)";
+"version: %@ (%@)\nmap data: %@" = "Versioni: %@ (%@)\nTë dhënat e hartës: %@";
+/* Title for tracks category in bookmarks manager */
+"tracks_title" = "Itineraret";
+/* Length of track in cell that describes route */
+"length" = "Distanca";
+"share_my_location" = "Shpërndaj vendndodhjen time";
+"prefs_group_route" = "Udhëtim";
+"pref_zoom_title" = "Butonat e zmadhimit / zvogëlimit";
+/* Settings «Map» category: «Map Language» title */
+"pref_maplanguage_title" = "Gjuha e hartës";
+/* Settings «Map» category: «Map Language» local value */
+"pref_maplanguage_local" = "Gjuha e zonës";
+/* Settings «Map» category: «Map Appearance» title */
+"pref_mapappearance_title" = "Paraqitja e hartës";
+/* Settings «Map» category: «Appearance» title */
+"pref_appearance_title" = "Paraqitja";
+/* Settings "Appearance" category: "Light" title, should be consistent with the pref_appearance_title translation. */
+"pref_appearance_light" = "E ndriçuar";
+/* Settings "Appearance" category: "Dark" title, should be consistent with the pref_appearance_title translation. */
+"pref_appearance_dark" = "E errët";
+/* Generic «Disabled» string */
+"disabled" = "E çaktivizuar";
+/* Generic «Off» string */
+"off" = "E fikur";
+/* Generic «On» string */
+"on" = "E ndezur";
+/* Generic «Auto» string */
+"auto" = "Automatike";
+/* Settings «Map» category: «Perspective view» title */
+"pref_map_3d_title" = "Pamje nga perspektiva";
+/* A message in Settings/Preferences explaining why is it not possible to enable 3D buildings when max power saving mode is enabled */
+"pref_map_3d_buildings_disabled_summary" = "Ndërtesat 3D janë të çaktivizuara në modalitetin e kursimit të energjisë";
+/* Settings «Route» category: «Tts enabled» title */
+"pref_tts_title" = "Instruksione me zë";
+/* Settings «Route» category: «Tts enable» title */
+"pref_tts_enable_title" = "Aktivizo instruksionet me zë";
+/* Settings «Route» category: «Tts announce street names» title */
+"pref_tts_street_names_title" = "Njofto për emrat e rrugëve";
+/* Settings «Route» category: «Tts announce street names» description */
+"pref_tts_street_names_description" = "Kur është e ndezur, emri i rrugës ose vendit ku dilet do të thuhet me zë të lartë.";
+/* Settings «Route» category: «Tts language» title */
+"pref_tts_language_title" = "Gjuha e zërit";
+/* Settings «Route» category: «Test Voice Directions» title */
+"pref_tts_test_voice_title" = "Testo instruksionet me zë";
+/* Title for "Other" section in TTS settings. */
+"pref_tts_other_section_title" = "Tjetër";
+"pref_map_auto_zoom" = "Zmadho / zvogëlo automatikisht";
+"placepage_distance" = "Distanca";
+"search_show_on_map" = "Shiko në hartë";
+/* Text in menu */
+"website" = "Faqe Web";
+/* Text in About menu, opens CoMaps news website */
+"news" = "Lajme";
+/* Text in the about screen */
+"social_codeberg" = "Codeberg";
+"social_mastodon" = "Mastodon";
+"social_lemmy" = "Lemmy";
+"social_matrix" = "Matrix";
+"social_bluesky" = "Bluesky";
+"social_pixelfed" = "Pixelfed";
+"social_email" = "Posta Elektronike";
+/* Text in the editor */
+"fediverse" = "Mastodon";
+/* Text in menu */
+"facebook" = "Facebook";
+/* Text in menu */
+"twitter" = "X (Twitter)";
+/* Text in menu */
+"instagram" = "Instagram";
+/* Text in the editor */
+"vk" = "VK";
+/* Text in the editor */
+"line" = "Line";
+/* Text in the editor */
+"bluesky" = "Bluesky";
+/* Text in menu */
+"panoramax" = "Panoramax";
+/* Text in menu */
+"panoramax_picture" = "Panoramax Picture";
+/* Text in menu */
+"rate_the_app" = "Vlerëso aplikacionin";
+/* Text in menu */
+"help" = "Ndihmë";
+/* Button in the main Help dialog */
+"faq" = "Pyetje të bëra shpesh";
+/* Button in the main menu */
+"donate" = "Dhuro";
+/* Button in the main Help dialog */
+"copyright" = "Të drejtat e autorit";
+/* Text in menu + Button in the main Help dialog */
+"report_a_bug" = "Raporto një gabim";
+/* Button in the About screen */
+"report_incorrect_map_bug" = "Raporto ose rregullo të dhëna të hartës";
+/* Button in the About screen */
+"volunteer" = "Dil vullnetar dhe përmirëso CoMaps";
+/* "Social media" section header in the About screen */
+"follow_us" = "Lidhuni me ne";
+/* Alert text */
+"email_error_body" = "Klienti i postës elektronike nuk është cilësuar. Ju lutem bëni konfigurimin e saj ose na kontaktoni në %@";
+/* Alert title */
+"email_error_title" = "Dërgimi i mesazhit me postë elektronike dështoi";
+/* Toast text when user hides UI with a long tap anywhere on the map */
+"long_tap_toast" = "Mbaj shtypur gjatë përsëri mbi ekran për të parë opsionet";
+/* Update all button text */
+"downloader_update_all_button" = "Përditëso të gjitha";
+/* Downloaded maps list header */
+"downloader_downloaded_subtitle" = "Të shkarkuara";
+/* Downloaded maps category */
+"downloader_available_maps" = "Të disponueshme";
+/* Country queued for download */
+"downloader_queued" = "Në rradhë";
+"downloader_near_me_subtitle" = "Afër meje";
+/* In maps downloader and country place page shows how many maps are downloaded / to download, e.g. "Maps: 3 of 10" */
+"downloader_status_maps" = "Hartat";
+"downloader_download_all_button" = "Shkarko të gjitha";
+"downloader_downloading" = "Duke shkarkuar:";
+"downloader_search_results" = "Të gjetura";
+/* Status of outdated country in the list */
+"downloader_status_outdated" = "Përditëso";
+/* Status of failed country in the list */
+"downloader_status_failed" = "Dështuar";
+/* Displayed in a dialog that appears when a user tries to delete a map while the app is in the follow route mode */
+"downloader_delete_map_while_routing_dialog" = "Për të fshirë një hartë, ju lutem ndaloni modalitetin e itinerarit.";
+/* PointsInDifferentMWM */
+"routing_failed_cross_mwm_building" = "Mund të krijohen vetëm itinerare që përmbahen plotësisht brenda një harte të një rajoni të vetëm.";
+/* Context menu item for downloader. */
+"downloader_download_map" = "Shkarko hartën";
+/* Item status in downloader. */
+"downloader_retry" = "Provo sërish";
+/* Item in context menu. */
+"downloader_delete_map" = "Fshi hartën";
+/* Text for routing error dialog */
+"routing_download_maps_along" = "Shkarko të gjitha hartat përgjatë itinerarit tënd";
+/* Text for routing error dialog */
+"routing_requires_all_map" = "Për të krijuar një itinerar, duhet të shkarkojmë dhe përditësojmë të gjitha hartat nga vendndodhja juaj deri te destinacioni juaj.";
+/* bookmark button text */
+"bookmark" = "vendos";
+"save" = "Ruaj";
+"create" = "krijo";
+/* red color */
+"red" = "E kuqe";
+/* yellow color */
+"yellow" = "E verdhë";
+/* blue color */
+"blue" = "Blu";
+/* green color */
+"green" = "E gjelbër";
+/* purple color */
+"purple" = "Lejla";
+/* orange color */
+"orange" = "Portokalli";
+/* brown color */
+"brown" = "Kafe";
+/* pink color */
+"pink" = "Rozë";
+/* deep purple color */
+"deep_purple" = "Lejla e mbyllur";
+/* light blue color */
+"light_blue" = "Bojëqiell";
+/* cyan color */
+"cyan" = "Cian";
+/* teal color */
+"teal" = "Blu të gjelbër";
+/* lime color */
+"lime" = "Limon i athët";
+/* deep orange color */
+"deep_orange" = "Portokalli e mbyllur";
+/* gray color */
+"gray" = "Gri";
+/* blue gray color */
+"blue_gray" = "Gri blu";
+"dialog_routing_disclaimer_title" = "Kur ndiqni itinerarin, ju lutem mbani mend:";
+"dialog_routing_disclaimer_priority" = "— Kushtet e rrugës, rregullat e qarkullimit dhe sinjalistika rrugore kanë gjithmonë prioritet ndaj instruksioneve të udhëtimit;";
+"dialog_routing_disclaimer_precision" = "— Harta mund të mos jetë e saktë dhe itinerari i sugjeruar mund të mos jetë gjithmonë mënyra më optimale për të arritur në destinacion;";
+"dialog_routing_disclaimer_recommendations" = "— Itineraret e sugjeruara duhet të kuptohen si rekomandime;";
+"dialog_routing_disclaimer_borders" = "— Tregoni kujdes me itineraret afër kufijve: itinerari i krijuar nga aplikacioni ynë mund të kalojë kufij shtetërorë në vendkalime të pa autorizuara.";
+"dialog_routing_disclaimer_beware" = "Ju lutem qëndroni vigjilent dhe të sigurt në rrugë!";
+"dialog_routing_check_gps" = "Kontrolloni sinjalin GPS";
+"dialog_routing_error_location_not_found" = "E pamundur për të krijuar itinerarin. Koordinatat aktuale të GPS nuk mund të identifikohen.";
+"dialog_routing_location_turn_wifi" = "Ju lutem kontrolloni sinjalin tuaj të GPS. Lidhja me Wi-Fi do të përmirësojë saktësinë e vendndodhjes suaj.";
+"dialog_routing_location_turn_on" = "Aktivizoni shërbimet e vendndodhjes";
+"dialog_routing_location_unknown_turn_on" = "E pamundur për të gjetur koordinatat aktuale të GPS. Aktivizoni shërbimet e vendndodhjes për të llogaritur itinerarin.";
+"dialog_routing_download_files" = "Shkarkoni dosjet e nevojshme";
+"dialog_routing_download_and_update_all" = "Shkarkoni ose përditësoni të gjitha hartat përgjatë shtegut të projektuar për të llogaritur një itinerar.";
+"dialog_routing_unable_locate_route" = "E pamundur për të gjetur itinerarin";
+"dialog_routing_change_start_or_end" = "Ju lutem rregulloni pikën e fillimit ose destinacionin.";
+"dialog_routing_change_start" = "Rregulloni pikën e fillimit";
+"dialog_routing_start_not_determined" = "Itinerari nuk u krijua. E pamundur për të gjetur pikën e fillimit.";
+"dialog_routing_select_closer_start" = "Ju lutem zgjidhni pikën e fillimit më afër një rruge.";
+"dialog_routing_change_end" = "Rregulloni destinacionin";
+"dialog_routing_end_not_determined" = "Itinerari nuk u krijua. E pamundur për të gjetur destinacionin.";
+"dialog_routing_select_closer_end" = "Ju lutem zgjidhni destinacionin më afër një rruge.";
+"dialog_routing_change_intermediate" = "E pamundur për të gjetur pikën ndërmjetëse.";
+"dialog_routing_intermediate_not_determined" = "Ju lutem rregulloni pikën tuaj ndërmjetëse.";
+"dialog_routing_system_error" = "Gabim sistemi";
+"dialog_routing_application_error" = "E pamundur për të krijuar itinerarin për shkak të një gabimi në aplikacion.";
+"dialog_routing_try_again" = "Ju lutem provoni sërish";
+"dialog_routing_download_and_build_cross_route" = "Dëshironi të shkarkoni hartën dhe të krijoni një itinerar optimal që shtrihet në më shumë se një hartë?";
+"dialog_routing_download_cross_route" = "Shkarkoni harta shtesë për të krijuar një itinerar që kalon kufijtë e kësaj harte.";
+/* «Show» context menu */
+"show" = "Shfaq";
+/* «Hide» context menu */
+"hide" = "Fshih";
+/* Failed planning route message in navigation view */
+"routing_planning_error" = "Planifikimi i itinerarit dështoi";
+/* Arrive routing message in navigation view */
+"routing_arrive" = "Arritja në %@";
+/* Text for routing::RouterResultCode::FileTooOld dialog. */
+"dialog_routing_download_and_update_maps" = "Shkarkoni dhe përditësoni të gjithë hartat përgjatë shtegut të projektuar për të llogaritur itinerarin.";
+"categories" = "Kategoritë";
+"history" = "Historiku";
+"search_not_found" = "Ups, nuk u gjet asnjë rezultat.";
+/* The message when user did not find anything in the search. */
+"search_not_found_query" = "Shkarkoni rajonin ku po kërkoni ose provoni të shtoni një emër qyteti/fshati aty pranë.";
+"search_history_title" = "Historiku i kërkimeve";
+"search_history_text" = "Shikoni kërkimet tuaja të fundit.";
+"clear_search" = "Fshini historikun e kërkimit";
+/* Place Page link to Wikipedia article (if map object has it). */
+"read_in_wikipedia" = "Wikipedia";
+/* Place Page link to Wikimedia Commons. */
+"wikimedia_commons" = "\"Wikimedia Commons\"";
+"p2p_your_location" = "Vendndodhja juaj";
+"p2p_start" = "Fillo";
+"p2p_from_here" = "Fillimi i itinerarit";
+"p2p_to_here" = "Destinacioni";
+"p2p_only_from_current" = "Udhëtimi është i disponueshëm vetëm nga vendndodhja juaj aktuale.";
+"p2p_reroute_from_current" = "Dëshironi të planifikoni një itinerar nga vendndodhja juaj aktuale?";
+"editor_time_add" = "Shto orar";
+"editor_time_delete" = "Fshi orar";
+/* Text for allday switch. */
+"editor_time_allday" = "Gjithë ditën (24 orë)";
+"editor_time_open" = "Hapur";
+"editor_time_close" = "Mbyllur";
+"editor_time_add_closed" = "Shto orët jashtë punës";
+"editor_time_title" = "Orët e punës";
+"editor_time_advanced" = "Modaliteti i avancuar";
+"editor_time_simple" = "Modaliteti i thjeshtë";
+"editor_hours_closed" = "Orët jashtë pune";
+"editor_example_values" = "Vlera shembuj";
+"editor_add_select_location" = "Zgjidh vendndodhjen";
+"editor_done_dialog_1" = "Keni modifikuar hartën e botës! Mos e mbani për vete; tregouani miqve dhe modifikojeni atë së bashku.";
+"share_with_friends" = "Ndajeni me miqtë";
+"editor_report_problem_send_button" = "Dërgo";
+"autodownload" = "Shkarko hartat automatikisht";
+/* Voice */
+"voice" = "Zëri";
+"voice_explanation" = "Është e mundur që ju të zgjidhni një zë më të mirë te \"Settings\" në sektorin *Accessibility*, *Read & Speak*, *Voices*.";
+"voice_explanation_before_version26" = "Është e mundur që ju të zgjidhni një zë më të mirë te \"Settings\" në sektorin *Accessibility*, *Read & Speak*, *Voices*.";
+"unknown" = "E Panjohur";
+/* Place page confirmation messages and time ago formatting */
+"existence_confirmed_time_ago" = "Ekzistenca e konfirmuar %@";
+"hours_confirmed_time_ago" = "Konfirmuar %@";
+/* Place Page opening hours text */
+"closed_now" = "Mbyllur tani";
+/* Place Page opening hours text */
+"daily" = "Përditë";
+"twentyfour_seven" = "24/7";
+"day_off_today" = "Mbyllur sot";
+"day_off" = "Mbyllur";
+"today" = "Sot";
+"opens_tomorrow_at" = "Hapet nesër në %@";
+"opens_dayoftheweek_at" = "Hapet %1$@ në %2$@";
+"opens_at" = "Hapet në %@";
+"opens_in" = "Hapet pas %@";
+"closes_at" = "Mbyllet në %@";
+"closes_in" = "Mbyllet pas %@";
+"closed" = "Mbyllur";
+"add_opening_hours" = "Shto orarin e hapjes";
+/* OpenStreetMap */
+"osm_mapdata" = "Të dhënat e hartës nga OpenStreetMap";
+"osm_mapdata_explanation %@" = "Të dhënat e hartës të krijuara nga komuniteti që nga *%@*. Mësoni më shumë rreth mënyrës së modifikimit dhe përditësimit të hartës në [OpenStreetMap.org](https://openstreetmap.org).";
+"osm_more_about" = "Më shumë rreth OpenStreetMap";
+"osm_more_about_url" = "https://wiki.openstreetmap.org/wiki/About_OpenStreetMap";
+/* OpenStreetMap Profile */
+"osm_profile" = "Profili OpenStreetMap";
+"osm_profile_promt" = "Krijo një llogari në OpenStreetMap ose hyr për të publikuar ndryshimet e hartës tënde në botë.";
+"osm_profile_explanation" = "[OpenStreetMap.org](https://openstreetmap.org) (OSM) është një projekt komunitar për të ndërtuar një hartë pa pagesë dhe të hapur. Është burimi kryesor i të dhënave të hartës në CoMaps dhe funksionon ngjashëm me Wikipedia. Ju mund të shtoni ose modifikoni vende dhe ato bëhen të disponueshme për miliona përdorues në të gjithë botën.\nBashkohuni me komunitetin dhe ndihmoni në krijimin e një harte më të mirë për të gjithë!";
+"osm_profile_login" = "Hyni në llogarinë OpenStreetMap";
+"osm_profile_reauthorize_promt" = "Llogaria OpenStreetMap u shkëput nga ky aplikacion";
+"osm_profile_reauthorize" = "Lidhuni sërish me OpenStreetMap";
+"osm_profile_remove_promt" = "Nëse nuk mundeni ose nuk dëshironi të lidhni sërish llogarinë tuaj, thjesht mund ta hiqni atë nga ky aplikacion";
+"osm_profile_remove" = "Hiq llogarinë OpenStreetMap";
+"osm_profile_register_promt" = "Nuk keni një llogari në OpenStreetMap?";
+"osm_profile_register" = "Regjistrohuni në OpenStreetMap";
+"osm_profile_verfied_changes" = "Ndryshime të verifikuara";
+"osm_profile_view_edit_history" = "Shiko historikun e redaktimeve";
+"osm_profile_view_notes" = "Shiko shënimet";
+"osm_profile_logout" = "Dil nga llogaria OpenStreetMap";
+"osm_profile_delete" = "Fshi llogarinë OpenStreetMap";
+/* Information text: "Last upload 11.01.2016" */
+"last_upload" = "Ngarkimi i fundit më";
+"thank_you" = "Falemiderit";
+"edit_place" = "Modifiko vendin";
+"place_name" = "Emri i vendit";
+"add_language" = "Shto një gjuhë";
+/* Editable House Number text field (in address block). */
+"house_number" = "Numri i ndërtesës";
+"details" = "Details";
+/* Text field to enter non-existing street name, below list of known streets around */
+"add_street" = "Shto një rrugë";
+"choose_language" = "Zgjidh një gjuhë";
+"choose_street" = "Zgjidh një rrugë";
+"postal_code" = "Kodi postar";
+"cuisine" = "Mënyra e gatimit";
+"select_cuisine" = "Zgjidh mënyrën e gatimit";
+/* login text field */
+"email_or_username" = "Email-i ose emri i përdoruesit";
+"phone" = "Telefon";
+"level" = "Kati";
+"please_note" = "Ju lutem vini re";
+"downloader_delete_map_dialog" = "Të gjitha ndryshimet e hartës suaj do të fshihen bashkë me hartën.";
+"downloader_update_maps" = "Përditëso hartat";
+"downloader_search_field_hint" = "Gjej hartën";
+"migration_download_error_dialog" = "Download error";
+"common_check_internet_connection_dialog" = "Ju lutemi sigurohuni që pajisja juaj të jetë e lidhur me internetin.";
+"downloader_no_space_title" = "Nuk ka hapësirë të mjaftueshme";
+"downloader_no_space_message" = "Ju lutemi fshini të dhëna të panevojshme";
+"editor_profile_changes" = "Ndryshime të verifikuara";
+"editor_focus_map_on_location" = "Zvarrit hartën për të vendosur kryqin në vendndodhjen e vendit ose biznesit.";
+"editor_add_select_category" = "Zgjidh kategorinë";
+"editor_add_select_category_popular_subtitle" = "Të kërkuara";
+"editor_add_select_category_all_subtitle" = "Të gjitha kategoritë";
+"editor_edit_place_title" = "Redaktimi";
+"editor_add_place_title" = "Shtimi";
+"editor_edit_place_name_hint" = "Emri i vendit";
+/* The second part of the editor_edit_place_name_hint to explain that name should be entered in a local language, see https://wiki.openstreetmap.org/wiki/Key:name */
+"editor_default_language_hint" = "Siç është shkruar në gjuhën vendase";
+"editor_edit_place_category_title" = "Kategoria";
+"whatsnew_editor_message_1" = "Shtoni vende të reja në hartë dhe modifikoni ato ekzistuese direkt nga aplikacioni.";
+"dialog_incorrect_feature_position" = "Ndrysho vendndodhjen";
+"message_invalid_feature_position" = "Asnjë objekt nuk mund të gjendet këtu";
+/* Error dialog no space */
+"migration_no_space_message" = "Për të shkarkuar, ju nevojitet më shumë hapësirë. Ju lutemi fshinitë dhëna të panevojshme.";
+"editor_sharing_title" = "Përmirësova hartat e CoMaps";
+/* Downloaded 10 **of** 20 <- it is that "of" */
+"downloader_of" = "%1$d of %2$d";
+"download_over_mobile_header" = "Të shkarkohet nëpërmjet lidhjes me rrjetin celular?";
+"download_over_mobile_message" = "Kjo mund të jetë mjaft e kushtueshme me disa plane telefonike ose nëse jeni në roaming.";
+"error_enter_correct_house_number" = "Shto një numër të vlefshëm ndërtese";
+"editor_storey_number" = "Numri i kateve (maksimumi %d)";
+/* Error message in Editor when a user tries to set the number of floors for a building higher than %d floors */
+"error_enter_correct_storey_number" = "Numri i kateve nuk duhet të kalojë %d";
+"editor_zip_code" = "Kodi postar";
+"error_enter_correct_zip_code" = "Shto një kod postar të vlefshëm";
+/* Place Page title for long tap */
+"core_placepage_unknown_place" = "Pikë në hartë";
+/* Title for OSM note section in the editor */
+"editor_other_info" = "Shënim për vullnetarët e OpenStreetMap (opsionale)";
+"editor_detailed_description_hint" = "Koment i detajuar";
+"editor_detailed_description" = "Ndryshimet e sugjeruara në hartë do t'i dërgohen komunitetit OpenStreetMap. Ju lutemi përshkruani çdo detaj shtesë që nuk mund të modifikohet në CoMaps.";
+"editor_more_about_osm" = "Më shumë rreth OpenStreetMap";
+"editor_operator" = "Operator";
+/* To indicate the operator of ATMs, bicycle rentals, electric vehicle charging stations... */
+"operator" = "Operator: %@";
+"editor_category_unsuitable_title" = "Nuk mund të gjeni një kategori të përshtatshme?";
+"editor_category_unsuitable_text" = "CoMaps lejon shtimin vetëm të kategorive të thjeshta të pikave, që do të thotë se nuk ka qytete, rrugë, liqene, skica ndërtesash etj. Ju lutemi shtoni kategori të tilla direkt në <a href=\"https://www.openstreetmap.org\">OpenStreetMap.org</a>. Shikoni udhëzuesin tonë <a href=\"https://www.comaps.app/support/advanced-map-editing/\">udhëzimi</a> për udhëzime të hollësishme hap pas hapi.";
+"downloader_no_downloaded_maps_title" = "Nuk keni shkarkuar asnjë hartë";
+"downloader_no_downloaded_maps_message" = "Shkarko hartat për të kërkuar dhe lundruar jashtë linje.";
+"current_location_unknown_error_title" = "Vendndodhja aktuale është e panjohur.";
+"current_location_unknown_error_message" = "Ndodhi një gabim gjatë përcaktimit të vendndodhjes suaj. Kontrolloni që pajisja juaj po funksionon siç duhet dhe provoni përsëri më vonë.";
+"location_services_disabled_header" = "Shërbimet e vendndodhjes janë çaktivizuar";
+"location_services_disabled_message" = "Aktivizo qasjen në gjeolokacion në cilësimet e pajisjes";
+"location_services_disabled_1" = "1. Hapni Cilësimet";
+"location_services_disabled_2" = "2. Prekni Vendndodhjen";
+/* iOS Dialog for the case when the location permission is not granted; you might find the exact wording for your language here: https://support.apple.com/en-us/102647 (replace 'en-us' in URL with your language/region) */
+"location_services_disabled_3" = "3. Zgjidhni Gjatë Përdorimit të Aplikacionit";
+"location_services_disabled_on_device_2" = "2. Zgjidhni Privatësinë";
+"location_services_disabled_on_device_3" = "3. Zgjidhni Shërbimet e Vendndodhjes";
+"location_services_disabled_on_device_4" = "4. Aktivizoni Shërbimet e Vendndodhjes";
+"location_services_disabled_on_device_additional_message" = "Ose vazhdoni të përdorni CoMaps pa vendndodhje";
+/* abbreviation for meters */
+"m" = "m";
+/* abbreviation for kilometers */
+"km" = "km";
+/* abbreviation for kilometers per hour */
+"kilometers_per_hour" = "km/h";
+/* abbreviation for mile(s) */
+"mi" = "mi";
+/* A unit of measure */
+"ft" = "ft";
+"miles_per_hour" = "mph";
+"hour" = "h";
+"minute" = "min";
+"day" = "d";
+"placepage_more_button" = "Më shumë";
+"book_button" = "Book";
+"placepage_call_button" = "Telefono";
+"placepage_edit_bookmark_button" = "Edit Bookmark";
+"placepage_bookmark_name_hint" = "Bookmark Name";
+"placepage_personal_notes_hint" = "Personal notes (text or html)";
+"placepage_delete_bookmark_button" = "Delete Bookmark";
+"editor_edits_sent_message" = "Shënimi juaj do të dërgohet te OpenStreetMap";
+"editor_comment_hint" = "Komentoni…";
+"editor_reset_edits_message" = "Të hidhen poshtë të gjitha ndryshimet lokale?";
+"editor_reset_edits_button" = "Discard";
+"editor_remove_place_message" = "Të fshihet vendi i shtuar?";
+"editor_remove_place_button" = "Delete";
+"editor_place_doesnt_exist" = "Vendi nuk ekziston";
+"editor_place_doesnt_exist_description" = "Përshkruani si duket vendi tani për të dërguar një shënim saktësimi për komunitetin OpenStreetMap";
+"text_more_button" = "…më shumë";
+/* Phone number error message */
+"error_enter_correct_phone" = "Shto një numër telefoni të vlefshëm";
+"error_enter_correct_web" = "Shto një adresë të vlefshme interneti";
+"error_enter_correct_email" = "Shto një email të vlefshëm";
+"refresh" = "Update";
+"placepage_add_place_button" = "Shto Vend në OpenStreetMap";
+/* Displayed when saving some edits to the map to warn against publishing personal data */
+"editor_share_to_all_dialog_title" = "Dëshironi ta dërgoni te të gjithë përdoruesit?";
+/* Dialog before publishing the modifications to the public map. */
+"editor_share_to_all_dialog_message_1" = "Sigurohuni që nuk keni futur të dhëna private ose personale.";
+"editor_share_to_all_dialog_message_2" = "Redaktorët e OpenStreetMap do të kontrollojnë ndryshimet dhe do t'ju kontaktojnë nëse kanë ndonjë pyetje.";
+"navigation_stop_button" = "Stop";
+/* iOS dialog for the case when recent track recording is on and the app comes back from background */
+"recent_track_background_dialog_title" = "Të çaktivizohet regjistrimi i itinerarit të përshkuar së fundmi?";
+"off_recent_track_background_button" = "Çaktivizo";
+/* For sharing via SMS and so on */
+"sharing_call_action_look" = "Kontrolloni";
+"recent_track_background_dialog_message" = "CoMaps përdor vendndodhjen tuaj në sfond për të regjistruar itinerarin e përshkuar së fundmi.";
+"general_settings" = "Cilësimet e përgjithshme";
+/* For the first routing */
+"accept" = "Prano";
+/* For the first routing */
+"decline" = "Refuzo";
+"mobile_data_dialog" = "Përdor internetin celular për të shfaqur informacion të detajuar?";
+"mobile_data_option_always" = "Përdor gjithmonë";
+"mobile_data_option_today" = "Vetëm sot";
+"mobile_data_option_not_today" = "Mos e përdorni sot";
+"mobile_data" = "Internet celular";
+/* NOTE to translators: please synchronize your translation with the English one. */
+"mobile_data_description" = "Interneti celular është i nevojshëm për njoftimet e përditësimit të hartës dhe ngarkimin e ndryshimeve.";
+"mobile_data_option_never" = "Mos e përdor asnjëherë";
+"mobile_data_option_ask" = "Gjithmonë pyet";
+"traffic_update_maps_text" = "Për të shfaqur të dhënat e rrugëve, hartat duhet të përditësohen.";
+/* "traffic" as in road congestion */
+"traffic_update_app_message" = "Për të shfaqur të dhënat e trafikut, aplikacioni duhet të përditësohet.";
+/* "traffic" as in "road congestion" */
+"traffic_data_unavailable" = "Të dhënat e trafikut nuk janë të disponueshme";
+"enable_logging" = "Aktivizo regjistrim diagnostikimesh";
+"log_file_size" = "Madhësia e dosjes së regjistrimit të diagnostikimeve: %@";
+"pref_alt_map_lang_handling" = "Gjuhët alternative të hartës";
+"pref_alt_map_lang_handling_ignore_alternatives" = "Mos përdorni alternativa";
+"pref_alt_map_lang_handling_system_order" = "Përdor sipas rradhës të sistemit";
+"pref_alt_map_lang_handling_local_only" = "Prefero dhe përdor vetëm gjuhën e zonës";
+"transliteration_title" = "Transliteroni në alfabetin latin";
+"transliteration_title_disabled_summary" = "Çaktivizohet kur përdoret gjithmonë gjuha lokale për hartën";
+/* Subway exits for public transport marks on the map */
+"core_exit" = "Dalje";
+/* User selected the destination by pressing Route To, but the current position is unknown. User needs to select a starting point of a route using search or by tapping on the map and then pressing "Route From". */
+"routing_add_start_point" = "Përdorni kërkimin ose prekni në hartë për të shtuar një pikënisje të itinerarit";
+/* User selected the start of a route by pressing Route From. Now the destination of a route should be selected using search or by tapping on the map and then pressing "Route To". */
+"routing_add_finish_point" = "Përdorni kërkimin ose prekni në hartë për të shtuar një pikë destinacioni";
+"planning_route_manage_route" = "Menaxho itinerarin";
+"button_plan" = "Plan";
+"placepage_remove_stop" = "Hiq ndalesën";
+"planning_route_remove_title" = "Zvarrit këtu për ta hequr";
+"placepage_add_stop" = "Add Stop";
+"start_from_my_position" = "Filloni nga";
+/* Title for button when a route was saved. */
+"saved" = "U ruajt";
+"core_entrance" = "Hyrje";
+"error_enter_correct_name" = "Ju lutem futni një emër të saktë";
+"bookmark_lists" = "Lista";
+/* Do not display all bookmark lists on the map */
+"bookmark_lists_hide_all" = "Fshih të gjitha";
+"bookmark_lists_show_all" = "Shfaq të gjitha";
+"bookmarks_create_new_group" = "Krijo një listë të re";
+/* Bookmark categories screen, button that opens folder selection dialog to import KML/KMZ/GPX/KMB files */
+"bookmarks_import" = "Import Bookmarks and Tracks";
+"downloader_hide_screen" = "Fshih ekranin";
+"downloader_percent" = "%@ (%@ of %@)";
+"downloader_process" = "Duke shkarkuar %@…";
+"downloader_applying" = "Duke aplikuar %@…";
+"bookmarks_error_message_share_general" = "Nuk mund të ndahet për shkak të një gabimi të aplikacionit";
+"bookmarks_error_title_share_empty" = "Gabim gjatë ndarjes";
+"bookmarks_error_message_share_empty" = "Nuk mund të ndash një listë bosh";
+"bookmarks_error_message_empty_list_name" = "Ju lutem shkruani emrin e listës";
+"bookmarks_error_title_list_name_already_taken" = "Ky emër është tashmë i zënë";
+"bookmarks_error_title_list_name_too_long" = "Ky emër është shumë i gjatë";
+"profile" = "Profili OpenStreetMap";
+"bookmarks_detect_title" = "Skedarët e rinj të zbuluar";
+"button_convert" = "Konverto";
+"bookmarks_convert_error_title" = "Error";
+"bookmarks_convert_error_message" = "Disa skedarë nuk u konvertuan.";
+"restore" = "Rivendos";
+"privacy_policy" = "Politika e privatësisë";
+"terms_of_use" = "Kushtet e përdorimit";
+"subway_data_unavailable" = "Harta e metrosë nuk është e disponueshme";
+"title_error_downloading_bookmarks" = "Ndodhi një gabim";
+"popular_place" = "Të kërkuara";
+"export_file" = "Eksporto KMZ";
+"export_file_gpx" = "Export GPX";
+"delete_list" = "Delete list";
+"hide_from_map" = "Fshih nga harta";
+"tags_loading_error_subtitle" = "Ndodhi një gabim gjatë ngarkimit të etiketave, ju lutemi provoni përsëri";
+"download_button" = "Download";
+"speedcams_alert_title" = "Kamerat e shpejtësisë";
+"place_description_title" = "Përshkrimi i vendit";
+/* "Speed cameras" settings menu option (should be short! no more than 47-50 chars) to warn a driver if there is a risk of exceeding the speed limit */
+"pref_tts_speedcams_auto" = "Paralajmëroni nëse tejkaloni shpejtësinë";
+/* Speed camera settings menu option - Always warn (about speedcams) */
+"pref_tts_speedcams_always" = "Gjithmonë paralajmëro";
+/* Speed camera settings menu option - Never warn (about speedcams) */
+"pref_tts_speedcams_never" = "Mos paralajmëro asnjëherë";
+"power_managment_title" = "Modaliteti i kursimit të energjisë";
+"power_managment_description" = "Mundohu të zvogëlosh konsumin e energjisë në kurriz të disa funksioneve.";
+"power_managment_setting_never" = "Asnjëherë";
+"power_managment_setting_auto" = "Kur bateria është e ulët";
+"power_managment_setting_manual_max" = "Gjithmonë";
+"enable_logging_warning_message" = "Aktivizojeni këtë opsion përkohësisht për të regjistruar dhe dërguar manualisht regjistra të detajuar diagnostikues rreth problemit tuaj duke përdorur \"Raporto një gabim\" në dialogun e Ndihmës. Regjistrat mund të përfshijnë informacion mbi vendndodhjen.";
+"driving_options_title" = "Opsionet e rrugëzimit";
+/* Recommended length for CarPlay and Android Auto is around 25-27 characters */
+"avoid_tolls" = "Shmangni Toll-et (pagesat rrugore)";
+/* Recommended length for CarPlay and Android Auto is around 25-27 characters */
+"avoid_unpaved" = "Shmangni rrugët e pashtruara";
+"avoid_paved" = "Shmang rrugët e pashtruara";
+/* Recommended length for CarPlay and Android Auto is around 25-27 characters */
+"avoid_steps" = "Shmang shkallët";
+"avoid_ferry" = "Shmangni tragetet";
+"avoid_motorways" = "Shmangni autostradat";
+"unable_to_calc_alert_title" = "E pamundur llogaritja e itinerarit";
+"unable_to_calc_alert_subtitle" = "Nuk mund të gjendej një itinerar. Kjo mund të shkaktohet nga opsionet e itinerarit tuaj ose nga të dhënat e paplota të OpenStreetMap. Ju lutemi ndryshoni opsionet e itinerarit dhe provoni përsëri.A route could not be found. This may be caused by your routing options or incomplete OpenStreetMap data. Please change your routing options and retry.";
+"define_to_avoid_btn" = "Përcaktoni rrugët për tu shmangur";
+"change_driving_options_btn" = "Opsionet e rrugëzimit u aktivizuan";
+"toll_road" = "Rrugë me pagesë";
+"unpaved_road" = "Rrugë e pashtruar";
+"ferry_crossing" = "Kalimi i trageteve";
+"trip_start" = "Fillo";
+"pick_destination" = "Destination";
+"follow_my_position" = "Qendërzo sërish";
+"search_results" = "Rezultatet e kërkimit";
+"then_turn" = "Pastaj";
+"redirect_route_alert" = "Dëshironi ta rindërtoni itinerarin?";
+/* A generic "Yes" button in dialogs */
+"yes" = "Po";
+/* A generic "No" button in dialogs */
+"no" = "No";
+/* E.g. "WiFi:Yes" */
+"yes_available" = "Po";
+/* E.g. "WiFi:No" */
+"no_available" = "No";
+/* To indicate the network of ATMs, bicycle rentals, electric vehicle charging stations... */
+"network" = "Network: %@";
+"trip_finished" = "Keni mbërritur!";
+"keyboard_availability_alert" = "Tastiera nuk është e disponueshme gjatë drejtimit të automjetit";
+"dialog_routing_change_start_carplay" = "Nuk mund të ndërtohet një itinerar nga vendndodhja juaj aktuale";
+"dialog_routing_change_end_carplay" = "Nuk mund të gjendet një itinerar për në destinacionin tuaj. Ju lutemi zgjidhni një pikë tjetër përfundimi";
+"dialog_routing_check_gps_carplay" = "Nuk ka sinjal GPS. Ju lutemi zhvendoseni në një zonë të hapur";
+"dialog_routing_unable_locate_route_carplay" = "Itinerari nuk mund të ndërtohet. Ju lutemi specifikoni pika të tjera për itinerarin";
+"dialog_routing_download_files_carplay" = "Për të krijuar një itinerar, shkarkoni hartat që mungojnë në pajisjen tuaj";
+"dialog_routing_system_error_carplay" = "Ndodhi një gabim. Ju lutemi rinisni aplikacionin";
+"dialog_routing_rebuild_from_current_location_carplay" = "Itinerari do të rindërtohet nga vendndodhja juaj aktuale";
+"dialog_routing_rebuild_for_vehicle_carplay" = "Itinerari do të shndërrohet në një automobilistik";
+"not_all_shown_bookmarks_carplay" = "Jo të gjitha vendet e ruajtura janë të shfaqura";
+"switch_to_phone_bookmarks_carplay" = "Kaloni në telefon për të parë të gjitha vendet e ruajtura";
+"ok" = "OK";
+"speedcams_alert_title_carplay_1" = "Kamera shpejtësie";
+"speedcams_alert_title_carplay_2" = "Tejkalim shpejtësie";
+"download_map_carplay" = "Ju lutemi shkarkoni hartat përmes aplikacionit në telefonin tuaj";
+"carplay_roundabout_exit" = "dalja %@";
+/* max. 10 symbols, both iOS and Android */
+"sort" = "Rendit…";
+/* iOS */
+"sort_default" = "Rendit sipas parazgjedhjes";
+"sort_type" = "Rendit sipas llojit";
+"sort_distance" = "Rendit sipas distancës";
+"sort_date" = "Rendit sipas datës";
+"sort_name" = "Rendit sipas emrit";
+"week_ago_sorttype" = "Një javë më parë";
+"month_ago_sorttype" = "Një muaj më parë";
+"moremonth_ago_sorttype" = "Më shumë se një muaj më parë";
+"moreyear_ago_sorttype" = "Më shumë se një vit më parë";
+"near_me_sorttype" = "Pranë meje";
+"others_sorttype" = "Të tjerat";
+"food_places" = "Ushqim";
+"tourist_places" = "Pamje";
+"museums" = "Muze";
+"parks" = "Parqe";
+"swim_places" = "Not";
+"mountains" = "Male";
+"animals" = "Kafshë";
+"hotels" = "Hotele";
+"buildings" = "Ndërtesa";
+"money" = "Para";
+"shops" = "Dyqane";
+"parkings" = "Parkim";
+"fuel_places" = "Karburante";
+"medicine" = "Mjekësi";
+"search_in_the_list" = "Kërko në listë";
+"religious_places" = "Vende fetare";
+"transit_not_found" = "Subway navigation in this region is not available yet";
+"dialog_pedestrian_route_is_long_header" = "No subway route found";
+"dialog_pedestrian_route_is_long_message" = "Please choose a start or end point closer to a subway station";
+"isolines_activation_error_dialog" = "Activating contour lines requires downloading map data for this area";
+"isolines_location_error_dialog" = "Contour lines are not yet available in this area";
+"elevation_profile_diff_level" = "Difficulty level";
+"elevation_profile_diff_level_easy" = "Easy";
+"elevation_profile_diff_level_moderate" = "Moderate";
+"elevation_profile_diff_level_hard" = "Hard";
+"elevation_profile_ascent" = "Ascent";
+"elevation_profile_descent" = "Descent";
+"elevation_profile_min_elevation" = "Min. elevation";
+"elevation_profile_max_elevation" = "Max. elevation";
+"isolines_toast_zooms_1_10" = "Zoom in to explore isolines";
+"downloader_updating_ios" = "Updating";
+"downloader_loading_ios" = "Downloading";
+/* Autoupdate dialog on start */
+"whats_new_auto_update_title" = "Update downloaded maps";
+/* Autoupdate dialog on start */
+"whats_new_auto_update_message" = "Updating maps keeps the information about objects up to date";
+/* Autoupdate dialog on start */
+"whats_new_auto_update_button_size" = "Update (%@)";
+/* Autoupdate dialog on start */
+"whats_new_auto_update_button_later" = "Manually update later";
+/* Delete track button on track edit screen */
+"placepage_delete_track_button" = "Delete Track";
+/* The track deletion confirmaion alert message. */
+"placepage_delete_track_confirmation_alert_message" = "Are you sure you want to delete this track?";
+/* Placeholder for track name input on track edit screen */
+"placepage_track_name_hint" = "Track Name";
+/* move track or bookmark from the list button text */
+"move" = "Move";
+/* edit track screen title */
+"track_title" = "Track";
+/* Translated CoMaps site */
+"translated_om_site_url" = "https://www.comaps.app/";
+/* App Tip #00 */
+"app_tip_00" = "Thank you for using our community-built maps!";
+/* App tip #01 */
+"app_tip_01" = "With your donations and support, we can create the best maps in the World!";
+/* App tip #02 */
+"app_tip_02" = "Do you like our app? Please donate to support the development! Don't like it yet? Please let us know why, and we will fix it!";
+/* App tip #03 */
+"app_tip_03" = "If you know a software developer, you can ask him or her to implement a feature that you need.";
+/* App tip #04 */
+"app_tip_04" = "Tap anywhere on the map to select anything. A long tap is used to hide and show the interface.";
+/* App tip #05 */
+"app_tip_05" = "Did you know that your current location on the map can be selected?";
+/* App tip #06 */
+"app_tip_06" = "You can help to translate our app into your language.";
+/* App tip #07 */
+"app_tip_07" = "Our app is developed by a few enthusiasts and the community.";
+/* App tip #08 */
+"app_tip_08" = "You can easily fix and improve the map data.";
+/* App tip #09 */
+"app_tip_09" = "Our main goal is to build fast, privacy-focused, easy-to-use maps that you will love.";
+/* Text on the Android Auto or CarPlay placeholder screen that maps are displayed on the phone screen */
+"car_used_on_the_phone_screen" = "You are now using CoMaps on the phone screen";
+/* Text on the phone placeholder screen that maps are displayed on the car screen */
+"car_used_on_the_car_screen" = "You are now using CoMaps on the car screen";
+/* Displayed on the phone screen. Button to display maps on the phone screen instead of a car */
+"car_continue_on_the_phone" = "Continue on the phone";
+/* Displayed on the Android Auto or CarPlay screen. Button to display maps on the car screen instead of a phone. Must be no more than 18 symbols! */
+"car_continue_in_the_car" = "To the car screen";
+/* Bookmark categories screen, button that opens share dialog to export all bookmarks and tracks */
+"bookmarks_export" = "Export all Bookmarks and Tracks";
+/* Text for the editing the Track's color button. */
+"change_color" = "Change Color";
+/* Main screen title "Map" displayed in the navigation back button's menu. */
+"map" = "Map";
+"drive_through" = "Drive-through";
+/* Restaurant or other food place's menu URL field in the Editor */
+"website_menu" = "Menu Link";
+/* Message for the bug report alert. */
+"bugreport_alert_message" = "Would you like to send a bug report to the developers?\nWe rely on our users as CoMaps doesn't collect any error information automatically. Thank you in advance for supporting CoMaps!";
+/* Title for the iCloud synchronization setting */
+"icloud_sync" = "iCloud Syncronization (Beta)";
+/* Title for the "Enable iCloud Synchronization" alert. */
+"enable_icloud_synchronization_title" = "Enable iCloud Syncronization";
+/* Message for the "Enable iCloud Synchronization" alert. */
+"enable_icloud_synchronization_message" = "iCloud synchronization is an experimental feature under development. Make sure that you have made a backup of all your bookmarks and tracks.";
+/* Title for the "iCloud Is Disabled" alert. */
+"icloud_disabled_title" = "iCloud Is Disabled";
+/* Message for the "iCloud is Disabled" alert. */
+"icloud_disabled_message" = "Please enable iCloud in your device's settings to use this feature.";
+/* Title for the "Enable iCloud Synchronization" alert's "Enable" action button. */
+"enable" = "Enable";
+/* Title for the "Enable iCloud Synchronization" alert's "Backup" action button. */
+"backup" = "Backup";
+/* Title for the "iCloud synchronization failure" alert. */
+"icloud_synchronization_error_alert_title" = "iCloud synchronization failure";
+/* iCloud error message: Failed to synchronize due to connection error */
+"icloud_synchronization_error_connection_error" = "Error: Failed to synchronize due to connection error";
+/* iCloud error message: Failed to synchronize due to iCloud quota exceeded */
+"icloud_synchronization_error_quota_exceeded" = "Error: Failed to synchronize due to iCloud quota exceeded";
+/* iCloud error message: iCloud is not available */
+"icloud_synchronization_error_cloud_is_unavailable" = "Error: iCloud is not available";
+/* Title for the "Open in Another App" button on the PlacePage. */
+"open_in_app" = "Open in Another App";
+/* To indicate if the place proposed self service... */
+"self_service" = "Vetëshërbim";
+/* To indicate if restaurant or other place has outdoor seating */
+"outdoor_seating" = "Outdoor seating";
+/* Title for the "Recently Deleted Lists" button on the Bookmarks and Lists screen. */
+"bookmarks_recently_deleted" = "Recently Deleted Lists";
+/* Title for the "Clear" button on the Recently Deleted Lists screen. */
+"clear" = "Clear";
+/* Title for the "Delete All" button on the Recently Deleted Lists screen. */
+"delete_all" = "Delete All";
+/* Title for the "Recover" button on the Recently Deleted Lists screen. */
+"recover" = "Recover";
+/* Title for the "Recover All" button on the Recently Deleted Lists screen. */
+"recover_all" = "Recover All";
+/* Title for the "Stop Without Saving" action for the alert when saving a track recording. */
+"stop_without_saving" = "Stop Without Saving";
+/* Title for the "Stop Without Saving" action for the alert when saving a track recording. */
+"continue_recording" = "Continue Recording";
+/* Title for the alert when saving a track recording. */
+"track_recording_alert_title" = "Save into Bookmarks and Tracks?";
+/* Message for the toast when saving the track recording is finished but nothing to save. */
+"track_recording_toast_nothing_to_save" = "Track is empty - nothing to save";
+"edit_track" = "Edit Track";
+/* Title of the general section in settings */
+"general" = "General";
+/* Title of the interface section in settings */
+"interface" = "Interface";
+/* OpenStreetMap contribution section on the PlacePage. */
+"contribute_to_osm" = "Contribute to OpenStreetMap";
+"contribute_to_osm_add_place" = "Add Place";
+"contribute_to_osm_update_map" = "Përditësoni hartën për të kontribuar";
+"contribute_to_osm_update_map_description" = "Ju duhet të përditësoni hartën %@ në versionin më të fundit para se ju të mund të kontribuoni në të dhënat e OpenStreetMap";
+"downloader_check_updates_button" = "Kontrollo për përditësime";
+"downloader_check_updates_checking" = "Duke kontrolluar për përditësime...";
+"downloader_check_updates_updated" = "Përditësimet e hartave janë të disponueshme!";
+"downloader_check_updates_no_updates" = "Asnjë përditësim i disponueshëm";
+"downloader_check_updates_eol" = "Përditësimet e hartave nuk ofrohen për këtë version të aplikacionit. Ju lutemi përditësoni aplikacionin!";
+"downloader_check_updates_error" = "Gabim gjatë kontrollit për përditësime";
+"editor_add_select_category_recent_subtitle" = "Përdorur së fundmi";
+"oh_unknown" = "Orët e hapjes të panjohura";
+"carplay_highway_exit" = "Exit %@";
+"capacity_disabled_yes" = "Has dedicated disabled spaces";
+"capacity_disabled_no" = "No dedicated disabled spaces";
+"capacity_charging_yes" = "Has spaces with chargers";
+"capacity_charging_no" = "No spaces with chargers";
+"planning_route_preview" = "Preview";
+"planning_route_preview_sheet_title" = "Route Preview";
+"discard" = "Discard";
+"pref_custom_button_type" = "Customizable Button";
+"osm" = "OpenStreetMap";
+"mode" = "Mode";
+"mode_walking" = "Walking";
+"mode_cycling" = "Cycling";
+"mode_driving" = "Driving";
+"mode_public-transport" = "Public Transport";
+"mode_option_traffic" = "Show Traffic";
+"mode_option_transitlines" = "Show Transit Lines";
+"mode_option_comingsoon" = "Options coming soon";
+"layers" = "Layers";
+"layers_option_contour-lines" = "Contour Lines";
+"layers_option_outdoor" = "Outdoor";
+"layers_option_buildings-3d" = "3D Buildings";
+"layers_power-saving" = "This layer is currently automatically disabled due to your power saving mode setting";
+"postionmode_locate" = "Find own location";
+"postionmode_locating" = "Finding own location...";
+"postionmode_following" = "Following location with map roated towards North";
+"postionmode_following-and-rotated" = "Following location with map roated towards traveling direction";
+"zoom_in" = "Zoom in";
+"zoom_out" = "Zoom out";
+"record_track" = "Record Track";
+"recording_track" = "Recording Track";
+"bookmarks_text_placement_title" = "Show names of favorites on map";
+"pref_font_size" = "Font size for map labels";
+"font_size" = "Font size";
+"mode_options_accessibility_hint" = "Shows options for this mode";
+"stars_5" = "5-star";
+"custom_map_server_error_scheme" = "The URL must start with http:// or https://";
+"stars_4" = "4-star";
+"stars_2" = "2-star";
+"custom_map_server_map_series" = "This version of CoMaps is using map series %@.";
+"not_set" = "Not set";
+"custom_map_server" = "Custom Map Server";
+"stars_3" = "3-star";
+"stars_1" = "1-star";
+"custom_map_server_message" = "Override the default map download server used for map downloads. Leave empty to use the default CoMaps map server.";

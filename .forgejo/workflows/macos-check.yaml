@@ -1,0 +1,89 @@
+name: macOS Check
+on:
+  workflow_dispatch: # Manual trigger
+  push:
+    branches:
+      - main
+  pull_request:
+    paths-ignore:
+      - .gitignore
+      - .forgejo/**
+      - '!.forgejo/workflows/macos-check.yaml'  # Run check on self change
+      - CONTRIBUTORS
+      - LICENSE
+      - NOTICE
+      - README.md
+      - android/**
+      - iphone/**
+      - data/*-strings/**
+      - docs/**
+      - packaging/**
+      - libs/platform/*_android*
+      - libs/platform/*_ios*
+      - libs/platform/*_linux*
+      - libs/platform/*_win*
+      - libs/pyhelpers/**
+      - tools/**
+      - '!tools/python/test_server/**'
+      - xcode/**
+
+jobs:
+  macos-matrix:
+    name: macOS builds and tests (${{ matrix.CMAKE_BUILD_TYPE }})
+    runs-on: comaps-macos-tahoe
+    strategy:
+      fail-fast: false
+      matrix:
+        CMAKE_BUILD_TYPE: [Debug, RelWithDebInfo]
+    # Cancels previous jobs if the same branch or PR was updated again.
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.CMAKE_BUILD_TYPE }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Update submodules
+        uses: ./.forgejo/actions/update-submodules
+
+      - name: Cache world map
+        uses: actions/cache@v4
+        with:
+          path: data/world_mwm
+          key: world-mwm
+
+      - name: Configure ccache
+        uses: https://github.com/hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
+        with:
+          key: ${{ github.workflow }}-${{ matrix.CMAKE_BUILD_TYPE }}
+
+      - name: CMake
+        shell: bash
+        env:
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+        run: |
+          echo "Building ${{ matrix.CMAKE_BUILD_TYPE }}"
+          cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.CMAKE_BUILD_TYPE }} \
+            -DCMAKE_C_FLAGS=-g1 -DCMAKE_CXX_FLAGS=-g1
+
+      - name: Compile
+        shell: bash
+        working-directory: build
+        run: ninja
+
+      - name: Tests
+        shell: bash
+        working-directory: build
+        env:
+          # drape_tests - requires X Window
+          # generator_integration_tests - https://github.com/organicmaps/organicmaps/issues/225
+          # opening_hours_integration_tests - https://github.com/organicmaps/organicmaps/issues/219
+          # opening_hours_supported_features_tests - https://github.com/organicmaps/organicmaps/issues/219
+          # routing_integration_tests - https://github.com/organicmaps/organicmaps/issues/221
+          # shaders_tests - https://github.com/organicmaps/organicmaps/issues/223
+          # world_feed_integration_tests - https://github.com/organicmaps/organicmaps/issues/215
+          CTEST_EXCLUDE_REGEX: "drape_tests|generator_integration_tests|opening_hours_integration_tests|opening_hours_supported_features_tests|routing_benchmarks|routing_integration_tests|routing_quality_tests|search_quality_tests|storage_integration_tests|shaders_tests|world_feed_integration_tests"
+        run: |
+          ctest -L "omim-test" -E "$CTEST_EXCLUDE_REGEX" --output-on-failure

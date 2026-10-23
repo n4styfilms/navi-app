@@ -1,0 +1,269 @@
+cmake_minimum_required(VERSION 3.22.1)
+
+project(omim C CXX)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_C_STANDARD 23)
+# Our code does not rely on gnu extensions.
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_C_EXTENSIONS OFF)
+
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+
+# Set build-id explicitly to ensure build reproducibility,
+# depends on path prefixes stripping set later.
+if (NOT APPLE)
+  add_link_options("LINKER:--build-id=sha1")
+endif()
+
+# Fixes warning ld: warning: ignoring duplicate libraries on Mac and Windows.
+if (POLICY CMP0156)
+  cmake_policy(SET CMP0156 NEW)
+endif()
+
+set(OMIM_ROOT ${CMAKE_SOURCE_DIR})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${OMIM_ROOT}/cmake")
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+include(OmimPlatform)
+include(PrivateAndroidLinker)
+include(OmimOptions)
+include(OmimConfig)
+include(OmimHelpers)
+include(OmimTesting)
+
+if (APPLE AND NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL Android))
+  # OBJC/OBJCXX are needed to skip m/mm files in Unity builds.
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/21963
+  enable_language(OBJC)
+  set(CMAKE_OBJC_EXTENSIONS OFF)
+  set(CMAKE_OBJC_STANDARD 23)
+  set(CMAKE_OBJC_FLAGS -fobjc-arc)
+  set(CMAKE_OBJC_VISIBILITY_PRESET hidden)
+  enable_language(OBJCXX)
+  set(CMAKE_OBJCXX_EXTENSIONS OFF)
+  set(CMAKE_OBJCXX_STANDARD 23)
+  set(CMAKE_OBJCXX_FLAGS -fobjc-arc)
+  set(CMAKE_OBJCXX_VISIBILITY_PRESET hidden)
+endif()
+
+message(STATUS "Using compiler ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+
+if (CMAKE_UNITY_BUILD)
+  message(STATUS "Using Unity Build with batch ${CMAKE_UNITY_BUILD_BATCH_SIZE}, use -DCMAKE_UNITY_BUILD=OFF to disable it.")
+endif()
+
+if (USE_CCACHE)
+  find_program(CCACHE_PROGRAM ccache HINTS /usr/local/bin/)
+  if (CCACHE_PROGRAM)
+    message(STATUS "Using ccache, use -DUSE_CCACHE=OFF to disable it.")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CCACHE_PROGRAM}")
+    set(CMAKE_C_COMPILER_LAUNCHER   "${CCACHE_PROGRAM}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+  endif()
+endif()
+
+if(${PLATFORM_MAC})
+  set(XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES)
+
+  # Metal language support
+  list(APPEND CMAKE_MODULE_PATH ${OMIM_ROOT}/3party/CMake-MetalShaderSupport/cmake)
+  include(CheckLanguage)
+  include(CMakeMetalInformation)
+  include(MetalShaderSupport)
+  check_language(Metal)
+  if(CMAKE_Metal_COMPILER)
+    enable_language(Metal)
+  endif()
+endif()
+
+# Global compile options for all configurations.
+if (MSVC)
+  add_compile_options(/utf-8)
+  add_link_options(/INCREMENTAL:NO)
+else()
+  add_compile_options(-ffast-math $<$<CXX_COMPILER_ID:GNU>:-Wno-psabi>)
+  # Strip path prefixes to ensure reproducibility.
+  add_compile_options(-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.)
+  add_compile_options(-ffile-prefix-map=${CMAKE_BINARY_DIR}=.)
+endif()
+
+if (PLATFORM_WIN)
+  add_definitions(
+    -DWIN32_LEAN_AND_MEAN
+    -DNOMINMAX
+  )
+endif()
+
+# Built-in CMake configurations: Debug, Release, RelWithDebInfo, MinSizeRel
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  add_definitions(-DDEBUG)
+  if (NOT MSVC)
+    add_compile_options(-fno-omit-frame-pointer)
+  endif()
+elseif (${CMAKE_BUILD_TYPE} MATCHES "Rel")
+  add_definitions(-DRELEASE)
+  if (NOT MSVC)
+    add_compile_options(-O3)
+    set (CMAKE_INTERPROCEDURAL_OPTIMIZATION True)
+  endif()
+else()
+  message(FATAL_ERROR "Unknown build type: " ${CMAKE_BUILD_TYPE})
+endif()
+
+if (${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+  add_compile_options(-fno-omit-frame-pointer)
+endif()
+
+message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+
+if (NOT SKIP_TESTS)
+  enable_testing()
+  # Enables ctest -T memcheck with valgrind
+  include(CTest)
+  if (COVERAGE_REPORT)
+    include(OmimCoverage)
+  endif ()
+endif()
+
+if (NOT PYTHON_VERSION)
+  # FDroid build server has 3.5.3 Python installed.
+  set(PYTHON_VERSION 3.5)
+endif()
+
+# End of setting environment variables
+
+find_package(Threads REQUIRED)
+
+# Scripts
+
+if (NOT PLATFORM_IPHONE AND NOT PLATFORM_ANDROID)
+  list(APPEND qt_components Core Network)
+  if (NOT SKIP_QT_GUI OR NOT SKIP_TESTS OR PYBINDINGS)
+    list(APPEND qt_components Widgets)
+  endif()
+  if (NOT SKIP_QT_GUI)
+    list(APPEND qt_components Gui Xml Svg OpenGL OpenGLWidgets)
+  endif()
+  # PATHS are hard-coded hints where to look for qt6 in addition to other places.
+  find_package(Qt6 COMPONENTS REQUIRED ${qt_components} PATHS $ENV{QT_PATH} /opt/homebrew/opt/qt@6 /usr/local/opt/qt@6 /usr/lib/x86_64-linux-gnu/qt6)
+
+  set(MINIMUM_REQUIRED_QT_VERSION 6.4.0)
+  if (Qt6_VERSION VERSION_LESS ${MINIMUM_REQUIRED_QT_VERSION})
+    message(FATAL_ERROR "Unsupported Qt version: ${Qt6_VERSION}, the minimum required is ${MINIMUM_REQUIRED_QT_VERSION}")
+  else()
+    message(STATUS "Found Qt version: ${Qt6_VERSION}")
+  endif()
+endif()
+
+# To allow #include "base/file_name.hpp" in all sources.
+include_directories("${CMAKE_HOME_DIRECTORY}" "${CMAKE_HOME_DIRECTORY}/libs" "${CMAKE_HOME_DIRECTORY}/tools")
+
+if (USE_PCH)
+  message(STATUS "Precompiled headers are ON")
+  set(OMIM_PCH_TARGET_NAME "omim_pch")
+  add_precompiled_headers(
+    ${OMIM_ROOT}/precompiled_headers.hpp
+    ${OMIM_PCH_TARGET_NAME}
+  )
+endif()
+
+# Should be on the root level, not in 3party, so tests can get these dependencies.
+if (PLATFORM_LINUX)
+  find_package(ICU COMPONENTS uc i18n data REQUIRED)
+  find_package(Freetype REQUIRED)
+  find_package(harfbuzz REQUIRED)
+endif()
+
+if (WITH_SYSTEM_PROVIDED_3PARTY)
+  set(GFLAGS_USE_TARGET_NAMESPACE ON)
+  find_package(gflags REQUIRED)
+
+  find_package(expat CONFIG REQUIRED)
+  find_package(jansson CONFIG REQUIRED)
+  find_package(pugixml REQUIRED)
+  find_package(utf8cpp REQUIRED)
+endif()
+
+find_package(ZLIB REQUIRED)
+
+# Include 3party dependencies.
+add_subdirectory(3party)
+
+# Not needed for the usual build process, but it fixes QtCreator editor,
+# that doesn't see gflags/gflags.h in binary dir (gflags has tricky cmake configuration).
+if (PLATFORM_DESKTOP AND NOT WITH_SYSTEM_PROVIDED_3PARTY)
+  include_directories("${PROJECT_BINARY_DIR}/3party/gflags/include")
+endif()
+
+# Fix for #include <boost/regex.hpp>
+include_directories("${OMIM_ROOT}/3party/boost")
+
+
+# Used in qt/ and shaders/
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+# Detect python virtual environment and use it if available
+if(DEFINED ENV{VIRTUAL_ENV})
+  set(PYTHON_VENV_PATH "$ENV{VIRTUAL_ENV}")
+  set(Python3_EXECUTABLE "python3")
+  message(STATUS "==> Python Virtual Environment detected : ${PYTHON_VENV_PATH}"  "  ==>  "  "Using python command: ${Python3_EXECUTABLE}" )
+elseif(EXISTS "${OMIM_ROOT}/.venv")
+  if(EXISTS "${OMIM_ROOT}/.venv/bin/python3")
+    set(Python3_EXECUTABLE "${OMIM_ROOT}/.venv/bin/python3")
+  elseif(EXISTS "${OMIM_ROOT}/.venv/Scripts/python.exe")
+    set(Python3_EXECUTABLE "${OMIM_ROOT}/.venv/Scripts/python.exe")
+  endif()
+  message(STATUS "==> Python Virtual Environment detected : ${OMIM_ROOT}/.venv"  "  ==>  "  "Using python command: ${Python3_EXECUTABLE}" )
+endif()
+
+execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import google.protobuf;
+print(google.protobuf.__version__)"
+    RESULT_VARIABLE PROTOBUF_CHECK
+    OUTPUT_VARIABLE PROTOBUF_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+
+if(PROTOBUF_CHECK EQUAL 0)
+    if(PROTOBUF_VERSION VERSION_LESS "3.20.0" OR PROTOBUF_VERSION VERSION_GREATER_EQUAL "4.0.0")
+        message(FATAL_ERROR "Python protobuf ${PROTOBUF_VERSION} found, but version (>=3.20, <4.0) is required. Run ./configure.sh to provision a local .venv with the correct version, or set SKIP_PYTHON_VENV=1 to manage protobuf via your system Python.")
+    else()
+        message(STATUS "Python protobuf ${PROTOBUF_VERSION} found (>=3.20, <4.0)")
+    endif()
+else()
+    message(FATAL_ERROR "Python protobuf not found. Run ./configure.sh to provision a local .venv with the correct version (>=3.20, <4.0), or set SKIP_PYTHON_VENV=1 to manage protobuf via your system Python.")
+endif()
+
+
+add_subdirectory(libs)
+
+if (PLATFORM_DESKTOP)
+  add_subdirectory(dev_sandbox)
+  add_subdirectory(generator)
+  add_subdirectory(tools)
+  if (NOT SKIP_QT_GUI)
+    add_subdirectory(qt)
+  endif()
+  if (GENERATOR_TOOL)
+    add_compile_options(-march=native -mtune=native)
+    message(STATUS "target CPU optimizations enabled, produced binaries will NOT work on a different CPU")
+  endif()
+endif()
+
+omim_add_test_subdirectory(libs/qt_tstfrm)
+
+if (PLATFORM_ANDROID)
+  add_subdirectory(android/sdk/src/main/cpp)
+endif()
+
+option(NAVI_HEADLESS_TEST "Build the private rendererless Android navigation regression" OFF)
+if (NAVI_HEADLESS_TEST)
+  add_subdirectory(tools/private/tests/headless-build)
+endif()

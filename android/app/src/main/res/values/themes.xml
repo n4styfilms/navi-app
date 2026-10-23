@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- Default theme -->
+  <style name="MwmTheme.Base" parent="Theme.Material3.Light.NoActionBar">
+    <item name="materialCalendarStyle">@style/Widget.Material3.MaterialCalendar</item>
+    <item name="materialCalendarFullscreenTheme">@style/ThemeOverlay.Material3.MaterialCalendar.Fullscreen</item>
+    <item name="materialCalendarTheme">@style/ThemeOverlay.Material3.MaterialCalendar</item>
+    <item name="android:listViewStyle">@style/MwmWidget.ListView</item>
+    <item name="android:textViewStyle">@style/MwmWidget.TextView</item>
+    <item name="android:forceDarkAllowed" tools:targetApi="Q">false</item>
+
+    <item name="android:textColorPrimary">@color/text_dark</item>
+    <item name="android:textColorPrimaryInverse">@color/text_light</item>
+    <item name="android:textColorSecondary">@color/text_dark_subtitle</item>
+    <item name="android:windowBackground">?appBackground</item>
+    <item name="android:colorPrimaryDark">@color/bg_primary_dark</item>
+    <item name="android:windowSoftInputMode">stateUnspecified|adjustPan</item>
+    <item name="android:fontFamily">@string/robotoRegular</item>
+    <item name="android:colorBackgroundCacheHint">@null</item>
+    <item name="android:windowActionBarOverlay">true</item>
+    <item name="clickableBackground">?selectableItemBackground</item>
+    <item name="android:statusBarColor">?colorPrimary</item>
+    <item name="alertDialogTheme">@style/MwmTheme.M3.AlertDialog</item>
+    <item name="materialAlertDialogTheme">@style/MwmTheme.M3.AlertDialog</item>
+    <item name="windowBackgroundForced">@color/bg_window</item>
+    <item name="cardBackground">@color/bg_cards</item>
+    <item name="titleDialogTheme">@color/black_primary</item>
+    <item name="textDialogTheme">@color/black_secondary</item>
+    <item name="fullscreenDialogTheme">@style/MwmTheme.DialogFragment.Fullscreen</item>
+    <item name="colorAccent">@color/base_accent</item>
+    <item name="colorAccentTransparent">@color/base_accent_transparent</item>
+    <item name="colorBtnHighlight">@color/white_38</item>
+    <item name="panel">@color/bg_panel</item>
+    <item name="colorLogo">@color/bg_primary</item>
+    <item name="iconTint">@color/black_54</item>
+    <item name="iconTintDisabled">@color/black_12</item>
+    <item name="iconTintActive">@color/yellow</item>
+    <item name="iconTintLight">@color/icon_tint_light</item>
+    <item name="android:textColorLink">?colorSecondary</item>
+
+    <item name="secondary">@color/text_dark_hint</item>
+    <item name="dividerHorizontal">@color/divider</item>
+
+    <item name="ppBackground">@color/bg_cards</item>
+    <item name="ppButtonsBackground">?panel</item>
+    <item name="ppFloatingMarkerIconColor">@color/black_54</item>
+
+    <item name="navNextTurnFrame">@drawable/bg_nav_next_turn</item>
+    <item name="navNextNextTurnFrame">@drawable/bg_nav_next_next_turn</item>
+    <item name="navLanesBackgroundColor">@color/bg_primary</item>
+    <item name="navLaneArrowActiveColor">@color/nav_lane_arrow_active</item>
+    <item name="navLaneArrowInactiveColor">@color/nav_lane_arrow_inactive</item>
+
+    <item name="buttonBackground">@drawable/button</item>
+    <item name="buttonTextColor">@color/button_text</item>
+    <item name="buttonTextColorDisabled">@color/button_text_disabled</item>
+    <item name="buttonDialogTextColor">@color/base_accent</item>
+
+    <item name="accentButtonBackground">@drawable/button_accent</item>
+    <item name="accentButtonTextColor">@color/button_text_accent</item>
+    <!-- TODO: remove accentButtonTextColorDisabled attribute and use everywhere
+               accentButtonTextColor selector -->
+    <item name="accentButtonTextColorDisabled">@color/button_accent_text_disabled</item>
+
+    <item name="primaryButtonBackground">@drawable/button_accent</item>
+
+    <item name="menuBackground">@color/bg_menu</item>
+
+    <item name="myPositionButtonAnimation">@drawable/ic_menu_location_pending</item>
+    <item name="trafficLoadingAnimation">@drawable/anim_traffic_loading</item>
+
+    <item name="navButtonsThemeRect">@style/MwmTheme.NavButtonsRect</item>
+    <item name="navButtonsThemeRound">@style/MwmTheme.NavButtonsRound</item>
+    <item name="navigationTheme">@style/MwmTheme.Navigation</item>
+
+    <item name="routingButtonHint">@color/routing_button_tint</item>
+
+    <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+
+    <item name="android:listDivider">@drawable/list_divider</item>
+
+    <item name="transitPedestrianBackground">@color/black_4</item>
+    <item name="transitRulerBackground">@color/black_4</item>
+    <item name="transitStepDivider">@drawable/dot_divider</item>
+    <item name="accentColorSelector">@color/accent_color_selector</item>
+    <item name="android:textAppearance">@style/MwmTextAppearance.Body3</item>
+    <item name="android:textAppearanceSmall">@style/MwmTextAppearance.Body4</item>
+    <item name="android:textAppearanceMedium">@style/MwmTextAppearance.Body2</item>
+    <item name="android:textAppearanceLarge">@style/MwmTextAppearance.Body1</item>
+    <item name="android:textAppearanceInverse">@style/MwmTextAppearance.Body3.Light</item>
+    <item name="android:textAppearanceSmallInverse">@style/MwmTextAppearance.Body4.Light</item>
+    <item name="android:textAppearanceMediumInverse">@style/MwmTextAppearance.Body2.Light</item>
+    <item name="android:textAppearanceLargeInverse">@style/MwmTextAppearance.Body1.Light</item>
+    <item name="drivingOptionsViewBg">@color/bg_primary_dark</item>
+    <item name="elevationProfilePropertyBg">@drawable/bg_rounded_rect</item>
+    <item name="elevationProfilePropIconTint">@color/black_secondary</item>
+    <item name="altitudeBg">@drawable/bg_altitude</item>
+    <item name="elevationProfileAxisLabelColor">@color/black_54</item>
+    <item name="elevationProfileYourLocationPinBg">@drawable/bg_your_location_pin</item>
+    <item name="elevationProfileSelectedPointBg">@drawable/bg_point_desc</item>
+    <item name="elevationProfileSelectedPointTriangle">@drawable/ic_ascent</item>
+    <item name="elevationProfileFloatingTriangle">@drawable/ic_triangle_elevation</item>
+    <item name="elevationProfileColor">@color/elevation_profile</item>
+    <item name="android:popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
+
+    <!-- Style used for bottom sheet behavior components -->
+    <item name="bottomSheetStyle">@style/MwmWidget.BottomSheet</item>
+    <!-- Theme used for bottom sheet dialog components -->
+    <item name="bottomSheetDialogTheme">@style/MwmTheme.BottomSheetDialog</item>
+
+    <!-- M3 colors -->
+    <item name="colorPrimary">@color/bg_primary</item>
+    <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+    <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
+    <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
+    <item name="colorSecondary">@color/base_accent</item>
+    <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
+    <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
+    <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
+    <item name="colorTertiary">@color/md_theme_tertiary</item>
+    <item name="colorOnTertiary">@color/md_theme_onTertiary</item>
+    <item name="colorTertiaryContainer">@color/md_theme_tertiaryContainer</item>
+    <item name="colorOnTertiaryContainer">@color/md_theme_onTertiaryContainer</item>
+    <item name="colorError">@color/md_theme_error</item>
+    <item name="colorOnError">@color/md_theme_onError</item>
+    <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
+    <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
+    <item name="android:colorBackground">@color/md_theme_background</item>
+    <item name="colorOnBackground">@color/md_theme_onBackground</item>
+    <item name="colorSurface">@color/md_theme_surface</item>
+    <item name="colorOnSurface">@color/md_theme_onSurface</item>
+    <item name="colorSurfaceVariant">@color/md_theme_surfaceVariant</item>
+    <item name="colorOnSurfaceVariant">@color/md_theme_onSurfaceVariant</item>
+    <item name="colorOutline">@color/md_theme_outline</item>
+    <item name="colorOutlineVariant">@color/md_theme_outlineVariant</item>
+    <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
+    <item name="colorOnSurfaceInverse">@color/md_theme_inverseOnSurface</item>
+    <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+    <item name="colorPrimaryFixed">@color/md_theme_primaryFixed</item>
+    <item name="colorOnPrimaryFixed">@color/md_theme_onPrimaryFixed</item>
+    <item name="colorPrimaryFixedDim">@color/md_theme_primaryFixedDim</item>
+    <item name="colorOnPrimaryFixedVariant">@color/md_theme_onPrimaryFixedVariant</item>
+    <item name="colorSecondaryFixed">@color/md_theme_secondaryFixed</item>
+    <item name="colorOnSecondaryFixed">@color/md_theme_onSecondaryFixed</item>
+    <item name="colorSecondaryFixedDim">@color/md_theme_secondaryFixedDim</item>
+    <item name="colorOnSecondaryFixedVariant">@color/md_theme_onSecondaryFixedVariant</item>
+    <item name="colorTertiaryFixed">@color/md_theme_tertiaryFixed</item>
+    <item name="colorOnTertiaryFixed">@color/md_theme_onTertiaryFixed</item>
+    <item name="colorTertiaryFixedDim">@color/md_theme_tertiaryFixedDim</item>
+    <item name="colorOnTertiaryFixedVariant">@color/md_theme_onTertiaryFixedVariant</item>
+    <item name="colorSurfaceDim">@color/md_theme_surfaceDim</item>
+    <item name="colorSurfaceBright">@color/md_theme_surfaceBright</item>
+    <item name="colorSurfaceContainerLowest">@color/md_theme_surfaceContainerLowest</item>
+    <item name="colorSurfaceContainerLow">@color/md_theme_surfaceContainerLow</item>
+    <item name="colorSurfaceContainer">@color/md_theme_surfaceContainer</item>
+    <item name="colorSurfaceContainerHigh">@color/md_theme_surfaceContainerHigh</item>
+    <item name="colorSurfaceContainerHighest">@color/md_theme_surfaceContainerHighest</item>
+
+    <item name="appBackground">@color/bg_app</item>
+
+  </style>
+
+  <style name="MwmTheme" parent="MwmTheme.Base"/>
+
+  <style name="MwmTheme.Splash">
+    <item name="android:windowBackground">@color/bg_primary</item>
+    <item name="android:textColorPrimary">@color/white_primary</item>
+    <item name="android:navigationBarColor">@color/bg_primary</item>
+    <item name="android:statusBarColor">@color/bg_primary</item>
+  </style>
+
+  <!-- Theme is overridden in v27 folder to handle cutouts -->
+  <style name="MwmTheme.MainActivity">
+    <item name="android:colorPrimaryDark">@android:color/black</item>
+    <item name="colorPrimaryVariant">@android:color/black</item>
+    <item name="android:windowBackground">@null</item>
+    <item name="android:windowTranslucentNavigation">false</item>
+  </style>
+
+  <style name="MwmTheme.DownloadResourcesLegacy">
+    <item name="android:statusBarColor">@android:color/white</item>
+    <item name="android:navigationBarColor">@android:color/transparent</item>
+  </style>
+
+  <style name="MwmTheme.CardBg">
+    <item name="android:windowBackground">?appBackground</item>
+  </style>
+
+  <style name="MwmTheme.WindowBg">
+    <item name="android:windowBackground">?appBackground</item>
+  </style>
+
+  <style name="MwmTheme.AlertDialog" parent="Theme.Material3.DayNight.Dialog.Alert">
+    <item name="colorAccent">?buttonDialogTextColor</item>
+    <item name="colorSecondary">?buttonDialogTextColor</item>
+    <item name="colorPrimary">?buttonDialogTextColor</item>
+    <item name="android:background">?cardBackground</item>
+    <item name="android:textColorPrimary">?textDialogTheme</item>
+    <item name="android:textSize">@dimen/text_size_body_1</item>
+    <item name="android:windowTitleStyle">@style/MwmTheme.DialogTitleStyle</item>
+  </style>
+
+  <style name="MwmTheme.DialogTitleBase">
+    <item name="android:textSize">@dimen/text_size_alert_dialog_title</item>
+    <item name="android:fontFamily">@string/robotoMedium</item>
+  </style>
+
+  <style name="MwmTheme.DialogTitleStyle" parent="MwmTheme.DialogTitleBase">
+    <item name="android:textColor">?titleDialogTheme</item>
+  </style>
+
+  <style name="MwmTheme.DialogFragment.Fullscreen" parent="Theme.Material3.Light">
+    <item name="android:colorPrimaryDark">?statusBar</item>
+    <item name="colorAccent">@color/base_accent</item>
+    <item name="colorPrimary">@color/bg_primary</item>
+    <item name="colorPrimaryVariant">?statusBar</item>
+    <item name="colorSecondary">@color/base_accent</item>
+    <item name="clickableBackground">?selectableItemBackground</item>
+    <item name="android:windowIsFloating">false</item>
+    <item name="android:textColorHint">@color/text_dark_hint</item>
+    <item name="android:textViewStyle">@style/MwmWidget.TextView</item>
+    <item name="android:colorBackgroundCacheHint">@null</item>
+    <item name="android:fontFamily">@string/robotoRegular</item>
+    <item name="android:windowTranslucentStatus">true</item>
+    <item name="android:statusBarColor">@android:color/transparent</item>
+  </style>
+
+  <style name="MwmTheme.DialogFragment.NoFullscreen" parent="MwmTheme.DialogFragment.Fullscreen">
+    <item name="android:windowTranslucentStatus">false</item>
+    <item name="android:statusBarColor">@color/bg_dialog_translucent</item>
+  </style>
+
+  <style name="MwmTheme.DialogFragment.Fullscreen.Translucent">
+    <item name="android:colorPrimaryDark">@android:color/black</item>
+    <item name="colorPrimaryVariant">@android:color/black</item>
+    <item name="android:windowBackground">@color/bg_dialog_translucent</item>
+    <item name="android:windowIsTranslucent">true</item>
+    <item name="android:navigationBarColor">@android:color/transparent</item>
+  </style>
+
+  <style name="MwmTheme.FullScreenDialog">
+    <item name="android:windowIsFloating">false</item>
+    <item name="android:windowBackground">?appBackground</item>
+  </style>
+
+  <style name="MwmTheme.MaterialTimePicker" parent="ThemeOverlay.MaterialComponents.TimePicker">
+    <item name="colorAccent">@color/base_accent</item>
+    <item name="colorSecondary">@color/base_accent</item>
+    <item name="colorPrimary">?buttonDialogTextColor</item>
+    <item name="android:fontFamily">@string/robotoMedium</item>
+  </style>
+
+  <style name="MwmTheme.ProgressDialog" parent="MwmTheme.M3.AlertDialog">
+    <item name="android:textColor">?textDialogTheme</item>
+    <item name="android:background">?attr/colorSurfaceContainerHigh</item>
+  </style>
+
+  <style name="MwmTheme.NavButtonsRound">
+    <item name="searchLayoutBackground">@drawable/bg_search_wheel_background_round</item>
+  </style>
+
+  <style name="MwmTheme.NavButtonsRect">
+    <item name="searchLayoutBackground">@drawable/bg_search_wheel_background_rect</item>
+  </style>
+
+  <style name="MwmTheme.Navigation">
+    <item name="iconTint">@color/white_primary</item>
+  </style>
+    <!-- Theme required to apply M3 dialog style on preference screen -->
+    <style name="MwmTheme.M3.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="dialogCornerRadius">28dp</item>
+        <item name="cornerFamily">rounded</item>
+        <item name="android:colorBackground">?attr/colorSurfaceContainerHigh</item>
+        <item name="android:layout">@layout/m3_alert_dialog</item>
+        <item name="buttonBarPositiveButtonStyle">@style/MwmTheme.M3.AlertDialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/MwmTheme.M3.AlertDialog.Button</item>
+        <item name="buttonBarNeutralButtonStyle">@style/MwmTheme.M3.AlertDialog.Button.Neutral</item>
+    </style>
+
+  <style name="MwmTheme.M3.AlertDialog.Button" parent="@style/Widget.Material3.Button.TextButton.Dialog">
+       <item name="android:textColor">?colorSecondary</item>
+  </style>
+  <style name="MwmTheme.M3.AlertDialog.Button.Neutral" parent="@style/Widget.Material3.Button.TextButton.Dialog.Flush">
+       <item name="android:textColor">?colorSecondary</item>
+  </style>
+</resources>

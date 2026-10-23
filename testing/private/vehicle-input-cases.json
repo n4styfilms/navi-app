@@ -1,0 +1,19 @@
+[
+  {"name":"german","numbers":["6,2","1,80",""],"expected":[6.2,1.8,null]},
+  {"name":"personal","numbers":[" 6.2 "," 1,8 ","7,25"],"expected":[6.2,1.8,7.25]},
+  {"name":"zero_price","numbers":["6","0",""],"expected":[6,0,null]},
+  {"name":"missing_wltp","numbers":["","1,80",""],"errors":["WLTP"]},
+  {"name":"missing_price","numbers":["6","",""],"errors":["PRICE"]},
+  {"name":"zero_wltp","numbers":["0","1,80",""],"errors":["WLTP"]},
+  {"name":"zero_personal","numbers":["6","1,80","0"],"errors":["PERSONAL"]},
+  {"name":"negative","numbers":["-6","-1,8","-2"],"errors":["WLTP","PRICE","PERSONAL"]},
+  {"name":"mixed_separators","numbers":["6,2.0","1,8",""],"errors":["WLTP"]},
+  {"name":"grouped","numbers":["6","1.000,50",""],"errors":["PRICE"]},
+  {"name":"unfinished","numbers":["6,","1,80",""],"errors":["WLTP"]},
+  {"name":"nan_infinity","numbers":["NaN","Infinity","NaN"],"errors":["WLTP","PRICE","PERSONAL"]},
+  {"name":"exponent","numbers":["1e3","1,8",""],"errors":["WLTP"]},
+  {"name":"missing_metadata","make":" ","model":"","engine":" ","year":"","numbers":["6","1,8",""],"errors":["MAKE","MODEL","ENGINE","YEAR"]},
+  {"name":"invalid_year","year":"20xx","numbers":["6","1,8",""],"errors":["YEAR"]},
+  {"name":"long_year","year":"10000","numbers":["6","1,8",""],"errors":["YEAR"]},
+  {"name":"unknown_fuel","fuel":"ELECTRIC","numbers":["6","1,8",""],"errors":["FUEL"]}
+]

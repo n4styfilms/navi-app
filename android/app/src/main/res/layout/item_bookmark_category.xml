@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:background="@drawable/bg_clickable_card">
+  <com.google.android.material.checkbox.MaterialCheckBox
+    android:id="@+id/checkbox"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:layout_alignBottom="@id/bottom_line_container"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"
+    android:layout_centerVertical="true"
+    android:layout_margin="@dimen/margin_half"
+    android:layout_marginStart="8dp"
+    android:background="@null"
+    android:button="@drawable/visibility_selector"
+    app:buttonTint="@color/accent_color_selector"
+    android:padding="@dimen/margin_half" />
+  <com.google.android.material.textview.MaterialTextView
+    android:id="@+id/name"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/margin_base"
+    android:layout_toStartOf="@id/drag_handle"
+    android:layout_toEndOf="@id/checkbox"
+    android:ellipsize="middle"
+    android:maxLines="2"
+    android:textAlignment="viewStart"
+    android:textAppearance="@style/MwmTextAppearance.Body1"
+    tools:text="Bookmark name looooooooooooooooooongasdasdasd" />
+  <LinearLayout
+    android:id="@+id/bottom_line_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/name"
+    android:layout_alignStart="@id/name"
+    android:paddingBottom="@dimen/margin_half_plus"
+    android:layout_toStartOf="@id/drag_handle"
+    android:orientation="horizontal">
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/size"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_vertical"
+      android:ellipsize="end"
+      android:maxLines="1"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      tools:text="42000000" />
+  </LinearLayout>
+  <com.google.android.material.imageview.ShapeableImageView
+    android:id="@+id/drag_handle"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_toStartOf="@id/more"
+    android:layout_centerVertical="true"
+    android:layout_alignParentTop="true"
+    android:layout_alignBottom="@id/bottom_line_container"
+    android:background="?selectableItemBackgroundBorderless"
+    android:importantForAccessibility="no"
+    android:paddingHorizontal="@dimen/margin_half"
+    android:visibility="gone"
+    app:srcCompat="@drawable/ic_drag_handle"
+    app:tint="?secondary" />
+  <com.google.android.material.imageview.ShapeableImageView
+    android:id="@+id/more"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentEnd="true"
+    android:layout_centerVertical="true"
+    android:layout_alignParentTop="true"
+    android:layout_alignBottom="@id/bottom_line_container"
+    android:background="?selectableItemBackgroundBorderless"
+    android:importantForAccessibility="no"
+    android:paddingHorizontal="@dimen/margin_half"
+    app:srcCompat="@drawable/ic_more"
+    app:tint="?secondary" />
+</RelativeLayout>

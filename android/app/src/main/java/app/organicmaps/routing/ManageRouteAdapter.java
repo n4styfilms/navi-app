@@ -1,0 +1,249 @@
+package app.organicmaps.routing;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.res.TypedArray;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.recyclerview.widget.RecyclerView;
+import app.organicmaps.R;
+import app.organicmaps.sdk.bookmarks.data.MapObject;
+import app.organicmaps.sdk.routing.RouteMarkData;
+import app.organicmaps.sdk.routing.RouteMarkType;
+import app.organicmaps.sdk.util.StringUtils;
+import app.organicmaps.util.UiUtils;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.textview.MaterialTextView;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
+public class ManageRouteAdapter extends RecyclerView.Adapter<ManageRouteAdapter.ManageRouteViewHolder>
+{
+  Context mContext;
+  ArrayList<RouteMarkData> mRoutePoints;
+  ManageRouteListener mManageRouteListener;
+
+  public interface ManageRouteListener
+  {
+    void startDrag(RecyclerView.ViewHolder viewHolder);
+    void showMyLocationIcon(boolean showMyLocationIcon);
+    void onRoutePointDeleted(RecyclerView.ViewHolder viewHolder);
+  }
+
+  public ManageRouteAdapter(Context context, RouteMarkData[] routeMarkData, ManageRouteListener listener)
+  {
+    mContext = context;
+    mRoutePoints = new ArrayList<>(Arrays.asList(routeMarkData));
+    mManageRouteListener = listener;
+
+    updateMyLocationIcon();
+  }
+
+  @NonNull
+  @Override
+  public ManageRouteViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+  {
+    View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.manage_route_list_item, parent, false);
+
+    return new ManageRouteViewHolder(view);
+  }
+
+  @SuppressLint("ClickableViewAccessibility")
+  @Override
+  public void onBindViewHolder(@NonNull ManageRouteViewHolder holder, int position)
+  {
+    int iconId;
+
+    switch (mRoutePoints.get(position).mPointType)
+    {
+    case Start:
+      if (mRoutePoints.get(position).mIsMyPosition)
+        iconId = R.drawable.ic_location_arrow_blue;
+      else
+        iconId = R.drawable.route_point_start;
+      break;
+
+    case Intermediate:
+      TypedArray iconArray = mContext.getResources().obtainTypedArray(R.array.route_stop_icons);
+      iconId = iconArray.getResourceId(mRoutePoints.get(position).mIntermediateIndex, R.drawable.route_point_20);
+      iconArray.recycle();
+      break;
+
+    case Finish:
+      iconId = R.drawable.route_finish;
+      break;
+
+    default:
+      iconId = R.drawable.warning_icon;
+      break;
+    }
+
+    holder.mImageViewIcon.setImageDrawable(AppCompatResources.getDrawable(mContext, iconId));
+    String title, subtitle;
+
+    if (mRoutePoints.get(position).mIsMyPosition)
+    {
+      title = mContext.getString(app.organicmaps.sdk.R.string.core_my_position);
+
+      if (mRoutePoints.get(position).mPointType != RouteMarkType.Start)
+        subtitle = mRoutePoints.get(position).mTitle;
+      else
+      {
+        // Hide my position coordinates if it's the starting point of the route.
+        subtitle = "";
+      }
+    }
+    else
+    {
+      title = mRoutePoints.get(position).mTitle;
+      subtitle = mRoutePoints.get(position).mSubtitle;
+    }
+
+    holder.mTextViewTitle.setText(title);
+    holder.mTextViewSubtitle.setText(subtitle);
+    UiUtils.showIf(subtitle != null && !subtitle.isEmpty(), holder.mTextViewSubtitle);
+
+    // Show 'Delete' icon button only if we have intermediate stops.
+    UiUtils.showIf(mRoutePoints.size() > 2, holder.mViewDivider);
+    UiUtils.showIf(mRoutePoints.size() > 2, holder.mImageViewDelete);
+
+    holder.mImageViewSwap.setOnTouchListener((v, event) ->
+    {
+      if (event.getActionMasked() == MotionEvent.ACTION_DOWN)
+        mManageRouteListener.startDrag(holder);
+
+      return false;
+    });
+
+    holder.mImageViewDelete.setOnClickListener(v -> mManageRouteListener.onRoutePointDeleted(holder));
+  }
+
+  @Override
+  public int getItemCount()
+  {
+    return mRoutePoints.size();
+  }
+
+  public void moveRoutePoint(@NonNull RecyclerView.ViewHolder draggedItem, @NonNull RecyclerView.ViewHolder targetItem)
+  {
+    final int draggedItemIndex = draggedItem.getAbsoluteAdapterPosition();
+    final int targetIndex = targetItem.getAbsoluteAdapterPosition();
+    if (draggedItemIndex == targetIndex) // Dragged to same spot. Do nothing.
+      return;
+
+    Collections.swap(mRoutePoints, draggedItemIndex, targetIndex);
+
+    updateRoutePointsData();
+
+    notifyItemMoved(draggedItemIndex, targetIndex);
+
+    // Rebind view holders to update their content.
+    // draggedItem is now at targetIndex and targetItem is now at draggedItemIndex.
+    onBindViewHolder((ManageRouteViewHolder) draggedItem, targetIndex);
+    onBindViewHolder((ManageRouteViewHolder) targetItem, draggedItemIndex);
+  }
+
+  public void deleteRoutePoint(RecyclerView.ViewHolder viewHolder)
+  {
+    mRoutePoints.remove(viewHolder.getAbsoluteAdapterPosition());
+
+    updateRoutePointsData();
+
+    notifyItemRemoved(viewHolder.getAbsoluteAdapterPosition());
+  }
+
+  public void setMyLocationAsStartingPoint(MapObject myLocation)
+  {
+    String latLonString = StringUtils.formatUsingUsLocale("%.6f, %.6f", myLocation.getLat(), myLocation.getLon());
+
+    // Replace route point in first position with "My Position".
+    mRoutePoints.set(0, new RouteMarkData(latLonString, "", RouteMarkType.Start, 0, true, true, false,
+                                          myLocation.getLat(), myLocation.getLon()));
+
+    updateRoutePointsData();
+    notifyItemChanged(0);
+
+    if (mManageRouteListener != null)
+      mManageRouteListener.showMyLocationIcon(true);
+  }
+
+  private void updateMyLocationIcon()
+  {
+    boolean containsMyLocationPoint = false;
+
+    for (RouteMarkData routePoint : mRoutePoints)
+    {
+      if (routePoint.mIsMyPosition)
+      {
+        containsMyLocationPoint = true;
+        break;
+      }
+    }
+
+    if (mManageRouteListener != null)
+      mManageRouteListener.showMyLocationIcon(!containsMyLocationPoint);
+  }
+
+  private void updateRoutePointsData()
+  {
+    assert (mRoutePoints.size() >= 2);
+
+    // Set starting point.
+    mRoutePoints.get(0).mPointType = RouteMarkType.Start;
+
+    // Set finish point.
+    mRoutePoints.get(mRoutePoints.size() - 1).mPointType = RouteMarkType.Finish;
+
+    // Set intermediate point(s).
+    for (int pos = 1; pos < mRoutePoints.size() - 1; pos++)
+    {
+      mRoutePoints.get(pos).mPointType = RouteMarkType.Intermediate;
+      mRoutePoints.get(pos).mIntermediateIndex = pos - 1;
+    }
+  }
+
+  public ArrayList<RouteMarkData> getRoutePoints()
+  {
+    return mRoutePoints;
+  }
+
+  static class ManageRouteViewHolder extends RecyclerView.ViewHolder
+  {
+    @NonNull
+    public final View mItemView;
+
+    @NonNull
+    public final ShapeableImageView mImageViewIcon;
+
+    @NonNull
+    public final MaterialTextView mTextViewTitle;
+
+    @NonNull
+    public final MaterialTextView mTextViewSubtitle;
+
+    @NonNull
+    public final ShapeableImageView mImageViewSwap;
+    @NonNull
+    public final View mViewDivider;
+
+    @NonNull
+    public final ShapeableImageView mImageViewDelete;
+
+    ManageRouteViewHolder(@NonNull View itemView)
+    {
+      super(itemView);
+      mItemView = itemView;
+      mImageViewIcon = itemView.findViewById(R.id.type_icon);
+      mTextViewTitle = itemView.findViewById(R.id.title);
+      mTextViewSubtitle = itemView.findViewById(R.id.subtitle);
+      mImageViewSwap = itemView.findViewById(R.id.reorder_icon);
+      mViewDivider = itemView.findViewById(R.id.divider);
+      mImageViewDelete = itemView.findViewById(R.id.delete_icon);
+    }
+  }
+}

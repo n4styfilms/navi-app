@@ -1,0 +1,1097 @@
+#include "routing/routing_session.hpp"
+
+#include "routing/base/followed_polyline.hpp"
+#include "routing/following_info.hpp"
+#include "routing/route.hpp"
+#include "routing/router_delegate.hpp"
+#include "routing/turns.hpp"
+#include "routing/vehicle_mask.hpp"
+
+#include "routing_common/maxspeed_conversion.hpp"
+
+#include "platform/distance.hpp"
+#include "platform/location.hpp"
+#include "platform/measurement_utils.hpp"
+#include "platform/platform.hpp"
+
+#include "geometry/angles.hpp"
+#include "geometry/mercator.hpp"
+
+#include "indexer/road_shields_parser.hpp"
+
+#include "base/assert.hpp"
+#include "base/logging.hpp"
+#include "base/math.hpp"
+
+#include <utility>
+
+namespace
+{
+int constexpr kOnRouteMissedCount = 10;
+int constexpr kAnnounceRouteMissedCount = 20;
+
+double constexpr kShowLanesMinDistInMeters = 500.0;
+
+// @TODO The distance may depend on the current speed.
+double constexpr kShowPedestrianTurnInMeters = 20.0;
+
+double constexpr kRunawayDistanceSensitivityMeters = 0.01;
+
+double constexpr kCompletionPercentAccuracy = 5;
+
+double constexpr kMinimumETASec = 60.0;
+}  // namespace
+
+namespace routing
+{
+using namespace location;
+using namespace traffic;
+
+void FormatDistance(double dist, std::string & value, std::string & suffix)
+{
+  platform::Distance d = platform::Distance::CreateFormatted(dist);
+  value = d.GetDistanceString();
+  suffix = d.GetUnitsString();
+}
+
+RoutingSession::RoutingSession()
+  : m_router(nullptr)
+  , m_route(std::make_shared<Route>(std::string{} /* router */, 0 /* route id */))
+  , m_state(SessionState::NoValidRoute)
+  , m_isFollowing(false)
+  , m_speedCameraManager(m_turnNotificationsMgr)
+  , m_routingSettings(GetRoutingSettings(VehicleType::Car))
+  , m_passedDistanceOnRouteMeters(0.0)
+  , m_lastCompletionPercent(0.0)
+{
+  // To call |m_changeSessionStateCallback| on |m_state| initialization.
+  SetState(SessionState::NoValidRoute);
+  m_speedCameraManager.SetRoute(m_route);
+}
+
+void RoutingSession::Init(PointCheckCallback const & pointCheckCallback)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  CHECK(!m_router, ());
+  m_router = std::make_unique<AsyncRouter>(pointCheckCallback);
+}
+
+void RoutingSession::BuildRoute(Checkpoints const & checkpoints, uint32_t timeoutSec)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  CHECK(m_router, ());
+  m_checkpoints = checkpoints;
+  m_router->ClearState();
+
+  m_isFollowing = false;
+  m_routingRebuildCount = -1;  // -1 for the first rebuild.
+  m_routingRebuildAnnounceCount = 0;
+
+  RebuildRoute(checkpoints.GetStart(), m_buildReadyCallback, m_needMoreMapsCallback, m_removeRouteCallback, timeoutSec,
+               SessionState::RouteBuilding, false /* adjust */);
+}
+
+void RoutingSession::RebuildRoute(m2::PointD const & startPoint, ReadyCallback const & readyCallback,
+                                  NeedMoreMapsCallback const & needMoreMapsCallback,
+                                  RemoveRouteCallback const & removeRouteCallback, uint32_t timeoutSec,
+                                  SessionState routeRebuildingState, bool adjustToPrevRoute)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  CHECK(m_router, ());
+  ++m_routeRevision;
+  SetState(routeRebuildingState);
+
+  ++m_routingRebuildCount;
+  auto const & direction =
+      m_routingSettings.m_useDirectionForRouteBuilding ? m_positionAccumulator.GetDirection() : m2::PointD::Zero();
+
+  Checkpoints checkpoints(m_checkpoints);
+  checkpoints.SetPointFrom(startPoint);
+  // GPS/traffic rebuild callers omit these UI callbacks. Still complete a failed
+  // request through the ready callback, so a valid old route remains navigable.
+  auto const onFailure = [this, readyCallback](RouterResultCode code)
+  {
+    AssignRoute(m_route, code);
+    if (readyCallback)
+      readyCallback(*m_route, code);
+  };
+  auto const onMissingMaps = needMoreMapsCallback ? needMoreMapsCallback :
+      NeedMoreMapsCallback([onFailure](uint64_t, std::set<std::string> const &) { onFailure(RouterResultCode::NeedMoreMaps); });
+  auto const onRemoveRoute = removeRouteCallback ? removeRouteCallback : RemoveRouteCallback(onFailure);
+  // Use old-style callback construction, because lambda constructs buggy function on Android
+  // (callback param isn't captured by value).
+  m_router->CalculateRoute(checkpoints, direction, adjustToPrevRoute, DoReadyCallback(*this, readyCallback),
+                           onMissingMaps, onRemoveRoute, m_progressCallback, timeoutSec);
+}
+
+m2::PointD RoutingSession::GetStartPoint() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_checkpoints.GetStart();
+}
+
+m2::PointD RoutingSession::GetEndPoint() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_checkpoints.GetFinish();
+}
+
+void RoutingSession::DoReadyCallback::operator()(std::shared_ptr<Route> const & route, RouterResultCode e)
+{
+  ASSERT(m_rs.m_route, ());
+  m_rs.AssignRoute(route, e);
+  m_callback(*m_rs.m_route, e);
+}
+
+void RoutingSession::RemoveRoute()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  m_lastDistance = 0.0;
+  m_moveAwayCounter = 0;
+  m_moveAwayCounterSinceLastAnnounce = 0;
+  m_turnNotificationsMgr.Reset();
+
+  m_route = std::make_shared<Route>(std::string{} /* router */, 0 /* route id */);
+  m_speedCameraManager.Reset();
+  m_speedCameraManager.SetRoute(m_route);
+}
+
+void RoutingSession::RebuildRouteOnTrafficUpdate()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m2::PointD startPoint;
+
+  {
+    startPoint = m_lastGoodPosition;
+
+    switch (m_state)
+    {
+    case SessionState::NoValidRoute:
+    case SessionState::RouteFinished: return;
+
+    case SessionState::RouteBuilding:
+    case SessionState::RouteNotStarted:
+    case SessionState::RouteNoFollowing:
+    case SessionState::RouteRebuilding: startPoint = m_checkpoints.GetPointFrom(); break;
+
+    case SessionState::OnRoute:
+    case SessionState::OffRoute:
+    case SessionState::RouteNeedsRebuild: break;
+    }
+
+    // Cancel current route building.
+    m_router->ClearState();
+  }
+
+  RebuildRoute(startPoint, m_rebuildReadyCallback, nullptr /* needMoreMapsCallback */,
+               nullptr /* removeRouteCallback */, RouterDelegate::kNoTimeout, SessionState::RouteRebuilding,
+               false /* adjustToPrevRoute */);
+}
+
+bool RoutingSession::IsActive() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return (m_state != SessionState::NoValidRoute);
+}
+
+bool RoutingSession::IsNavigable() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return (m_state == SessionState::RouteNotStarted || m_state == SessionState::OnRoute ||
+          m_state == SessionState::RouteFinished || m_state == SessionState::OffRoute);
+}
+
+bool RoutingSession::IsBuilt() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return (IsNavigable() || m_state == SessionState::RouteNeedsRebuild);
+}
+
+bool RoutingSession::IsBuilding() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return (m_state == SessionState::RouteBuilding || m_state == SessionState::RouteRebuilding);
+}
+
+bool RoutingSession::IsBuildingOnly() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_state == SessionState::RouteBuilding;
+}
+
+bool RoutingSession::IsRebuildingOnly() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_state == SessionState::RouteRebuilding;
+}
+
+bool RoutingSession::IsFinished() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_state == SessionState::RouteFinished;
+}
+
+bool RoutingSession::IsNoFollowing() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_state == SessionState::RouteNoFollowing;
+}
+
+bool RoutingSession::IsOnRoute() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return (m_state == SessionState::OnRoute);
+}
+
+bool RoutingSession::IsFollowing() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_isFollowing;
+}
+
+void RoutingSession::Reset()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ++m_routeRevision;
+  ASSERT(m_router != nullptr, ());
+
+  RemoveRoute();
+  SetState(SessionState::NoValidRoute);
+  m_router->ClearState();
+
+  m_passedDistanceOnRouteMeters = 0.0;
+  m_isFollowing = false;
+  m_lastCompletionPercent = 0;
+
+  // reset announcement counters
+  m_routingRebuildCount = -1;
+  m_routingRebuildAnnounceCount = 0;
+}
+
+void RoutingSession::SetState(SessionState state)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  if (m_changeSessionStateCallback && m_state != state)
+    m_changeSessionStateCallback(m_state, state);
+
+  m_state = state;
+}
+
+uint64_t RoutingSession::GetRouteRevision() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_routeRevision;
+}
+
+SessionState RoutingSession::OnLocationPositionChanged(GpsInfo const & info)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ASSERT_NOT_EQUAL(m_state, SessionState::NoValidRoute, ());
+  ASSERT(m_router, ());
+
+  if (m_state == SessionState::RouteFinished || m_state == SessionState::RouteBuilding ||
+      m_state == SessionState::RouteNoFollowing || m_state == SessionState::NoValidRoute)
+  {
+    return m_state;
+  }
+
+  CHECK(m_route, (m_state));
+  // Note. The route may not be valid here. It happens in case when while the first route
+  // build is cancelled because of traffic jam were downloaded. After that route rebuilding
+  // happens. While the rebuilding may be called OnLocationPositionChanged(...)
+  if (!m_route->IsValid())
+    return m_state;
+
+  m_turnNotificationsMgr.SetSpeedMetersPerSecond(info.m_speed);
+
+  auto const formerIter = m_route->GetCurrentIteratorTurn();
+  if (m_route->MoveIterator(info))
+  {
+    m_moveAwayCounter = 0;
+    m_moveAwayCounterSinceLastAnnounce = 0;
+    m_lastDistance = 0.0;
+
+    PassCheckpoints();
+
+    if (m_checkpoints.IsFinished())
+    {
+      m_passedDistanceOnRouteMeters += m_route->GetTotalDistanceMeters();
+      SetState(SessionState::RouteFinished);
+    }
+    else
+    {
+      SetState(SessionState::OnRoute);
+      m_speedCameraManager.OnLocationPositionChanged(info);
+    }
+
+    if (m_userCurrentPositionValid)
+      m_lastGoodPosition = m_userCurrentPosition;
+
+    auto const curIter = m_route->GetCurrentIteratorTurn();
+    // If we are moving to the next segment after passing the turn
+    // it means the turn is changed. So the |m_onNewTurn| should be called.
+    if (formerIter && curIter && IsNormalTurn(*formerIter) && formerIter->m_index < curIter->m_index && m_onNewTurn)
+      m_onNewTurn();
+
+    return m_state;
+  }
+
+  if (m_state != SessionState::RouteNeedsRebuild && m_state != SessionState::RouteRebuilding)
+  {
+    // Distance from the last known projection on route
+    // (check if we are moving far from the last known projection).
+    auto const & lastGoodPoint = m_route->GetFollowedPolyline().GetCurrentIter().m_pt;
+    double const dist =
+        mercator::DistanceOnEarth(lastGoodPoint, mercator::FromLatLon(info.m_latitude, info.m_longitude));
+    if (AlmostEqualAbs(dist, m_lastDistance, kRunawayDistanceSensitivityMeters))
+      return m_state;
+
+    if (!info.HasSpeed() || info.m_speed < m_routingSettings.m_minSpeedForRouteRebuildMpS)
+    {
+      m_moveAwayCounter += 1;
+      m_moveAwayCounterSinceLastAnnounce += 1;
+    }
+    else
+    {
+      m_moveAwayCounter += 2;
+      m_moveAwayCounterSinceLastAnnounce += 2;
+    }
+
+    m_lastDistance = dist;
+
+    if (m_moveAwayCounter > kOnRouteMissedCount)
+    {
+      if (m_autoReroute)
+      {
+        m_passedDistanceOnRouteMeters += m_route->GetCurrentDistanceFromBeginMeters();
+        SetState(SessionState::RouteNeedsRebuild);
+      }
+      else
+        SetState(SessionState::OffRoute);
+    }
+  }
+
+  return m_state;
+}
+
+void GetRoadShieldsInfo(RouteSegment::RoadNameInfo const & road, FollowingInfo::RoadShieldInfo & info)
+{
+  std::string const & mwmName = road.m_mwmId.GetMwmName();
+  if (road.HasExitInfo())
+  {
+    info.m_targetRoadShields =
+        ftypes::GetRoadShields(mwmName, road.m_destination_ref, ftypes::HighwayClass::Undefined);
+    info.m_junctionRoadShields =
+        ftypes::GetRoadShields(mwmName, road.m_junction_ref, ftypes::HighwayClass::Undefined);
+  }
+  else
+  {
+    info.m_targetRoadShields = ftypes::GetRoadShields(mwmName, road.m_ref, road.m_highwayClass);
+  }
+}
+
+std::string GetRoadShieldsText(ftypes::RoadShieldsSetT const & roadShields, bool const withBraces = true)
+{
+  std::string text;
+  for (size_t i = 0; i < roadShields.size(); ++i)
+  {
+    text += (withBraces ? "[" : "") + roadShields[i].m_name + (withBraces ? "]" : "");
+    if (i < roadShields.size() - 1)
+      text += " ";
+  }
+  return text;
+}
+
+// For next street returns "[ref] name" .
+// For highway exits (or main roads with exit info) returns "[junction:ref]: [target:ref] > target".
+// If no |target| - it will be replaced by |name| of next street.
+// If no |target:ref| - it will be replaced by |ref| of next road.
+// So if link has no info at all, "[ref] name" of next will be returned (as for next street).
+void GetFullRoadName(RouteSegment::RoadNameInfo const & road, FollowingInfo::RoadShieldInfo & roadShields,
+                     std::string & name)
+{
+  GetRoadShieldsInfo(road, roadShields);
+
+  name.clear();
+  if (road.HasExitInfo())
+  {
+    if (!roadShields.m_junctionRoadShields.empty())
+      name += GetRoadShieldsText(roadShields.m_junctionRoadShields, /* withBraces */ false);
+
+    if (!roadShields.m_targetRoadShields.empty())
+    {
+      std::string const & shieldsText = GetRoadShieldsText(roadShields.m_targetRoadShields);
+      if (!name.empty())
+        name += " : ";
+      name += shieldsText;
+    }
+
+    if (!road.m_destination.empty())
+      name += std::string(name.empty() ? "" : " ") + "> " + road.m_destination;
+    else if (!road.m_name.empty())
+      name += (roadShields.m_targetRoadShields.empty() ? std::string(name.empty() ? "" : " ") : " : ") + road.m_name;
+  }
+  else
+  {
+    if (!roadShields.m_targetRoadShields.empty())
+      name = GetRoadShieldsText(roadShields.m_targetRoadShields);
+    if (!road.m_name.empty())
+      name += (name.empty() ? "" : " ") + road.m_name;
+  }
+}
+
+double RoutingSession::GetDistanceToNextTurn() const
+{
+  if (!m_route->IsValid())
+    return -1;
+
+  double distanceToTurnMeters = 0.;
+  turns::TurnItem turn;
+  m_route->GetNearestTurn(distanceToTurnMeters, turn);
+  return distanceToTurnMeters;
+}
+
+double RoutingSession::GetCurrentSpeedLimit() const
+{
+  if (!m_route->IsValid())
+    return -1;
+
+  SpeedInUnits speedLimit;
+  m_route->GetCurrentSpeedLimit(speedLimit);
+  if (speedLimit.IsNumeric())
+    return measurement_utils::KmphToMps(speedLimit.GetSpeedKmPH());
+  else if (speedLimit.GetSpeed() == kNoneMaxSpeed)
+    return 0;
+  else
+    return -1.0;
+}
+
+void RoutingSession::GetRouteFollowingInfo(FollowingInfo & info) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  ASSERT(m_route, ());
+
+  if (!m_route->IsValid())
+  {
+    // Nothing should be displayed on the screen about turns if these lines are executed.
+    info = FollowingInfo();
+    info.m_routingSessionState = m_state;
+    info.m_indexOfNextStop = -1;  // Invalid next stop index.
+    return;
+  }
+
+  if (!IsNavigable())
+  {
+    info = FollowingInfo();
+    info.m_distToTarget = platform::Distance::CreateFormatted(m_route->GetTotalDistanceMeters());
+    info.m_time = static_cast<int>(std::max(kMinimumETASec, m_route->GetCurrentTimeToEndSec()));
+    info.m_routingSessionState = m_state;
+    info.m_indexOfNextStop = -1;  // Invalid next stop index.
+    return;
+  }
+
+  info.m_distToTarget = platform::Distance::CreateFormatted(m_route->GetCurrentDistanceToEndMeters());
+
+  double distanceToTurnMeters = 0.;
+  turns::TurnItem turn;
+  m_route->GetNearestTurn(distanceToTurnMeters, turn);
+  info.m_distToTurn = platform::Distance::CreateFormatted(distanceToTurnMeters);
+  info.m_turn = turn.m_turn;
+
+  info.m_speedLimitMps = GetCurrentSpeedLimit();
+
+  // The turn after the next one.
+  if (m_routingSettings.m_showTurnAfterNext)
+    info.m_nextTurn = m_turnNotificationsMgr.GetSecondTurnNotification();
+  else
+    info.m_nextTurn = routing::turns::CarDirection::None;
+
+  info.m_exitNum = turn.m_exitNum;
+  info.m_time = static_cast<int>(std::max(kMinimumETASec, m_route->GetCurrentTimeToEndSec()));
+
+  RouteSegment::RoadNameInfo currentRoadNameInfo;
+  m_route->GetCurrentStreetName(currentRoadNameInfo);
+  GetFullRoadName(currentRoadNameInfo, info.m_currentStreetShields, info.m_currentStreetName);
+  // Carry the structured components so platform UIs can build their own instruction variants
+  RouteSegment::RoadNameInfo nextRoadNameInfo;
+  m_route->GetNextTurnStreetName(nextRoadNameInfo);
+  GetFullRoadName(nextRoadNameInfo, info.m_nextStreetShields, info.m_nextStreetName);
+  if (nextRoadNameInfo.m_isLink && !nextRoadNameInfo.HasExitTextInfo())
+  {
+    info.m_nextStreetShields.m_targetRoadShields =
+        ftypes::GetRoadShields(nextRoadNameInfo.m_mwmId.GetMwmName(), nextRoadNameInfo.m_ref,
+                               nextRoadNameInfo.m_highwayClass);
+  }
+  info.m_nextName = nextRoadNameInfo.m_name;
+  info.m_nextRef = ftypes::GetRoadShieldDisplayRef(nextRoadNameInfo.m_ref);
+  info.m_nextJunctionRef = nextRoadNameInfo.m_junction_ref;
+  info.m_nextDestinationRef = ftypes::GetRoadShieldDisplayRef(nextRoadNameInfo.m_destination_ref);
+  info.m_nextDestination = nextRoadNameInfo.m_destination;
+  info.m_nextIsLink = nextRoadNameInfo.m_isLink;
+  info.m_nextHighwayClass = nextRoadNameInfo.m_highwayClass;
+
+  RouteSegment::RoadNameInfo nextNextRoadNameInfo;
+  m_route->GetNextNextTurnStreetName(nextNextRoadNameInfo);
+  GetFullRoadName(nextNextRoadNameInfo, info.m_nextNextStreetShields, info.m_nextNextStreetName);
+
+  info.m_completionPercent = GetCompletionPercent();
+
+  // Lane information.
+  info.m_lanes.clear();
+  if (distanceToTurnMeters < kShowLanesMinDistInMeters || m_route->GetCurrentTimeToNearestTurnSec() < 60.0)
+    info.m_lanes = turn.m_lanes;
+
+  // Pedestrian info.
+  info.m_pedestrianTurn =
+      (distanceToTurnMeters < kShowPedestrianTurnInMeters) ? turn.m_pedestrianTurn : turns::PedestrianDirection::None;
+
+  // Routing session state.
+  info.m_routingSessionState = m_state;
+
+  // Get number of subroutes.
+  size_t subrouteCount = m_route->GetSubrouteCount();
+
+  // Get index of the subroute that we're currently in.
+  size_t currentSubrouteIdx = m_route->GetCurrentSubrouteIdx();
+
+  // Set index of next intermediate stop:
+  //  0 = there are no next intermediate stops.
+  //  1 = intermediate stop #1.
+  //  2 = intermediate stop #2.
+  //  and so on...
+  if (currentSubrouteIdx == (subrouteCount - 1))
+  {
+    // We're in the last subroute (There are no more intermediate stops).
+    info.m_indexOfNextStop = 0;
+    return;
+  }
+
+  // Set the index of the next intermediate stop.
+  info.m_indexOfNextStop = (int)currentSubrouteIdx + 1;
+
+  // Get index of end segment of the subroute.
+  size_t subrouteEndSegmentIdx = m_route->GetSubrouteAttrs(currentSubrouteIdx).GetEndSegmentIdx();
+
+  // Get remaining distance to end of subroute.
+  info.m_distToNextStop =
+      platform::Distance::CreateFormatted(m_route->GetCurrentDistanceToSegmentMeters(subrouteEndSegmentIdx));
+
+  // Get remaining time to end of subroute.
+  info.m_timeToNextStop = std::max(kMinimumETASec, m_route->GetCurrentTimeToSegmentSec(subrouteEndSegmentIdx));
+}
+
+double RoutingSession::GetCompletionPercent() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ASSERT(m_route, ());
+
+  double const denominator = m_passedDistanceOnRouteMeters + m_route->GetTotalDistanceMeters();
+  if (!m_route->IsValid() || denominator == 0.0)
+    return 0;
+
+  double const percent =
+      100.0 * (m_passedDistanceOnRouteMeters + m_route->GetCurrentDistanceFromBeginMeters()) / denominator;
+  if (percent - m_lastCompletionPercent > kCompletionPercentAccuracy)
+    m_lastCompletionPercent = percent;
+  return percent;
+}
+
+std::vector<double> RoutingSession::GetIntermediateStopsProgress() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ASSERT(m_route, ());
+
+  std::vector<double> progressArray;
+
+  if (m_route->IsValid())
+  {
+    double totalRouteDistance = m_passedDistanceOnRouteMeters + m_route->GetTotalDistanceMeters();
+
+    for (size_t i = 0; i < (m_route->GetSubrouteCount() - 1); i++)
+    {
+      size_t subrouteEndSegmentIdx = m_route->GetSubrouteAttrs(i).GetEndSegmentIdx();
+      double distanceToSubrouteEndSegment = m_passedDistanceOnRouteMeters +
+        m_route->GetDistanceFromBeginToSegmentMeters(subrouteEndSegmentIdx);
+      progressArray.push_back(distanceToSubrouteEndSegment * 100.0 / totalRouteDistance);
+    }
+  }
+
+  return progressArray;
+}
+
+void RoutingSession::PassCheckpoints()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  while (!m_checkpoints.IsFinished() && m_route->IsSubroutePassed(m_checkpoints.GetPassedIdx()))
+  {
+    m_route->PassNextSubroute();
+    m_checkpoints.PassNextPoint();
+    LOG(LINFO, ("Pass checkpoint, ", m_checkpoints));
+    m_checkpointCallback(m_checkpoints.GetPassedIdx());
+  }
+}
+
+void RoutingSession::GenerateNotifications(std::vector<std::string> & notifications, bool announceStreets)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  notifications.clear();
+
+  ASSERT(m_route, ());
+
+  // Generate recalculating notification if needed and reset
+  if (m_routingRebuildCount > m_routingRebuildAnnounceCount)
+  {
+    m_routingRebuildAnnounceCount = m_routingRebuildCount;
+    notifications.emplace_back(m_turnNotificationsMgr.GenerateRecalculatingText());
+    return;
+  }
+
+  // Route missed notifications
+  if (!m_autoReroute /* if we will not be rerouting (see case above) */
+      // if this is the first announcement, we can use a shorter threshold as the user wants to know right away
+      && ((m_moveAwayCounter == m_moveAwayCounterSinceLastAnnounce &&
+           m_moveAwayCounterSinceLastAnnounce > kOnRouteMissedCount)
+          // for second or higher announcement, we use a longer interval to avoid being repetitive
+          || (m_moveAwayCounterSinceLastAnnounce > kAnnounceRouteMissedCount)))
+  {
+    m_moveAwayCounterSinceLastAnnounce = 0;
+    notifications.emplace_back(m_turnNotificationsMgr.GenerateOffRouteText(m_lastDistance));
+    return;
+  }
+
+  // Voice turn notifications.
+  if (!m_routingSettings.m_soundDirection)
+    return;
+
+  if (!m_route->IsValid() || !IsNavigable())
+    return;
+
+  // Generate turns notifications.
+  std::vector<turns::TurnItemDist> turns;
+  if (m_route->GetNextTurns(turns))
+  {
+    RouteSegment::RoadNameInfo nextStreetInfo;
+
+    // only populate nextStreetInfo if TtsStreetNames is enabled
+    if (announceStreets)
+      m_route->GetNextTurnStreetName(nextStreetInfo);
+
+    m_turnNotificationsMgr.GenerateTurnNotifications(turns, notifications, nextStreetInfo);
+  }
+
+  m_speedCameraManager.GenerateNotifications(notifications);
+}
+
+void RoutingSession::SetAutoReroute(bool autoReroute)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  if (autoReroute)
+  {
+    // If we are off the route, recalculate immediately.
+    AutoReroute();
+  }
+
+  m_autoReroute = autoReroute;
+}
+
+bool RoutingSession::AutoReroute()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  if (m_state == SessionState::OffRoute)
+  {
+    SetState(SessionState::RouteNeedsRebuild);
+    return true;
+  }
+
+  return false;
+}
+
+void RoutingSession::AssignRoute(std::shared_ptr<Route> const & route, RouterResultCode e)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  if (e != RouterResultCode::NoError)
+  {
+    // Route building was not success. If the former route is valid let's continue moving along it.
+    // If not, let's set corresponding state.
+    if (m_route->IsValid())
+      SetState(SessionState::OnRoute);
+    else
+      SetState(SessionState::NoValidRoute);
+    return;
+  }
+
+  RemoveRoute();
+  SetState(SessionState::RouteNotStarted);
+  m_lastCompletionPercent = 0;
+  m_checkpoints.SetPointFrom(route->GetPoly().Front());
+
+  route->SetRoutingSettings(m_routingSettings);
+  m_route = route;
+  m_speedCameraManager.Reset();
+  m_speedCameraManager.SetRoute(m_route);
+}
+
+void RoutingSession::SetRouter(std::unique_ptr<IRouter> && router, std::unique_ptr<AbsentRegionsFinder> && finder)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ASSERT(m_router != nullptr, ());
+  Reset();
+  m_router->SetRouter(std::move(router), std::move(finder));
+}
+
+void RoutingSession::MatchLocationToRoadGraph(location::GpsInfo & location)
+{
+  auto const locationMerc = mercator::FromLatLon(location.m_latitude, location.m_longitude);
+  double const radius = m_route->GetCurrentRoutingSettings().m_matchingThresholdM;
+
+  m2::PointD const direction = m_positionAccumulator.GetDirection();
+
+  static auto constexpr kEps = 1e-5;
+  if (AlmostEqualAbs(direction, m2::PointD::Zero(), kEps))
+    return;
+
+  EdgeProj proj;
+  if (!m_router->FindClosestProjectionToRoad(locationMerc, direction, radius, proj))
+  {
+    m_projectedToRoadGraph = false;
+    return;
+  }
+
+  // First matching to the same road. We pull coordinates and angle on the following matchings.
+  if (!m_projectedToRoadGraph)
+  {
+    m_projectedToRoadGraph = true;
+    m_proj = proj;
+    return;
+  }
+
+  if (m_proj.m_edge.GetFeatureId() == proj.m_edge.GetFeatureId())
+  {
+    if (m_route->GetCurrentRoutingSettings().m_matchRoute)
+    {
+      if (!AlmostEqualAbs(m_proj.m_point, proj.m_point, kEps))
+        location.m_bearing = location::AngleToBearing(math::RadToDeg(ang::AngleTo(m_proj.m_point, proj.m_point)));
+    }
+
+    location.m_latitude = mercator::YToLat(proj.m_point.y);
+    location.m_longitude = mercator::XToLon(proj.m_point.x);
+  }
+  else
+  {
+    m_projectedToRoadGraph = false;
+  }
+
+  m_proj = proj;
+}
+
+bool RoutingSession::MatchLocationToRoute(location::GpsInfo & location, location::RouteMatchingInfo & routeMatchingInfo)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  if (!IsOnRoute())
+    return true;
+
+  ASSERT(m_route, ());
+
+  bool const matchedToRoute = m_route->MatchLocationToRoute(location, routeMatchingInfo);
+  if (matchedToRoute)
+    m_projectedToRoadGraph = false;
+
+  return matchedToRoute;
+}
+
+traffic::SpeedGroup RoutingSession::MatchTraffic(location::RouteMatchingInfo const & routeMatchingInfo) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  if (!routeMatchingInfo.IsMatched())
+    return SpeedGroup::Unknown;
+
+  size_t const index = routeMatchingInfo.GetIndexInRoute();
+
+  return m_route->GetTraffic(index);
+}
+
+bool RoutingSession::DisableFollowMode()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  LOG(LINFO, ("Routing disables a following mode. SessionState: ", m_state));
+  if (m_state == SessionState::RouteNotStarted || m_state == SessionState::OnRoute || m_state == SessionState::OffRoute)
+  {
+    SetState(SessionState::RouteNoFollowing);
+    m_isFollowing = false;
+    return true;
+  }
+  return false;
+}
+
+bool RoutingSession::EnableFollowMode()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  LOG(LINFO, ("Routing enables a following mode. SessionState: ", m_state));
+  if (m_state == SessionState::RouteNotStarted || m_state == SessionState::OnRoute)
+  {
+    SetState(SessionState::OnRoute);
+    m_isFollowing = true;
+  }
+  else if (m_state == SessionState::OffRoute)
+  {
+    m_isFollowing = true;
+  }
+  return m_isFollowing;
+}
+
+void RoutingSession::SetRoutingSettings(RoutingSettings const & routingSettings)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_routingSettings = routingSettings;
+}
+
+void RoutingSession::SetRoutingCallbacks(ReadyCallback const & buildReadyCallback,
+                                         ReadyCallback const & rebuildReadyCallback,
+                                         NeedMoreMapsCallback const & needMoreMapsCallback,
+                                         RemoveRouteCallback const & removeRouteCallback)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_buildReadyCallback = buildReadyCallback;
+  m_rebuildReadyCallback = rebuildReadyCallback;
+  m_needMoreMapsCallback = needMoreMapsCallback;
+  m_removeRouteCallback = removeRouteCallback;
+}
+
+void RoutingSession::SetSpeedCamShowCallback(SpeedCameraShowCallback && callback)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_speedCameraManager.SetSpeedCamShowCallback(std::move(callback));
+}
+
+void RoutingSession::SetSpeedCamClearCallback(SpeedCameraClearCallback && callback)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_speedCameraManager.SetSpeedCamClearCallback(std::move(callback));
+}
+
+void RoutingSession::SetProgressCallback(ProgressCallback const & progressCallback)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_progressCallback = progressCallback;
+}
+
+void RoutingSession::SetCheckpointCallback(CheckpointCallback const & checkpointCallback)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_checkpointCallback = checkpointCallback;
+}
+
+void RoutingSession::SetChangeSessionStateCallback(ChangeSessionStateCallback const & changeSessionStateCallback)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_changeSessionStateCallback = changeSessionStateCallback;
+}
+
+void RoutingSession::SetOnNewTurnCallback(OnNewTurn const & onNewTurn)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_onNewTurn = onNewTurn;
+}
+
+void RoutingSession::SetUserCurrentPosition(m2::PointD const & position)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  m_userCurrentPosition = position;
+  m_userCurrentPositionValid = true;
+}
+
+void RoutingSession::PushPositionAccumulator(m2::PointD const & position)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  m_positionAccumulator.PushNextPoint(position);
+}
+void RoutingSession::ClearPositionAccumulator()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+
+  m_positionAccumulator.Clear();
+}
+
+void RoutingSession::EnableTurnNotifications(bool enable)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_turnNotificationsMgr.Enable(enable);
+}
+
+bool RoutingSession::AreTurnNotificationsEnabled() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_turnNotificationsMgr.IsEnabled();
+}
+
+void RoutingSession::SetTurnNotificationsUnits(measurement_utils::Units const units)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_turnNotificationsMgr.SetLengthUnits(units);
+}
+
+void RoutingSession::SetTurnNotificationsLocale(std::string const & locale)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  LOG(LINFO, ("The language for turn notifications is", locale));
+  m_turnNotificationsMgr.SetLocale(locale);
+}
+
+std::string RoutingSession::GetTurnNotificationsLocale() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_turnNotificationsMgr.GetLocale();
+}
+
+void RoutingSession::RouteCall(RouteCallback const & callback) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  CHECK(m_route, ());
+  callback(*m_route);
+}
+
+void RoutingSession::EmitCloseRoutingEvent() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ASSERT(m_route, ());
+
+  if (!m_route->IsValid())
+  {
+    ASSERT(false, ());
+    return;
+  }
+}
+
+bool RoutingSession::HasRouteAltitude() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ASSERT(m_route, ());
+  return m_route->HaveAltitudes();
+}
+
+bool RoutingSession::IsRouteId(uint64_t routeId) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_route->IsRouteId(routeId);
+}
+
+bool RoutingSession::IsRouteValid() const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  return m_route && m_route->IsValid();
+}
+
+bool RoutingSession::GetRouteJunctionPoints(std::vector<geometry::PointWithAltitude> & routeJunctionPoints) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ASSERT(m_route, ());
+
+  if (!m_route->IsValid())
+    return false;
+
+  auto const & segments = m_route->GetRouteSegments();
+  CHECK(!segments.empty(), ());
+
+  routeJunctionPoints.reserve(segments.size());
+  for (auto const & s : segments)
+    routeJunctionPoints.push_back(s.GetJunction());
+
+  return true;
+}
+
+bool RoutingSession::GetRouteAltitudesAndDistancesM(std::vector<double> & routeSegDistanceM,
+                                                    geometry::Altitudes & routeAltitudesM) const
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  ASSERT(m_route, ());
+
+  if (!m_route->IsValid() || !m_route->HaveAltitudes())
+    return false;
+
+  auto const & distances = m_route->GetSegDistanceMeters();
+  routeSegDistanceM.reserve(distances.size() + 1);
+  routeSegDistanceM.push_back(0);
+  routeSegDistanceM.insert(routeSegDistanceM.end(), distances.begin(), distances.end());
+
+  m_route->GetAltitudes(routeAltitudesM);
+
+  ASSERT_EQUAL(routeSegDistanceM.size(), routeAltitudesM.size(), ());
+  return true;
+}
+
+void RoutingSession::OnTrafficInfoClear()
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  Clear();
+  RebuildRouteOnTrafficUpdate();
+}
+
+void RoutingSession::OnTrafficInfoAdded(TrafficInfo && info)
+{
+  TrafficInfo::Coloring const & fullColoring = info.GetColoring();
+  auto coloring = std::make_shared<TrafficInfo::Coloring>();
+  for (auto const & kv : fullColoring)
+  {
+    ASSERT_NOT_EQUAL(kv.second, SpeedGroup::Unknown, ());
+    coloring->insert(kv);
+  }
+
+  // Note. |coloring| should not be used after this call on gui thread.
+  auto const mwmId = info.GetMwmId();
+  GetPlatform().RunTask(Platform::Thread::Gui, [this, mwmId, coloring]()
+  {
+    Set(mwmId, coloring);
+    RebuildRouteOnTrafficUpdate();
+  });
+}
+
+void RoutingSession::OnTrafficInfoRemoved(MwmSet::MwmId const & mwmId)
+{
+  GetPlatform().RunTask(Platform::Thread::Gui, [this, mwmId]()
+  {
+    CHECK_THREAD_CHECKER(m_threadChecker, ());
+    Remove(mwmId);
+    RebuildRouteOnTrafficUpdate();
+  });
+}
+
+void RoutingSession::CopyTraffic(traffic::AllMwmTrafficInfo & trafficColoring) const
+{
+  TrafficCache::CopyTraffic(trafficColoring);
+}
+
+std::vector<routing::RouteStepInfo> RoutingSession::GetRouteTurnsForDisplay(std::string const & locale) const
+{
+  return m_route->GetTurnsForDisplay(locale);
+}
+
+void RoutingSession::SetLocaleWithJsonForTesting(std::string const & json, std::string const & locale)
+{
+  CHECK_THREAD_CHECKER(m_threadChecker, ());
+  m_turnNotificationsMgr.SetLocaleWithJsonForTesting(json, locale);
+}
+
+std::string DebugPrint(SessionState state)
+{
+  switch (state)
+  {
+  case SessionState::NoValidRoute: return "NoValidRoute";
+  case SessionState::RouteBuilding: return "RouteBuilding";
+  case SessionState::RouteNotStarted: return "RouteNotStarted";
+  case SessionState::OnRoute: return "OnRoute";
+  case SessionState::RouteNeedsRebuild: return "RouteNeedsRebuild";
+  case SessionState::RouteFinished: return "RouteFinished";
+  case SessionState::RouteNoFollowing: return "RouteNoFollowing";
+  case SessionState::RouteRebuilding: return "RouteRebuilding";
+  case SessionState::OffRoute: return "OffRoute";
+  }
+  UNREACHABLE();
+}
+}  // namespace routing

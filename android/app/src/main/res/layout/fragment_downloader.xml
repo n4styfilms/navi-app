@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  style="@style/MwmWidget.Floating"
+  android:background="?appBackground"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+  <include layout="@layout/toolbar_with_search"/>
+
+  <com.google.android.material.button.MaterialButton
+    android:id="@+id/check_updates"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/MwmWidget.M3.Button.Secondary"
+    android:text="@string/downloader_check_updates_button"
+    android:layout_alignParentBottom="true"
+    android:layout_marginLeft="@dimen/margin_base"
+    android:layout_marginRight="@dimen/margin_base"/>
+
+  <com.google.android.material.button.MaterialButton
+    android:id="@+id/action"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="@style/MwmWidget.M3.Button.Primary"
+    tools:text="@string/downloader_update_all_button"
+    android:layout_above="@id/check_updates"
+    android:layout_alignWithParentIfMissing="true"
+    android:layout_marginLeft="@dimen/margin_base"
+    android:layout_marginRight="@dimen/margin_base"/>
+
+  <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/recycler"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?appBackground"
+    android:scrollbars="vertical"
+    android:layout_below="@id/toolbar"
+    android:layout_above="@id/action"/>
+
+  <com.google.android.material.floatingactionbutton.FloatingActionButton
+    android:id="@+id/fab"
+    style="@style/MwmWidget.M3.FAB.Primary"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_above="@id/action"
+    android:layout_alignWithParentIfMissing="true"
+    android:layout_alignParentEnd="true"
+    android:layout_marginEnd="@dimen/margin_base"
+    android:layout_marginBottom="@dimen/margin_base"
+    app:srcCompat="@drawable/ic_plus"/>
+
+  <app.organicmaps.widget.PlaceholderView
+    android:id="@+id/placeholder"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_below="@id/toolbar"
+    android:layout_above="@id/action"
+    android:paddingStart="@dimen/margin_double_and_half"
+    android:paddingEnd="@dimen/margin_double_and_half"
+    android:paddingTop="@dimen/placeholder_margin_top"
+    android:gravity="center_horizontal"
+    android:visibility="gone"
+    tools:visibility="visible"/>
+</RelativeLayout>

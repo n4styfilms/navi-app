@@ -1,0 +1,356 @@
+#include "qt/place_page_dialog_user.hpp"
+
+#include "qt/place_page_dialog_common.hpp"
+#include "qt/star_rating_widget.hpp"
+
+#include "qt/qt_common/text_dialog.hpp"
+
+#include "editor/review.hpp"
+#include "indexer/reviews_display.hpp"
+#include "indexer/validate_and_format_contacts.hpp"
+#include "map/place_page_info.hpp"
+
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QProgressBar>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QVBoxLayout>
+
+#include <sstream>
+#include <string>
+
+namespace
+{
+static int constexpr kMaxLengthOfPlacePageDescription = 500;
+static int constexpr kMinWidthOfShortDescription = 390;
+
+std::string getShortDescription(std::string const & description)
+{
+  std::string_view view(description);
+
+  auto const paragraphStart = view.find("<p>");
+  auto const paragraphEnd = view.find("</p>");
+
+  if (paragraphStart == 0 && paragraphEnd != std::string::npos)
+    view = view.substr(3, paragraphEnd - 3);
+
+  if (view.length() > kMaxLengthOfPlacePageDescription)
+    return std::string(view.substr(0, kMaxLengthOfPlacePageDescription - 3)) + "...";
+
+  return std::string(view);
+}
+
+}  // namespace
+
+class QHLine : public QFrame
+{
+public:
+  QHLine(QWidget * parent = nullptr) : QFrame(parent)
+  {
+    setFrameShape(QFrame::HLine);
+    setFrameShadow(QFrame::Sunken);
+  }
+};
+
+void PlacePageDialogUser::AddReviewsFragment(place_page::Info const & info, QVBoxLayout * header)
+{
+  auto const & featureReviews = info.GetReviews();
+  auto const & reviewApp = reviews::GetReviewEditorApp(info);
+
+  if (featureReviews.has_value() || reviewApp.has_value())
+  {
+    auto * const reviewLine = new QHBoxLayout();
+    reviewLine->setSpacing(5);
+    header->addLayout(reviewLine);
+
+    if (featureReviews.has_value())
+    {
+      auto const & [averageRating, reviews] = featureReviews.value();
+      auto const starRating = reviews::ToStarRating(averageRating);
+      reviewLine->addWidget(new QLabel(QString::fromStdString(std::format("{:.1f}", starRating))));
+      reviewLine->addWidget(new qt::StarRatingWidget(starRating));
+      reviewLine->addWidget(new QLabel(QString::fromStdString(std::format("({})", reviews.size()))));
+    }
+    if (reviewApp.has_value())
+    {
+      auto * const spinner = new QProgressBar(this);
+      spinner->setRange(0, 0);
+      spinner->setTextVisible(false);
+
+      auto * const addReview = new QLabel(this);
+      addReview->setWordWrap(false);
+      addReview->setText("resolving review editor URL...");
+
+      reviewLine->addWidget(spinner);
+      reviewLine->addWidget(addReview);
+
+      place_page_dialog::resolveReviewEditorUrl(this, info, spinner,
+                                                [addReview, reviewApp](std::string const & reviewUrl)
+      {
+        addReview->setText(
+            QString::fromStdString("<a href=\"" + reviewUrl + "\">Add a Review via " + reviewApp.value() + "</a>"));
+        addReview->setOpenExternalLinks(true);
+        addReview->setTextInteractionFlags(Qt::TextBrowserInteraction);
+      }, [addReview]() { addReview->hide(); });
+    }
+    reviewLine->addStretch(1);
+  }
+}
+
+PlacePageDialogUser::PlacePageDialogUser(QWidget * parent, place_page::Info const & info,
+                                         search::ReverseGeocoder::Address const & address)
+  : QDialog(parent)
+{
+  auto const & title = info.GetTitle();
+
+  QVBoxLayout * layout = new QVBoxLayout();
+  {
+    QVBoxLayout * header = new QVBoxLayout();
+
+    if (!title.empty())
+    {
+      QLabel * titleLabel = new QLabel(QString::fromStdString("<h1>" + title + "</h1>"));
+      titleLabel->setWordWrap(true);
+      header->addWidget(titleLabel);
+    }
+
+    if (auto const subTitle = info.GetSubtitle(); !subTitle.empty())
+    {
+      QLabel * subtitleLabel = new QLabel(QString::fromStdString(subTitle));
+      subtitleLabel->setWordWrap(true);
+      header->addWidget(subtitleLabel);
+    }
+
+    AddReviewsFragment(info, header);
+
+    if (auto const addressFormatted = address.FormatAddress(); !addressFormatted.empty())
+    {
+      QLabel * addressLabel = new QLabel(QString::fromStdString(addressFormatted));
+      addressLabel->setWordWrap(true);
+      header->addWidget(addressLabel);
+    }
+
+    layout->addLayout(header);
+  }
+
+  {
+    QHLine * line = new QHLine();
+    layout->addWidget(line);
+  }
+
+  {
+    QGridLayout * data = new QGridLayout();
+
+    int row = 0;
+
+    auto const addEntry = [data, &row](std::string const & key, std::string const & value, bool isLink = false)
+    {
+      data->addWidget(new QLabel(QString::fromStdString(key)), row, 0);
+      QLabel * label = new QLabel(QString::fromStdString(value));
+      label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+      label->setWordWrap(true);
+      if (isLink)
+      {
+        label->setOpenExternalLinks(true);
+        label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+        label->setText(QString::fromStdString("<a href=\"" + value + "\">" + value + "</a>"));
+      }
+      data->addWidget(label, row++, 1);
+      return label;
+    };
+
+    if (info.IsBookmark())
+      addEntry("Bookmark", "Yes");
+
+    // Wikipedia fragment
+    if (auto const & wikipedia = info.GetMetadata(feature::Metadata::EType::FMD_WIKIPEDIA); !wikipedia.empty())
+    {
+      QLabel * name = new QLabel("Wikipedia");
+      name->setOpenExternalLinks(true);
+      name->setTextInteractionFlags(Qt::TextBrowserInteraction);
+      name->setText(QString::fromStdString("<a href=\"" + feature::Metadata::ToWikiURL(std::string(wikipedia)) +
+                                           "\">Wikipedia</a>"));
+      data->addWidget(name, row++, 0);
+    }
+
+    // Description
+    if (auto const & description = info.GetWikiDescription(); !description.empty())
+    {
+      auto descriptionShort = getShortDescription(description);
+
+      QLabel * value = new QLabel(QString::fromStdString(descriptionShort));
+      value->setWordWrap(true);
+
+      data->addWidget(value, row++, 0, 1, 2);
+
+      QPushButton * wikiButton = new QPushButton("More...", value);
+      wikiButton->setAutoDefault(false);
+      connect(wikiButton, &QAbstractButton::clicked, this, [this, description, title]()
+      {
+        auto textDialog =
+            TextDialog(this, QString::fromStdString(description), QString::fromStdString("Wikipedia: " + title));
+        textDialog.exec();
+      });
+
+      data->addWidget(wikiButton, row++, 0, 1, 2, Qt::AlignLeft);
+    }
+
+    // Opening hours fragment
+    if (auto openingHours = info.GetOpeningHours(); !openingHours.empty())
+      addEntry("Opening hours", std::string(openingHours));
+
+    // Cuisine fragment
+    if (auto cuisines = info.FormatCuisines(); !cuisines.empty())
+      addEntry("Cuisine", cuisines);
+
+    // Capacity fragment
+    if (auto capacity = info.GetCapacity(); !capacity.empty())
+      addEntry("Capacity", capacity);
+
+    // Sockets fragment
+    if (auto sockets = info.GetChargeSockets(); !sockets.empty())
+    {
+      std::ostringstream oss;
+      for (auto s : sockets)
+      {
+        oss << s.type;
+        if (s.power > 0)
+          oss << " (" << s.power << "kW)";
+        if (s.count > 0)
+          oss << " × " << s.count;
+        oss << "\n";
+      }
+      addEntry("Charging sockets", oss.str());
+    }
+
+    // Entrance fragment
+    // TODO
+
+    // Phone fragment
+    if (auto phoneNumber = info.GetMetadata(feature::Metadata::EType::FMD_PHONE_NUMBER); !phoneNumber.empty())
+    {
+      data->addWidget(new QLabel("Phone"), row, 0);
+
+      QLabel * value = new QLabel(QString::fromStdString("<a href='tel:" + std::string(phoneNumber) + "'>" +
+                                                         std::string(phoneNumber) + "</a>"));
+      value->setOpenExternalLinks(true);
+
+      data->addWidget(value, row++, 1);
+    }
+
+    // Operator fragment
+    if (auto operatorName = info.GetMetadata(feature::Metadata::EType::FMD_OPERATOR); !operatorName.empty())
+      addEntry("Operator", std::string(operatorName));
+
+    // Wifi fragment
+    if (info.HasWifi())
+      addEntry("Wi-Fi", "Yes");
+
+    // Links fragment
+    if (auto website = info.GetMetadata(feature::Metadata::EType::FMD_WEBSITE); !website.empty())
+      addEntry("Website", std::string(website), true);
+
+    if (auto email = info.GetMetadata(feature::Metadata::EType::FMD_EMAIL); !email.empty())
+    {
+      data->addWidget(new QLabel("Email"), row, 0);
+
+      QLabel * value = new QLabel(
+          QString::fromStdString("<a href='mailto:" + std::string(email) + "'>" + std::string(email) + "</a>"));
+      value->setOpenExternalLinks(true);
+
+      data->addWidget(value, row++, 1);
+    }
+
+    // Social networks
+    {
+      auto addSocialNetworkWidget = [data, &info, &row](std::string const label, feature::Metadata::EType const eType)
+      {
+        if (auto item = info.GetMetadata(eType); !item.empty())
+        {
+          data->addWidget(new QLabel(QString::fromStdString(label)), row, 0);
+
+          QLabel * value = new QLabel(QString::fromStdString(
+              "<a href='" + osm::socialContactToURL(eType, std::string(item)) + "'>" + std::string(item) + "</a>"));
+          value->setOpenExternalLinks(true);
+          value->setTextInteractionFlags(Qt::TextBrowserInteraction);
+
+          data->addWidget(value, row++, 1);
+        }
+      };
+
+      addSocialNetworkWidget("Facebook", feature::Metadata::EType::FMD_CONTACT_FACEBOOK);
+      addSocialNetworkWidget("Instagram", feature::Metadata::EType::FMD_CONTACT_INSTAGRAM);
+      addSocialNetworkWidget("Twitter", feature::Metadata::EType::FMD_CONTACT_TWITTER);
+      addSocialNetworkWidget("VK", feature::Metadata::EType::FMD_CONTACT_VK);
+      addSocialNetworkWidget("Line", feature::Metadata::EType::FMD_CONTACT_LINE);
+      addSocialNetworkWidget("Mastodon", feature::Metadata::EType::FMD_CONTACT_FEDIVERSE);
+      addSocialNetworkWidget("Bluesky", feature::Metadata::EType::FMD_CONTACT_BLUESKY);
+    }
+
+    if (auto wikimedia_commons = info.GetMetadata(feature::Metadata::EType::FMD_WIKIMEDIA_COMMONS);
+        !wikimedia_commons.empty())
+    {
+      data->addWidget(new QLabel("Wikimedia Commons"), row, 0);
+
+      QLabel * value = new QLabel(QString::fromStdString(
+          "<a href='" + feature::Metadata::ToWikimediaCommonsURL(std::string(wikimedia_commons)) +
+          "'>Wikimedia Commons</a>"));
+      value->setOpenExternalLinks(true);
+      value->setTextInteractionFlags(Qt::TextBrowserInteraction);
+
+      data->addWidget(value, row++, 1);
+    }
+
+    if (auto panoramax = info.GetMetadata(feature::Metadata::EType::FMD_PANORAMAX); !panoramax.empty())
+    {
+      data->addWidget(new QLabel("Panoramax Picture"), row, 0);
+
+      QLabel * value = new QLabel(QString::fromStdString(
+          "<a href='https://api.panoramax.xyz/?pic=" + std::string(panoramax) + "'>Panoramax Image</a>"));
+      value->setOpenExternalLinks(true);
+      value->setTextInteractionFlags(Qt::TextBrowserInteraction);
+
+      data->addWidget(value, row++, 1);
+    }
+
+    // Level fragment
+    if (auto level = info.GetMetadata(feature::Metadata::EType::FMD_LEVEL); !level.empty())
+      addEntry("Level", std::string(level));
+
+    // ATM fragment
+    if (info.HasAtm())
+      addEntry("ATM", "Yes");
+
+    // Latlon fragment
+
+    {
+      ms::LatLon const ll = info.GetLatLon();
+      addEntry("Coordinates", strings::to_string_dac(ll.m_lat, 7) + ", " + strings::to_string_dac(ll.m_lon, 7));
+    }
+
+    data->setColumnStretch(0, 0);
+    data->setColumnStretch(1, 1);
+
+    layout->addLayout(data);
+  }
+
+  layout->addStretch();
+
+  {
+    QHLine * line = new QHLine();
+    layout->addWidget(line);
+  }
+
+  {
+    QDialogButtonBox * dbb = new QDialogButtonBox();
+    place_page_dialog::addCommonButtons(this, dbb, info.ShouldShowEditPlace());
+    layout->addWidget(dbb, Qt::AlignCenter);
+  }
+
+  setLayout(layout);
+
+  auto const ppTitle = std::string("Place Page") + (info.IsBookmark() ? " (bookmarked)" : "");
+  setWindowTitle(ppTitle.c_str());
+}

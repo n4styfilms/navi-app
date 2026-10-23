@@ -1,0 +1,9 @@
+name: DCO
+on: [pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Developer Certificate of Origin (DCO) compliance
+        uses: https://github.com/KineticCafe/actions-dco@fb284c903a7673a3d4b0bdd104479a6f0d46dae7 # v1.3.6

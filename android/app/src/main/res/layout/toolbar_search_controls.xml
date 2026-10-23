@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:id="@+id/search_container"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:orientation="horizontal"
+  android:baselineAligned="false"
+  android:gravity="center_vertical">
+
+  <com.google.android.material.imageview.ShapeableImageView
+    android:id="@+id/back"
+    android:layout_width="?attr/actionBarSize"
+    android:layout_height="?attr/actionBarSize"
+    android:background="?selectableItemBackgroundBorderless"
+    app:srcCompat="?homeAsUpIndicator"
+    android:scaleType="center"
+    android:contentDescription="@string/back"/>
+
+  <com.google.android.material.textfield.TextInputEditText
+    android:id="@+id/query"
+    style="@style/MwmTextAppearance.Toolbar.Search"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:background="@null"
+    android:hint="@string/search"
+    android:imeOptions="actionSearch|flagNoExtractUi"
+    android:textAlignment="viewStart"
+    android:inputType="text"
+    android:padding="@dimen/margin_half_plus"
+    android:textCursorDrawable="@drawable/cursor_drawable" />
+
+  <com.google.android.material.progressindicator.CircularProgressIndicator
+    android:id="@+id/progress"
+    android:layout_width="@dimen/search_progress_size"
+    android:layout_height="@dimen/search_progress_size"
+    android:layout_marginEnd="@dimen/margin_half"
+    android:layout_weight="0"
+    android:minHeight="@dimen/search_progress_size"
+    android:minWidth="@dimen/search_progress_size"
+    app:trackColor="@color/text_light"
+    app:indicatorColor="@color/text_light"
+    android:indeterminate="true"/>
+
+  <com.google.android.material.imageview.ShapeableImageView
+    android:id="@+id/clear"
+    android:layout_width="?actionBarSize"
+    android:layout_height="?actionBarSize"
+    android:layout_gravity="center_vertical"
+    android:layout_weight="0"
+    android:background="?selectableItemBackgroundBorderless"
+    android:contentDescription="@string/clear_the_search"
+    android:scaleType="center"
+    app:srcCompat="@drawable/ic_close"/>
+
+  <com.google.android.material.imageview.ShapeableImageView
+    android:id="@+id/voice_input"
+    android:layout_width="?actionBarSize"
+    android:layout_height="?actionBarSize"
+    android:layout_gravity="center_vertical"
+    android:layout_weight="0"
+    android:background="?selectableItemBackgroundBorderless"
+    android:contentDescription="@null"
+    android:scaleType="center"
+    app:srcCompat="@drawable/ic_mic_white"
+    android:visibility="gone"
+    tools:visibility="visible"/>
+</LinearLayout>

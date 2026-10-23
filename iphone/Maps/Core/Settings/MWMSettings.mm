@@ -1,0 +1,323 @@
+#import "MWMSettings.h"
+#import "MWMCoreUnits.h"
+#import "MWMMapViewControlsManager.h"
+#import "SwiftBridge.h"
+
+#include <CoreApi/Framework.h>
+#include <CoreApi/Logger.h>
+
+#include "platform/platform.hpp"
+#include "private.h"
+
+using namespace power_management;
+
+namespace
+{
+char const * kAutoDownloadEnabledKey = "AutoDownloadEnabled";
+char const * kZoomButtonsEnabledKey = "ZoomButtonsEnabled";
+char const * kRoutingDisclaimerApprovedKey = "IsDisclaimerApproved";
+
+// TODO(igrechuhin): Remove outdated kUDAutoNightModeOff
+NSString * const kUDAutoNightModeOff = @"AutoNightModeOff";
+NSString * const kThemeMode = @"ThemeMode";
+NSString * const kSpotlightLocaleLanguageId = @"SpotlightLocaleLanguageId";
+NSString * const kUDTrackWarningAlertWasShown = @"TrackWarningAlertWasShown";
+NSString * const kiCLoudSynchronizationEnabledKey = @"iCLoudSynchronizationEnabled";
+NSString * const kCustomMapDownloadUrlKey = @"CustomMapDownloadUrl";
+NSString * const kUDFileLoggingEnabledKey = @"FileLoggingEnabledKey";
+}  // namespace
+
+@implementation MWMSettings
+
++ (BOOL)perspectiveViewEnabled;
+{
+  bool _ = true, on = true;
+  auto &f = GetFramework();
+  f.Load3dMode(on, _);
+  return on;
+}
+
++ (void)setPerspectiveViewEnabled:(BOOL)perspectiveViewEnabled;
+{
+  auto &f = GetFramework();
+  bool is3d = true, _ = true;
+  f.Load3dMode(is3d, _);
+  is3d = static_cast<bool>(perspectiveViewEnabled);
+  f.Save3dMode(is3d, _);
+  f.Allow3dMode(is3d, _);
+}
+
++ (BOOL)autoZoomEnabled
+{
+  return GetFramework().LoadAutoZoom();
+}
+
++ (void)setAutoZoomEnabled:(BOOL)autoZoomEnabled
+{
+  auto &f = GetFramework();
+  f.AllowAutoZoom(autoZoomEnabled);
+  f.SaveAutoZoom(autoZoomEnabled);
+}
+
++ (BOOL)autoDownloadEnabled
+{
+  bool autoDownloadEnabled = true;
+  UNUSED_VALUE(settings::Get(kAutoDownloadEnabledKey, autoDownloadEnabled));
+  return autoDownloadEnabled;
+}
+
++ (void)setAutoDownloadEnabled:(BOOL)autoDownloadEnabled
+{
+  settings::Set(kAutoDownloadEnabledKey, static_cast<bool>(autoDownloadEnabled));
+}
+
++ (NSString *)customMapDownloadUrl
+{
+  NSString * url = [NSUserDefaults.standardUserDefaults stringForKey:kCustomMapDownloadUrlKey] ?: @"";
+  url = [url stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+  if (url.length > 0 && ![url hasSuffix:@"/"])
+    url = [url stringByAppendingString:@"/"];
+  return url;
+}
+
++ (void)setCustomMapDownloadUrl:(NSString *)customMapDownloadUrl
+{
+  NSString * url = [customMapDownloadUrl stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+  if (url.length > 0 && ![url hasSuffix:@"/"])
+    url = [url stringByAppendingString:@"/"];
+
+  [NSUserDefaults.standardUserDefaults setObject:url forKey:kCustomMapDownloadUrlKey];
+  [self applyCustomMapDownloadUrl];
+}
+
++ (void)applyCustomMapDownloadUrl
+{
+  std::string url = self.customMapDownloadUrl.UTF8String;
+  GetPlatform().SetCustomMapServerUrl(url);
+  GetFramework().GetStorage().ResetMapDownloadMetaConfig();
+}
+
++ (NSString *)mapSeries
+{
+  return @MAP_SERIES;
+}
+
++ (MWMUnits)measurementUnits
+{
+  auto units = measurement_utils::Units::Metric;
+  UNUSED_VALUE(settings::Get(settings::kMeasurementUnits, units));
+  return mwmUnits(units);
+}
+
++ (void)setMeasurementUnits:(MWMUnits)measurementUnits
+{
+  settings::Set(settings::kMeasurementUnits, coreUnits(measurementUnits));
+  GetFramework().SetupMeasurementSystem();
+}
+
++ (BOOL)zoomButtonsEnabled
+{
+  bool enabled = false;
+  UNUSED_VALUE(settings::Get(kZoomButtonsEnabledKey, enabled));
+  return enabled;
+}
+
++ (void)setZoomButtonsEnabled:(BOOL)zoomButtonsEnabled
+{
+  settings::Set(kZoomButtonsEnabledKey, static_cast<bool>(zoomButtonsEnabled));
+}
+
++ (BOOL)showBookmarkLabels
+{
+  return GetFramework().GetShowBookmarkLabels();
+}
+
++ (void)setShowBookmarkLabels:(BOOL)show
+{
+  GetFramework().SetShowBookmarkLabels(show);
+}
+
++ (MWMTheme)theme
+{
+  if ([MWMCarPlayService shared].isCarplayActivated) {
+    UIUserInterfaceStyle style = [[MWMCarPlayService shared] interfaceStyle];
+    switch (style) {
+      case UIUserInterfaceStyleLight: return MWMThemeDay;
+      case UIUserInterfaceStyleDark: return MWMThemeNight;
+      case UIUserInterfaceStyleUnspecified: break;
+    }
+  }
+  auto ud = NSUserDefaults.standardUserDefaults;
+  if (![ud boolForKey:kUDAutoNightModeOff])
+    return MWMThemeAuto;
+  return static_cast<MWMTheme>([ud integerForKey:kThemeMode]);
+}
+
++ (void)setTheme:(MWMTheme)theme
+{
+  if ([self theme] == theme)
+    return;
+  auto ud = NSUserDefaults.standardUserDefaults;
+  [ud setInteger:theme forKey:kThemeMode];
+  BOOL const autoOff = theme != MWMThemeAuto;
+  [ud setBool:autoOff forKey:kUDAutoNightModeOff];
+  [MWMThemeManager invalidate];
+}
+
++ (bool)powerManagementBuildings3d
+{
+  return GetFramework().GetPowerManager().IsFacilityEnabled(Facility::Buildings3d);
+}
+
++ (NSInteger)powerManagement
+{
+  Scheme scheme = GetFramework().GetPowerManager().GetScheme();
+  if (scheme == Scheme::EconomyMaximum) {
+    return 2;
+  } else if (scheme == Scheme::Auto) {
+    return 1;
+  }
+
+  return 0;
+}
+
++ (void)setPowerManagement:(NSInteger)powerManagement
+{
+  Scheme scheme = Scheme::Normal;
+  if (powerManagement == 2) {
+    scheme = Scheme::EconomyMaximum;
+  } else if (powerManagement == 1) {
+    scheme = Scheme::Auto;
+  }
+  GetFramework().GetPowerManager().SetScheme(scheme);
+}
+
++ (BOOL)routingDisclaimerApproved
+{
+  bool enabled = false;
+  UNUSED_VALUE(settings::Get(kRoutingDisclaimerApprovedKey, enabled));
+  return enabled;
+}
+
++ (void)setRoutingDisclaimerApproved { settings::Set(kRoutingDisclaimerApprovedKey, true); }
++ (NSString *)spotlightLocaleLanguageId
+{
+  return [NSUserDefaults.standardUserDefaults stringForKey:kSpotlightLocaleLanguageId];
+}
+
++ (void)setSpotlightLocaleLanguageId:(NSString *)spotlightLocaleLanguageId
+{
+  NSUserDefaults * ud = NSUserDefaults.standardUserDefaults;
+  [ud setObject:spotlightLocaleLanguageId forKey:kSpotlightLocaleLanguageId];
+}
+
++ (double)fontScaleFactor
+{
+  return GetFramework().LoadFontScaleFactor();
+}
++ (void)setFontScaleFactor:(double)fontScaleFactor
+{
+  GetFramework().SetFontScaleFactor(static_cast<double>(fontScaleFactor));
+}
+
++ (NSDictionary<NSString *, NSString *> *)availableMapLanguages;
+{
+  NSMutableDictionary<NSString *, NSString *> *availableLanguages = [[NSMutableDictionary alloc] init];
+  auto const & languages = localisation::GetSupportedLanguages(false);
+  for (auto language : languages) {
+    [availableLanguages setObject:@(std::string(language.m_name).c_str()) forKey:@(std::string(language.m_languageCode).c_str())];
+  }
+  return availableLanguages;
+}
+
++ (NSString *)mapLanguageCode;
+{
+  std::optional<localisation::LanguageCode> hasMapLanguageCode = GetFramework().GetCustomMapLanguageCode();
+  if (hasMapLanguageCode.has_value()) {
+    return @(hasMapLanguageCode.value().c_str());
+  }
+
+  return @"auto";
+}
+
++ (void)setMapLanguageCode:(NSString *)mapLanguageCode;
+{
+  auto &f = GetFramework();
+  if ([mapLanguageCode isEqual: @"auto"]) {
+    f.SetCustomMapLanguageCode();
+  } else {
+    f.SetCustomMapLanguageCode(std::string([mapLanguageCode UTF8String]));
+  }
+}
+
++ (int)alternativeMapLanguageHandling {
+  return GetFramework().GetAlternativeMapLanguageHandling();
+}
+
++ (void)setAlternativeMapLanguageHandling:(int)alternativeMapLanguageHandling
+{
+  GetFramework().SetAlternativeMapLanguageHandling(localisation::AlternativeMapLanguageHandling(alternativeMapLanguageHandling));
+}
+
++ (BOOL)transliteration {
+  return GetFramework().LoadTransliteration();
+}
++ (void)setTransliteration:(BOOL)transliteration
+{
+  bool const isTransliteration = static_cast<bool>(transliteration);
+  auto & f = GetFramework();
+  f.SaveTransliteration(isTransliteration);
+  f.AllowTransliteration(isTransliteration);
+}
+
++ (BOOL)isTrackWarningAlertShown
+{
+  return [NSUserDefaults.standardUserDefaults boolForKey:kUDTrackWarningAlertWasShown];
+}
+
++ (void)setTrackWarningAlertShown:(BOOL)shown
+{
+  NSUserDefaults * ud = NSUserDefaults.standardUserDefaults;
+  [ud setBool:shown forKey:kUDTrackWarningAlertWasShown];
+}
+
++ (NSString *)donateUrl
+{
+  std::string url;
+  return settings::Get(settings::kDonateUrl, url) ? @(url.c_str()) : nil;
+}
+
++ (BOOL)iCLoudSynchronizationEnabled
+{
+  return [NSUserDefaults.standardUserDefaults boolForKey:kiCLoudSynchronizationEnabledKey];
+}
+
++ (void)setICLoudSynchronizationEnabled:(BOOL)iCLoudSyncEnabled
+{
+  [NSUserDefaults.standardUserDefaults setBool:iCLoudSyncEnabled forKey:kiCLoudSynchronizationEnabledKey];
+  [NSNotificationCenter.defaultCenter postNotificationName:NSNotification.iCloudSynchronizationDidChangeEnabledState object:nil];
+}
+
++ (void)initializeLogging {
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    [self setFileLoggingEnabled:[self isFileLoggingEnabled]];
+  });
+}
+
++ (BOOL)isFileLoggingEnabled {
+  return [NSUserDefaults.standardUserDefaults boolForKey:kUDFileLoggingEnabledKey];
+}
+
++ (void)setFileLoggingEnabled:(BOOL)fileLoggingEnabled {
+  [NSUserDefaults.standardUserDefaults setBool:fileLoggingEnabled forKey:kUDFileLoggingEnabledKey];
+  [Logger setFileLoggingEnabled:fileLoggingEnabled];
+}
+
++ (NSInteger)logFileSize
+{
+  uint64_t logFileSize = [Logger getLogFileSize];
+  return logFileSize;
+}
+
+@end

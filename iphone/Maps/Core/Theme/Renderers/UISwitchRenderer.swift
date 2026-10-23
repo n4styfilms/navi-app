@@ -1,0 +1,17 @@
+extension UISwitch {
+  @objc override func applyTheme() {
+    if styleName.isEmpty {
+      setStyle(.switch)
+    }
+    for style in StyleManager.shared.getStyle(styleName)
+      where !style.isEmpty && !style.hasExclusion(view: self) {
+      UISwitchRenderer.render(self, style: style)
+    }
+  }
+}
+
+class UISwitchRenderer: UIViewRenderer {
+  class func render(_ control: UISwitch, style: Style) {
+    super.render(control, style: style)
+  }
+}
