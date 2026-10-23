@@ -1,0 +1,68 @@
+name: Navi Android and native checks
+on:
+  workflow_dispatch:
+    inputs:
+      native_only:
+        description: Run native navigation suites without packaging an APK
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: navi-android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      CC: gcc-14
+      CXX: g++-14
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+      - name: Checkout pinned submodules in parallel
+        run: git submodule update --init --recursive --depth 1 --jobs 8
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install free build tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y g++-14 ninja-build ccache qt6-base-dev qt6-declarative-dev qt6-positioning-dev libqt6svg6-dev optipng libfreetype-dev libharfbuzz-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev python3-venv zlib1g-dev
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1' > /dev/null || test "${PIPESTATUS[1]}" = 0
+      - name: Check package verifier
+        run: python3 -m unittest discover -s tools/private/tests -v
+      - name: Native map and routing regression suites
+        if: ${{ inputs.native_only }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/deliverables"
+          bash tools/private/test-native.sh "$RUNNER_TEMP/navi-native" "$RUNNER_TEMP/navi-map-data" 2>&1 | tee "$RUNNER_TEMP/deliverables/native.log"
+      - name: Collect native evidence
+        if: ${{ always() && inputs.native_only }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/deliverables"
+          for file in configure.log build.log map_tests.log routing_tests.log map_tests.list routing_tests.list native-test-report.json; do
+            if test -f "$RUNNER_TEMP/navi-native/$file"; then
+              cp "$RUNNER_TEMP/navi-native/$file" "$RUNNER_TEMP/deliverables/"
+            fi
+          done
+          if test -f "$RUNNER_TEMP/navi-map-data/route-data-manifest.json"; then
+            cp "$RUNNER_TEMP/navi-map-data/route-data-manifest.json" "$RUNNER_TEMP/deliverables/"
+          fi
+      - name: Build APK
+        if: ${{ !inputs.native_only }}
+        run: bash tools/private/build-android.sh "$RUNNER_TEMP/deliverables"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: navi-android-${{ github.run_id }}
+          path: ${{ runner.temp }}/deliverables/
+          if-no-files-found: error
+          retention-days: 7
