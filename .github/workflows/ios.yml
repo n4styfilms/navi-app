@@ -1,0 +1,90 @@
+name: Navi iOS IPA
+on:
+  workflow_dispatch:
+    inputs:
+      map_probe:
+        description: Diagnose pinned MapLibre startup in an isolated simulator app
+        type: boolean
+        default: false
+      host_only:
+        description: Run only the actual Swift Foundation transport regression
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: navi-ios-${{ github.ref }}-${{ inputs.host_only }}-${{ inputs.map_probe }}
+  cancel-in-progress: true
+jobs:
+  build:
+    if: ${{ !inputs.host_only && !inputs.map_probe }}
+    runs-on: macos-26
+    timeout-minutes: 120
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+      - name: Checkout pinned submodules in parallel
+        run: git submodule update --init --recursive --depth 1 --jobs 8
+      - name: Install free build tools
+        run: |
+          brew install qt optipng
+          gem install --user-install xcodeproj --no-document
+          xcodebuild -downloadComponent metalToolchain
+      - name: Check package verifier
+        run: python3 -m unittest discover -s tools/private/tests -v
+      - name: Build unsigned device IPA
+        run: bash tools/private/build-ios.sh "$RUNNER_TEMP/deliverables"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: navi-ios-${{ github.run_id }}
+          path: ${{ runner.temp }}/deliverables/
+          if-no-files-found: error
+          retention-days: 7
+  host-check:
+    if: ${{ inputs.host_only }}
+    runs-on: macos-26
+    timeout-minutes: 10
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Run actual Swift URLSession regression
+        run: python3 -m unittest discover -s tools/private/tests -p test_map_transport_swift.py -v
+  map-probe:
+    if: ${{ inputs.map_probe }}
+    runs-on: macos-26
+    timeout-minutes: 10
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Diagnose pinned MapLibre simulator startup
+        run: python3 tools/private/probe-ios-map-startup.py "$RUNNER_TEMP/map-probe"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: navi-ios-map-probe-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/map-probe/debugger.txt
+            ${{ runner.temp }}/map-probe/system.log
+            ${{ runner.temp }}/map-probe/simulator.png
+            ${{ runner.temp }}/map-probe/simulator.json
+            ${{ runner.temp }}/map-probe/work/Probe.swift
+          if-no-files-found: error
+          retention-days: 7
+
