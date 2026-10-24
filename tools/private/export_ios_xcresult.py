@@ -38,7 +38,8 @@ def main():
     def retain(name, data):
         nonlocal total
         name_lower = name.lower()
-        if not (name_lower.endswith(('.ips', '.crash')) or 'standardoutputandstandarderror' in name_lower):
+        if not (name_lower.endswith(('.ips', '.crash')) or 'standardoutputandstandarderror' in name_lower
+                or 'session-comaps' in name_lower or name_lower.endswith('/testmanagerd.log')):
             return
         if b'app.navi.private' not in data and b'CoMaps' not in data and 'comaps' not in name_lower:
             return
@@ -63,6 +64,15 @@ def main():
                             retain(relative + '/' + entry.filename, stream.read(6_000_001))
         elif file.stat().st_size <= 6_000_000:
             retain(relative, file.read_bytes())
+    for count, archive in enumerate(exported.rglob('*.logarchive')):
+        captured = subprocess.run(['/usr/bin/log', 'show', '--archive', str(archive), '--style', 'compact',
+            '--info', '--debug', '--predicate',
+            'process == "CoMaps (Debug)" OR process == "ReportCrash" OR process == "testmanagerd" '
+            'OR eventMessage CONTAINS "app.navi.private" OR eventMessage CONTAINS "CoMaps"'],
+            capture_output=True, timeout=120)
+        filename = f'xcresult-archived-system-{count}.log'
+        (out / filename).write_bytes((captured.stdout + captured.stderr)[:10_000_000])
+        records.append({'archive': str(archive), 'exit_code': captured.returncode, 'output': filename})
     report = {'diagnostic_only': True, 'original_test_verdict_unchanged': True,
               'bundle': str(bundle), 'commands': records, 'retained': kept, 'export_inventory': index}
     (out / 'xcresult-export.json').write_text(json.dumps(report, indent=2) + '\n')
