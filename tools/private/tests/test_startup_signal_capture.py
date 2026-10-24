@@ -11,13 +11,13 @@ ROOT = Path(__file__).resolve().parents[3]
 class StartupSignalCaptureTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform == 'darwin', 'Requires actual Apple signal/backtrace runtime')
     def test_trap_is_reported_and_still_fails(self):
-        hook = ROOT / 'tools/private/NaviStartupCapture.c'
+        hook = ROOT / 'tools/private/NaviStartupCapture.mm'
         with tempfile.TemporaryDirectory(prefix='navi-signal-capture-') as directory:
             main = Path(directory) / 'main.c'
             main.write_text('#include <signal.h>\nint main(void) { raise(SIGTRAP); return 0; }\n')
             binary = Path(directory) / 'capture'
             sources = [str(main), *([str(hook)] if hook.is_file() else [])]
-            compiled = subprocess.run(['xcrun', 'clang', '-g', '-DNAVI_CRASH_DIAGNOSTICS_TEST=1',
+            compiled = subprocess.run(['xcrun', 'clang++', '-g', '-DNAVI_CRASH_DIAGNOSTICS_TEST=1',
                 *sources, '-o', str(binary)], capture_output=True, text=True, timeout=30)
             self.assertEqual(compiled.returncode, 0, compiled.stdout + compiled.stderr)
             trapped = subprocess.run([str(binary)], capture_output=True, text=True, timeout=10)
