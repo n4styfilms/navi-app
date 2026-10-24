@@ -8,7 +8,7 @@ import subprocess
 import sys
 import time
 
-from collect_ios_failure import collect
+from collect_ios_failure import select_app
 
 
 def main():
@@ -34,27 +34,47 @@ def main():
     (out / 'destination.json').write_text(json.dumps(selected, indent=2) + '\n')
     udid = selected['udid']
     subprocess.run(['xcrun', 'simctl', 'boot', udid], check=False, capture_output=True, timeout=60)
-    collect(out, derived, udid, archive_app=False)
-    # Let the detached app finish loading before inspecting it again. The first
-    # diagnostic stop can land in dyld while LLDB loads this large binary.
-    time.sleep(15)
-    report = json.loads((out / 'startup-diagnostic.json').read_text())
-    pid = str(report['pid'])
-    identity = subprocess.run(['ps', '-p', pid, '-o', 'comm='], capture_output=True, text=True, timeout=10)
-    (out / 'post-detach-process.txt').write_text(identity.stdout + identity.stderr)
-    if identity.returncode == 0 and Path(identity.stdout.strip()).name == report['executable']:
-        sampled = subprocess.run(['/usr/bin/sample', pid, '5', '-file', str(out / 'post-detach-sample.txt')],
-                                 capture_output=True, text=True, timeout=45)
-        (out / 'post-detach-sample-command.txt').write_text(sampled.stdout + sampled.stderr)
-        subprocess.run(['xcrun', 'simctl', 'io', udid, 'screenshot', str(out / 'post-detach-simulator.png')],
-                       capture_output=True, timeout=30)
-    # Keep genuine crash reports, if startup ended after detaching the debugger.
-    reports = Path.home() / 'Library/Logs/DiagnosticReports'
-    for source in reports.glob('*.ips'):
-        if source.stat().st_mtime >= (out / 'archive-sha256.txt').stat().st_mtime:
-            raw = source.read_text(errors='replace')
-            if report['bundleIdentifier'] in raw or report['executable'] in raw:
-                (out / ('crash-' + source.stem + '.txt')).write_text(raw)
+    report = {**select_app(derived), 'diagnostic_only': True, 'debugger_attached': False, 'commands': []}
+    def run(command, filename, timeout=60):
+        result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
+        (out / filename).write_text(result.stdout + result.stderr)
+        report['commands'].append({'command': command, 'exit_code': result.returncode, 'output': filename})
+        (out / 'normal-startup.json').write_text(json.dumps(report, indent=2) + '\n')
+        return result
+    booted = run(['xcrun', 'simctl', 'bootstatus', udid, '-b'], 'normal-boot.txt', 180)
+    if booted.returncode != 0:
+        raise RuntimeError('Simulator never became ready for the original app')
+    installed = run(['xcrun', 'simctl', 'install', udid, report['app']], 'normal-install.txt')
+    if installed.returncode != 0:
+        raise RuntimeError('Could not install preserved original app')
+    # No wait-for-debugger or SIGSTOP: debugger startup itself delayed dyld and
+    # its timeout could terminate the app before the later sample was taken.
+    launched = run(['xcrun', 'simctl', 'launch', udid, report['bundleIdentifier']], 'normal-launch.txt')
+    import re
+    match = re.search(r':\s*(\d+)\s*$', launched.stdout)
+    if launched.returncode != 0 or not match:
+        raise RuntimeError('Normal launch did not report the original app PID')
+    pid = match.group(1)
+    report['pid'] = int(pid)
+    time.sleep(10)
+    identity = run(['ps', '-p', pid, '-o', 'comm='], 'normal-process.txt', 10)
+    report['process_alive'] = identity.returncode == 0 and Path(identity.stdout.strip()).name == report['executable']
+    if report['process_alive']:
+        run(['/usr/bin/sample', pid, '5', '-file', str(out / 'normal-sample.txt')], 'normal-sample-command.txt', 45)
+    run(['xcrun', 'simctl', 'io', udid, 'screenshot', str(out / 'normal-simulator.png')], 'normal-screenshot.txt', 30)
+    time.sleep(5)
+    run(['xcrun', 'simctl', 'spawn', udid, 'log', 'show', '--last', '5m', '--style', 'compact',
+         '--predicate', f'process == "{report["executable"]}" OR process == "ReportCrash"'],
+        'normal-system.log', 90)
+    roots = [Path.home() / 'Library/Logs/DiagnosticReports',
+             Path.home() / f'Library/Developer/CoreSimulator/Devices/{udid}/data/Library/Logs/CrashReporter']
+    for root in roots:
+        for source in root.rglob('*.ips'):
+            if source.stat().st_mtime >= (out / 'archive-sha256.txt').stat().st_mtime:
+                raw = source.read_text(errors='replace')
+                if report['bundleIdentifier'] in raw or report['executable'] in raw:
+                    (out / ('crash-' + source.stem + '.txt')).write_text(raw)
+    (out / 'normal-startup.json').write_text(json.dumps(report, indent=2) + '\n')
 
 
 if __name__ == '__main__':
