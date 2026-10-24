@@ -1,5 +1,6 @@
 #import <XCTest/XCTest.h>
 #import "MWMTextToSpeech+CPP.h"
+#include <CoreApi/Framework.h>
 
 @interface MWMTextToSpeechTest : XCTestCase
 
@@ -20,6 +21,10 @@
   MWMTextToSpeech * tts = [MWMTextToSpeech tts];
   std::pair<std::string, std::string> const defaultLang = std::make_pair("en-US", "English (United States)");
   XCTAssertTrue(tts.standardLanguage == defaultLang);
+}
+- (void)testRoutingTextLocaleExistsWhilePreparingVoices {
+  XCTAssertNotNil([MWMTextToSpeech tts]);
+  XCTAssertFalse(GetFramework().GetRoutingManager().GetTurnNotificationsLocale().empty());
 }
 - (void)testTranslateLocaleWithTwineString {
   XCTAssertEqual(tts::translateLocale("en"), "English");

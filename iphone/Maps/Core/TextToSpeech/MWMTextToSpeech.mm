@@ -116,6 +116,9 @@ using Observers = NSHashTable<Observer>;
     };
     [NSUserDefaults.standardUserDefaults registerDefaults:dictionary];
 
+    // The routing core requires a text locale even before a system voice is
+    // ready. Its GetTextById/GetLocale assert when no locale has been set.
+    [MWMRouter setTurnNotificationsLocale:@"en"];
     [MWMRouter enableTurnNotifications:self.allowsTurnInstructions];
     [_voiceCatalog loadWithCompletion:^(NSArray<AVSpeechSynthesisVoice *> * voices) {
       self->_availableLanguages = availableLanguages(voices);
