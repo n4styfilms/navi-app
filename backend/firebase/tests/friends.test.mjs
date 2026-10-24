@@ -253,3 +253,51 @@ test('global control pause cancels an already permitted live listener', async ()
   });
   try {assert.match((await canceled).code, /PERMISSION_DENIED/i);} finally {unsubscribe?.();}
 });
+
+test('published sample cursor signals an atomic position and speed in the current enabled generation', async () => {
+  await seed({rights: grant({speed: true})});
+  const owner = db('alice');
+  await assertSucceeds(update(ref(owner), {
+    'liveControl/alice/publishedSequence': 2,
+    'live/alice/position': position({sequence: 2}),
+    'live/alice/speed': speed({sequence: 2})
+  }));
+  assert.equal((await get(ref(db('bob'), 'liveControl/alice'))).val().publishedSequence, 2);
+  await assertSucceeds(get(ref(db('bob'), 'live/alice/position')));
+  await assertSucceeds(get(ref(db('bob'), 'live/alice/speed')));
+  await assertFails(update(ref(owner, 'liveControl/alice'), {publishedSequence: 2}));
+  await assertFails(update(ref(owner, 'liveControl/alice'), {publishedSequence: 1}));
+  await assertFails(update(ref(owner, 'liveControl/alice'), {publishedSequence: 3}));
+});
+
+test('new generation has no published cursor until its fresh sample and cannot retag an old sample', async () => {
+  await seed({rights: grant({speed: true})});
+  const owner = db('alice'); const reader = db('bob');
+  await assertSucceeds(set(ref(owner, 'liveControl/alice'), control({generation: 2, enabled: false})));
+  await assertFails(set(ref(owner, 'liveControl/alice'), control({generation: 3, publishedSequence: 1})));
+  await assertSucceeds(set(ref(owner, 'liveControl/alice'), control({generation: 3})));
+  assert.equal((await get(ref(reader, 'liveControl/alice'))).hasChild('publishedSequence'), false);
+  await assertFails(update(ref(owner, 'liveControl/alice'), {publishedSequence: 1}));
+  await assertFails(get(ref(reader, 'live/alice/position')));
+  await assertSucceeds(update(ref(owner), {
+    'liveControl/alice/publishedSequence': 1,
+    'live/alice/position': position({sharingGeneration: 3}),
+    'live/alice/speed': speed({sharingGeneration: 3, metersPerSecond: null})
+  }));
+  await assertSucceeds(get(ref(reader, 'live/alice/position')));
+  assert.equal((await get(ref(reader, 'live/alice/speed'))).hasChild('metersPerSecond'), false);
+});
+
+test('published cursor cannot bypass owner, lease, schema or coordinate privacy', async () => {
+  await seed(); const owner = db('alice');
+  await assertFails(update(ref(db('bob'), 'liveControl/alice'), {publishedSequence: 1}));
+  await assertFails(update(ref(owner, 'liveControl/alice'), {publishedSequence: -1}));
+  await assertFails(update(ref(owner, 'liveControl/alice'), {publishedSequence: 1.5}));
+  await assertFails(update(ref(owner, 'liveControl/alice'), {publishedSequence: 1, latitude: 43}));
+  await assertSucceeds(update(ref(owner, 'liveControl/alice'), {publishedSequence: 1}));
+  await assertSucceeds(set(ref(owner, 'liveControl/alice'), control({generation: 2, enabled: false})));
+  await assertFails(set(ref(owner, 'liveControl/alice'), control({publishedSequence: 2})));
+  await assertFails(update(ref(owner, 'liveControl/alice'), {publishedSequence: 2}));
+  await assertSucceeds(update(ref(owner, 'grants/alice/bob'), {position: false}));
+  await assertFails(get(ref(db('bob'), 'liveControl/alice')));
+});

@@ -195,12 +195,15 @@
       "$owner": {
         ".read": "(auth != null && auth.uid === $owner) || (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('position').val() === true)",
         ".write": "(auth != null && auth.uid === $owner) && newData.exists()",
-        ".validate": "newData.hasChildren([\"enabled\", \"generation\"]) && (!data.exists() || newData.child('generation').val() > data.child('generation').val())",
+        ".validate": "newData.hasChildren([\"enabled\", \"generation\"]) && (((!data.exists() || newData.child('generation').val() > data.child('generation').val()) && !newData.hasChild('publishedSequence')) || (data.child('enabled').val() === true && newData.child('enabled').val() === true && newData.child('generation').val() === data.child('generation').val() && newData.hasChild('publishedSequence') && (!data.hasChild('publishedSequence') || newData.child('publishedSequence').val() > data.child('publishedSequence').val())))",
         "enabled": {
           ".validate": "newData.isBoolean()"
         },
         "generation": {
           ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.val() % 1 === 0"
+        },
+        "publishedSequence": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.val() % 1 === 0 && newData.parent().child('enabled').val() === true && newData.val() === newData.parent().parent().parent().child('live').child($owner).child('position').child('sequence').val() && newData.parent().child('generation').val() === newData.parent().parent().parent().child('live').child($owner).child('position').child('sharingGeneration').val()"
         },
         "$other": {
           ".validate": false

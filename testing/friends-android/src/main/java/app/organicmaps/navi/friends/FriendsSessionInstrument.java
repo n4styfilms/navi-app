@@ -18,6 +18,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -47,6 +48,16 @@ public final class FriendsSessionInstrument extends Instrumentation {
     return value.get();
   }
   private <T> T await(Task<T> task) throws Exception { return Tasks.await(task, 30, TimeUnit.SECONDS); }
+  private void waitUntil(Callable<Boolean> condition, String message) throws Exception {
+    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+    while (!condition.call() && System.nanoTime() < deadline) Thread.sleep(20);
+    check(condition.call(), message);
+  }
+  private static FriendsRepository.Peer peer(AtomicReference<List<FriendsRepository.Peer>> state, String uid) {
+    List<FriendsRepository.Peer> peers = state.get();
+    if (peers != null) for (FriendsRepository.Peer peer : peers) if (peer.uid.equals(uid)) return peer;
+    return null;
+  }
   private static Map<String, Object> values(Object... pairs) {
     Map<String, Object> map = new HashMap<>();
     for (int i = 0; i < pairs.length; i += 2) map.put((String) pairs[i], pairs[i + 1]);
@@ -109,6 +120,8 @@ public final class FriendsSessionInstrument extends Instrumentation {
       String aliceId = alice.getUid(), bobId = bob.getUid();
       FriendsRepository aliceRepository = ui(() -> new FriendsRepository(a));
       FriendsRepository bobRepository = ui(() -> new FriendsRepository(b));
+      AtomicReference<List<FriendsRepository.Peer>> observed = new AtomicReference<>();
+      ui(() -> bobRepository.observe(observed::set));
       await(a.database().getReference("profiles/" + aliceId).setValue(values("displayName", "Alice test")));
       await(ui(() -> aliceRepository.requestFriend(bobId)));
       check(await(b.database().getReference("requests/" + bobId + "/" + aliceId).get()).exists(), "Native request was not delivered");
@@ -122,9 +135,30 @@ public final class FriendsSessionInstrument extends Instrumentation {
       await(ui(() -> aliceRepository.setGrant(bobId, new FriendsRepository.Grant(true, false, false))));
       check(!await(a.database().getReference("grants/" + aliceId + "/" + bobId + "/speed").get()).getValue(Boolean.class), "Position action implicitly granted speed");
       await(a.database().getReference("liveControl/" + aliceId).setValue(values("generation", 1L, "enabled", true)));
-      await(a.database().getReference("live/" + aliceId + "/position").setValue(values(
-          "sharingGeneration", 1L, "sequence", 1L, "latitude", 43.7295, "longitude", 7.4208,
-          "accuracyMeters", 5, "measuredAtMs", System.currentTimeMillis(), "receivedAtMs", ServerValue.TIMESTAMP)));
+      waitUntil(() -> peer(observed, aliceId) != null && peer(observed, aliceId).awaitingFreshSample,
+          "Observer never reached enabled generation awaiting its first fresh sample");
+      check(peer(observed, aliceId).position == null, "Observer exposed a point before its publication cursor");
+      long measured = System.currentTimeMillis();
+      PresencePolicy policy = new PresencePolicy();
+      long ticket = policy.begin(aliceId, measured);
+      PresenceSample sample = new PresenceSample(1, measured, 43.7295, 7.4208, 5.0, null, null);
+      PresencePolicy.Upload upload = policy.prepare(sample, measured, ticket, true, true);
+      await(ui(() -> aliceRepository.publish(policy, upload, 1, measured)));
+      waitUntil(() -> peer(observed, aliceId) != null && peer(observed, aliceId).position != null,
+          "Observer did not acquire the first published point after cold start");
+      FriendsRepository.Peer firstSnapshot = peer(observed, aliceId);
+      check(firstSnapshot.position.sequence == 1 && firstSnapshot.speedMetersPerSecondAt(measured) == null,
+          "Position-only snapshot exposed speed or the wrong sequence");
+      await(ui(() -> aliceRepository.setGrant(bobId, new FriendsRepository.Grant(true, true, false))));
+      await(a.database().getReference("live/" + aliceId + "/speed").setValue(values(
+          "sharingGeneration", 1L, "sequence", 1L, "measuredAtMs", measured, "metersPerSecond", 8)));
+      waitUntil(() -> peer(observed, aliceId) != null && Double.valueOf(8).equals(peer(observed, aliceId).speedMetersPerSecondAt(measured)),
+          "Explicit speed grant did not produce a joined native peer snapshot");
+      check(peer(observed, aliceId).speedMetersPerSecondAt(measured + 15000) != null
+          && peer(observed, aliceId).speedMetersPerSecondAt(measured + 15001) == null,
+          "Peer speed freshness boundary is wrong");
+      check(firstSnapshot.position.speedMetersPerSecond() == null && !firstSnapshot.speedAllowed,
+          "A retained immutable snapshot changed after a rights update");
       check(await(b.database().getReference("profiles/" + aliceId).get()).exists(), "Confirmed native peer cannot read profile");
       report.putBoolean("native_auth_cloned", true);
 
@@ -138,10 +172,20 @@ public final class FriendsSessionInstrument extends Instrumentation {
       await(a.database().getReference("liveControl/" + aliceId).setValue(values("generation", 2L, "enabled", false)));
       check(revoked.await(15, TimeUnit.SECONDS), "Native live listener remained permitted after pause");
       check(cancellation.get().getCode() == DatabaseError.PERMISSION_DENIED, "Native pause cancellation was not permission denied");
+      waitUntil(() -> peer(observed, aliceId) != null && peer(observed, aliceId).position == null,
+          "Repository retained a live position after global pause");
       report.putBoolean("native_listener_revoked", true);
+      policy.pause();
+      boolean pausedRejected = false;
+      try { await(ui(() -> aliceRepository.publish(policy, upload, 1, measured))); }
+      catch (java.util.concurrent.ExecutionException expected) { pausedRejected = true; }
+      check(pausedRejected, "Repository accepted a generation-invalidated upload");
+      report.putBoolean("native_gated_publication", true);
 
       String oldDataApp = b.appName();
       ui(() -> { b.close(); return null; });
+      check(observed.get() != null && observed.get().isEmpty(), "Session close did not synchronously clear peer snapshots");
+      report.putBoolean("native_peer_snapshots", true);
       check(bobAuth.getCurrentUser() != null, "Closing copied data Auth signed out primary account");
       check(FirebaseApp.getApps(getTargetContext()).stream().noneMatch(app -> app.getName().equals(oldDataApp)), "Old data FirebaseApp was retained");
       FriendsDataSession e = open(eveAuth, eve);
