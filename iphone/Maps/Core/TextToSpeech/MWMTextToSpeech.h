@@ -30,6 +30,8 @@ typedef NS_ENUM(NSInteger, MWMNavigationSoundMode) {
 @property(nonatomic) MWMNavigationSoundMode navigationSoundMode;
 @property(nonatomic, readonly) BOOL allowsTurnInstructions;
 @property(nonatomic, readonly) BOOL allowsSpeedCameraWarnings;
+/// Language snapshots may be empty until system discovery completes off-main.
+@property(nonatomic, readonly) BOOL voiceCatalogReady;
 
 - (void)cycleNavigationSoundMode;
 - (void)setNotificationsLocale:(NSString *)locale;

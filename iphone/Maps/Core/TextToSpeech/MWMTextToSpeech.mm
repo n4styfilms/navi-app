@@ -1,6 +1,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import "MWMRouter.h"
 #import "MWMTextToSpeech+CPP.h"
+#import "MWMSpeechVoiceCatalog.h"
 #import "SwiftBridge.h"
 #import "TTSTester.h"
 
@@ -21,9 +22,8 @@ NSString * const kNavigationSoundMode = @"UserDefaultsNavigationSoundMode";
 NSString * const kIsStreetNamesTTSEnabled = @"UserDefaultsNeedToEnableStreetNamesTTS";
 NSString * const kDefaultLanguage = @"en-US";
 
-std::vector<std::pair<std::string, std::string>> availableLanguages()
+std::vector<std::pair<std::string, std::string>> availableLanguages(NSArray<AVSpeechSynthesisVoice *> * voices)
 {
-  NSArray<AVSpeechSynthesisVoice *> * voices = [AVSpeechSynthesisVoice speechVoices];
   std::vector<std::pair<std::string, std::string>> native;
   for (AVSpeechSynthesisVoice * v in voices)
     native.emplace_back(make_pair(bcp47ToTwineLanguage(v.language), v.language.UTF8String));
@@ -52,6 +52,7 @@ using Observers = NSHashTable<Observer>;
 @interface MWMTextToSpeech ()<AVSpeechSynthesizerDelegate>
 {
   std::vector<std::pair<std::string, std::string>> _availableLanguages;
+  MWMSpeechVoiceCatalog * _voiceCatalog;
 }
 
 @property(nonatomic) AVSpeechSynthesizer * speechSynthesizer;
@@ -84,25 +85,21 @@ using Observers = NSHashTable<Observer>;
 - (instancetype)initTTS {
   self = [super init];
   if (self) {
-    _availableLanguages = availableLanguages();
     _observers = [Observers weakObjectsHashTable];
-
-    NSString * saved = [[self class] savedLanguage];
-    NSString * preferedLanguageBcp47;
-    if (saved.length)
-      preferedLanguageBcp47 = saved;
-    else
-      preferedLanguageBcp47 = [AVSpeechSynthesisVoice currentLanguageCode];
-
-    std::pair<std::string, std::string> const lan =
-        std::make_pair(preferedLanguageBcp47.UTF8String,
-                       tts::translateLocale(preferedLanguageBcp47.UTF8String));
-
-    if (find(_availableLanguages.begin(), _availableLanguages.end(), lan) !=
-        _availableLanguages.end())
-      [self setNotificationsLocale:preferedLanguageBcp47];
-    else
-      [self setNotificationsLocale:kDefaultLanguage];
+    // The system voice service can wait on a semaphore indefinitely on a cold
+    // simulator. Never make that synchronous discovery part of app launch.
+    __block NSString * systemLanguage = nil;
+    _voiceCatalog = [[MWMSpeechVoiceCatalog alloc] initWithProvider:^{
+      NSMutableArray<AVSpeechSynthesisVoice *> * voices = [[AVSpeechSynthesisVoice speechVoices] mutableCopy];
+      if (!voices) voices = [NSMutableArray array];
+      systemLanguage = [AVSpeechSynthesisVoice currentLanguageCode];
+      // Retain the old language fallback, resolving it on this worker as well.
+      for (NSString * locale in @[systemLanguage ?: kDefaultLanguage, kDefaultLanguage, @"en-GB"]) {
+        AVSpeechSynthesisVoice * voice = [AVSpeechSynthesisVoice voiceWithLanguage:locale];
+        if (voice && ![voices containsObject:voice]) [voices addObject:voice];
+      }
+      return voices;
+    }];
 
     NSError * err = nil;
     if (![[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback
@@ -120,6 +117,16 @@ using Observers = NSHashTable<Observer>;
     [NSUserDefaults.standardUserDefaults registerDefaults:dictionary];
 
     [MWMRouter enableTurnNotifications:self.allowsTurnInstructions];
+    [_voiceCatalog loadWithCompletion:^(NSArray<AVSpeechSynthesisVoice *> * voices) {
+      self->_availableLanguages = availableLanguages(voices);
+      NSString * saved = [[self class] savedLanguage];
+      NSString * preferred = saved.length ? saved : (systemLanguage ?: kDefaultLanguage);
+      auto const language = std::make_pair(std::string(preferred.UTF8String), tts::translateLocale(preferred.UTF8String));
+      if (std::find(self->_availableLanguages.begin(), self->_availableLanguages.end(), language) == self->_availableLanguages.end())
+        preferred = kDefaultLanguage;
+      [self setNotificationsLocale:preferred];
+      [self onTTSStatusUpdated];
+    }];
   }
   return self;
 }
@@ -131,6 +138,7 @@ using Observers = NSHashTable<Observer>;
   self.speechSynthesizer.delegate = nil;
 }
 - (std::vector<std::pair<std::string, std::string>>)availableLanguages { return _availableLanguages; }
+- (BOOL)voiceCatalogReady { return _voiceCatalog.ready; }
 - (std::pair<std::string, std::string>)standardLanguage {
   return std::make_pair(kDefaultLanguage.UTF8String, tts::translateLocale(kDefaultLanguage.UTF8String));
 }
@@ -229,7 +237,9 @@ using Observers = NSHashTable<Observer>;
     return [self savedLanguage];
   }
 
-  NSString * preferedLanguageBcp47 = [AVSpeechSynthesisVoice currentLanguageCode];
+  // Before the asynchronous system catalog arrives, this is a provisional UI
+  // value. Discovery commits the actual supported locale and notifies observers.
+  NSString * preferedLanguageBcp47 = NSLocale.preferredLanguages.firstObject ?: kDefaultLanguage;
 
   std::pair<std::string, std::string> const lan =
   std::make_pair(preferedLanguageBcp47.UTF8String, tts::translateLocale(preferedLanguageBcp47.UTF8String));
@@ -271,6 +281,7 @@ using Observers = NSHashTable<Observer>;
 }
 
 - (void)createVoice:(NSString *)locale {
+  if (!_voiceCatalog.ready) return;
   if (!self.speechSynthesizer) {
     self.speechSynthesizer = [[AVSpeechSynthesizer alloc] init];
     self.speechSynthesizer.delegate = self;
@@ -285,20 +296,10 @@ using Observers = NSHashTable<Observer>;
 
   AVSpeechSynthesisVoice * voice = nil;
   for (NSString * loc in candidateLocales) {
-    if (@available(iOS 16.0, *)) {
-      for (AVSpeechSynthesisVoice * aVoice in [AVSpeechSynthesisVoice speechVoices]) {
-        if (voice == nil && aVoice.language == loc && aVoice.quality == AVSpeechSynthesisVoiceQualityPremium) {
-          voice = aVoice;
-        }
-      }
-    }
-    for (AVSpeechSynthesisVoice * aVoice in [AVSpeechSynthesisVoice speechVoices]) {
-      if (voice == nil && aVoice.language == loc && aVoice.quality == AVSpeechSynthesisVoiceQualityEnhanced) {
+    for (AVSpeechSynthesisVoice * aVoice in _voiceCatalog.voices) {
+      if ([aVoice.language isEqualToString:loc] && (voice == nil || aVoice.quality > voice.quality)) {
         voice = aVoice;
       }
-    }
-    if (voice == nil) {
-      voice = [AVSpeechSynthesisVoice voiceWithLanguage:loc];
     }
     if (voice) {
       break;

@@ -7,11 +7,19 @@
 
 @implementation MWMTextToSpeechTest
 
-- (void)testAvailableLanguages {
+- (void)testAvailableLanguagesSnapshotDuringPreparation {
   MWMTextToSpeech * tts = [MWMTextToSpeech tts];
   std::vector<std::pair<std::string, std::string>> langs = tts.availableLanguages;
-  decltype(langs)::value_type const defaultLang = std::make_pair("en-US", "English (United States)");
-  XCTAssertTrue(std::find(langs.begin(), langs.end(), defaultLang) != langs.end());
+  if (!tts.voiceCatalogReady) XCTAssertTrue(langs.empty());
+  for (auto const & language : langs) {
+    XCTAssertFalse(language.first.empty());
+    XCTAssertFalse(language.second.empty());
+  }
+}
+- (void)testStandardLanguage {
+  MWMTextToSpeech * tts = [MWMTextToSpeech tts];
+  std::pair<std::string, std::string> const defaultLang = std::make_pair("en-US", "English (United States)");
+  XCTAssertTrue(tts.standardLanguage == defaultLang);
 }
 - (void)testTranslateLocaleWithTwineString {
   XCTAssertEqual(tts::translateLocale("en"), "English");
