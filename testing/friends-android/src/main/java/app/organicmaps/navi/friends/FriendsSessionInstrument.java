@@ -3,6 +3,7 @@ package app.organicmaps.navi.friends;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.os.Bundle;
+import android.content.SharedPreferences;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
@@ -107,6 +108,61 @@ public final class FriendsSessionInstrument extends Instrumentation {
       check(error.get().getCode() == DatabaseError.PERMISSION_DENIED, "Denied listener failed for another reason");
       check(values.get() == 0, "New account received another account's cached peer data");
     } finally { ui(() -> { registration.close(); return null; }); }
+  }
+
+  private void persistentSharing(FirebaseAuth identity) throws Exception {
+    FriendsDataSession data = open(identity, identity.getCurrentUser());
+    FriendsRepository repository = ui(() -> new FriendsRepository(data));
+    SharedPreferences preferences = getTargetContext().getSharedPreferences("native-sharing-test", 0);
+    check(preferences.edit().clear().commit(), "Cannot reset disposable fixture preferences");
+    AtomicReference<FriendsSharingController.State> state = new AtomicReference<>();
+    FriendsSharingController first = ui(() -> new FriendsSharingController(data, repository, preferences,
+        System::currentTimeMillis, state::set));
+    check(state.get() == FriendsSharingController.State.OFF, "Missing intent unexpectedly started sharing");
+    await(ui(() -> first.setEnabled(true)));
+    check(state.get() == FriendsSharingController.State.SHARING, "Sharing never received an enabled server lease");
+    long initialTime = System.currentTimeMillis();
+    PresenceSample initial = new PresenceSample(1, initialTime, 43.73, 7.42, 5.0, 8.0, null);
+    check(await(ui(() -> first.accept(initial, true, true))), "Fresh current-lease sample was not published");
+
+    ui(() -> { data.database().goOffline(); return null; });
+    waitUntil(() -> state.get() == FriendsSharingController.State.RECONNECTING, "Disconnect did not invalidate publication");
+    check(!await(ui(() -> first.accept(new PresenceSample(2, System.currentTimeMillis(), 43.74, 7.43, 5.0, 8.0, null), true, true))),
+        "Disconnected sharing queued a new GPS sample");
+    // Simulate an older SDK write already queued before the user's pause.
+    Task<Void> oldWrite = data.database().getReference("live/" + data.owner() + "/position").setValue(values(
+        "sharingGeneration", 1L, "sequence", 2L, "latitude", 43.74, "longitude", 7.43,
+        "accuracyMeters", 5, "measuredAtMs", initialTime + 1, "receivedAtMs", ServerValue.TIMESTAMP));
+    ui(() -> first.setEnabled(false));
+    check(state.get() == FriendsSharingController.State.REVOCATION_PENDING, "Offline pause claimed server revocation was complete");
+    waitUntil(oldWrite::isComplete, "Old SDK position write was not purged on pause");
+    check(!oldWrite.isSuccessful(), "Old SDK position survived pause as a successful write");
+    ui(() -> { first.close(); return null; });
+
+    AtomicReference<FriendsSharingController.State> restoredState = new AtomicReference<>();
+    FriendsSharingController restored = ui(() -> new FriendsSharingController(data, repository, preferences,
+        System::currentTimeMillis, restoredState::set));
+    check(restoredState.get() == FriendsSharingController.State.REVOCATION_PENDING,
+        "Recreated controller lost the persisted offline revocation intent");
+    ui(() -> { data.database().goOnline(); return null; });
+    waitUntil(() -> restoredState.get() == FriendsSharingController.State.PAUSED,
+        "Reconnection failed to acknowledge the persisted server revocation");
+    FriendsDataSession inspector = open(identity, identity.getCurrentUser());
+    DataSnapshot disabled = await(inspector.database().getReference("liveControl/" + data.owner()).get());
+    check(Boolean.FALSE.equals(disabled.child("enabled").getValue()), "Independent client saw sharing enabled after pause acknowledgement");
+    check(((Number) await(inspector.database().getReference("live/" + data.owner() + "/position/sequence").get()).getValue()).longValue() == 1,
+        "A purged older position was replayed after reconnection");
+
+    await(ui(() -> restored.setEnabled(true)));
+    check(!await(ui(() -> restored.accept(initial, true, true))), "Resume replayed a pre-lease GPS sample");
+    long freshTime = System.currentTimeMillis();
+    check(await(ui(() -> restored.accept(new PresenceSample(1, freshTime, 43.75, 7.44, 4.0, 9.0, null), true, true))),
+        "Fresh resumed sample failed to publish");
+    DataSnapshot latest = await(inspector.database().getReference("live/" + data.owner() + "/position").get());
+    check(((Number) latest.child("sharingGeneration").getValue()).longValue() > 1,
+        "Resume reused the old server generation");
+    await(ui(() -> restored.setEnabled(false)));
+    ui(() -> { restored.close(); return null; });
   }
 
   public void onStart() {
@@ -264,6 +320,8 @@ public final class FriendsSessionInstrument extends Instrumentation {
       check(delayed.get().isClosed(), "Late account completion kept a data session alive");
       check(ready.get() == 0 && controller.session() == null, "Signed-out account was reactivated by late completion");
       report.putBoolean("native_late_session_completion_closed", true);
+      persistentSharing(bobAuth);
+      report.putBoolean("native_persistent_pause_reconnect", true);
       result = Activity.RESULT_OK;
     } catch (Throwable error) {
       android.util.Log.e("NaviFriendsNativeTest", "Synthetic integration failure", error);
