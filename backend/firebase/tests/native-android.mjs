@@ -25,8 +25,19 @@ const env = await initializeTestEnvironment({
   database: {host: '127.0.0.1', port: 9000,
     rules: await readFile(new URL('../database.rules.json', import.meta.url), 'utf8')}
 });
+let createdDatabaseReverse = false;
 try {
   await env.clearDatabase();
+  // The database emulator's handshake advertises 127.0.0.1:9000. Native
+  // reconnection follows that cached address rather than the initial 10.0.2.2.
+  // Bridge only this owned test AVD's database port back to host loopback.
+  const existing = run(['reverse', '--list']).split(/\r?\n/)
+    .map(row => row.trim().split(/\s+/)).find(parts => parts.at(-2) === 'tcp:9000');
+  if (existing) assert.equal(existing.at(-1), 'tcp:9000', 'An unrelated ADB reverse already owns test port 9000');
+  else {
+    run(['reverse', 'tcp:9000', 'tcp:9000']);
+    createdDatabaseReverse = true;
+  }
   const path = resolve(apk);
   const sha256 = createHash('sha256').update(await readFile(path)).digest('hex');
   assert.match(run(['install', '-r', path], 90_000), /Success/);
@@ -43,9 +54,10 @@ try {
   assert.match(transcript, /INSTRUMENTATION_CODE: -1\s*$/, transcript);
   assert.doesNotMatch(transcript, /native_error=|cleanup_error=/);
   const report = {apk: path, sha256, serial, avd: 'MINT_Phone',
-    package: 'app.navi.friendstest', flags, passed: true};
+    package: 'app.navi.friendstest', databaseReverse: 'tcp:9000 -> host loopback tcp:9000', flags, passed: true};
   await writeFile(output, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report));
 } finally {
-  await env.cleanup();
+  try { await env.cleanup(); }
+  finally { if (createdDatabaseReverse) run(['reverse', '--remove', 'tcp:9000']); }
 }
