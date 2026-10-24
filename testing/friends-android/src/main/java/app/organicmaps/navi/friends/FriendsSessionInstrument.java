@@ -150,6 +150,7 @@ public final class FriendsSessionInstrument extends Instrumentation {
       report.putBoolean("native_late_session_completion_closed", true);
       result = Activity.RESULT_OK;
     } catch (Throwable error) {
+      android.util.Log.e("NaviFriendsNativeTest", "Synthetic integration failure", error);
       report.putString("native_error", error.getClass().getSimpleName() + ": " + error.getMessage());
       report.putString("native_error_stack", android.util.Log.getStackTraceString(error));
     } finally {

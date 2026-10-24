@@ -28,6 +28,7 @@ final class FriendsDataSession implements AutoCloseable {
   private final String owner;
   private final ArrayList<Registration> registrations = new ArrayList<>();
   private boolean closed;
+  private boolean databaseUsed;
 
   private FriendsDataSession(FirebaseApp app, FirebaseAuth auth, FirebaseDatabase database, String owner) {
     this.app = app;
@@ -75,12 +76,14 @@ final class FriendsDataSession implements AutoCloseable {
   boolean isClosed() { return closed; }
   FirebaseDatabase database() {
     if (closed) throw new IllegalStateException("Friends session is closed");
+    databaseUsed = true;
     return database;
   }
 
   AutoCloseable listen(String path, ValueEventListener listener) {
     requireMainThread();
     if (closed) throw new IllegalStateException("Friends session is closed");
+    databaseUsed = true;
     Registration registration = new Registration(database.getReference(path), listener);
     registrations.add(registration);
     registration.reference.addValueEventListener(registration);
@@ -116,8 +119,12 @@ final class FriendsDataSession implements AutoCloseable {
     if (closed) return;
     closed = true;
     for (Registration registration : new ArrayList<>(registrations)) registration.close();
-    database.purgeOutstandingWrites();
-    database.goOffline();
+    // Both methods initialize an unused SDK Repo asynchronously. Do not create
+    // that Repo just before deleting its Auth app (failed/late open cleanup).
+    if (databaseUsed) {
+      database.purgeOutstandingWrites();
+      database.goOffline();
+    }
     auth.signOut();
     app.delete();
   }
