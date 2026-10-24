@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 
 
 def select_app(derived):
@@ -65,11 +66,33 @@ def collect(out, derived, udid):
     report['pid'] = int(pid)
     # LLDB batch mode skips ordinary subsequent commands when the process crashes.
     # Its on-crash commands are required to retain the actual trapping stack.
-    run(['xcrun', 'lldb', '--batch', '-p', pid,
-         '--one-line', 'process handle SIGPIPE -n false -p true -s false',
-         '--one-line', 'continue',
-         '--one-line-on-crash', 'thread backtrace all',
-         '--one-line-on-crash', 'image list'], 'startup-debugger.txt', 90)
+    # A blocked main thread does not trigger LLDB's on-crash commands. Sample
+    # that case with an explicitly recorded diagnostic SIGSTOP, not a fake crash.
+    stopped = {}
+    def interrupt_owned_process():
+        identity = subprocess.run(['ps', '-p', pid, '-o', 'comm='], capture_output=True, text=True, timeout=10)
+        if identity.returncode != 0 or Path(identity.stdout.strip()).name != selected['executable']:
+            stopped['skipped'] = 'PID no longer identifies the expected application'
+            return
+        result = subprocess.run(['/bin/kill', '-STOP', pid], capture_output=True, timeout=10)
+        stopped['exit_code'] = result.returncode
+        (out / 'startup-deliberate-stop.txt').write_bytes(result.stdout + result.stderr)
+    timer = threading.Timer(25, interrupt_owned_process)
+    timer.daemon = True
+    timer.start()
+    try:
+        run(['xcrun', 'lldb', '--batch', '-p', pid,
+             '--one-line', 'process handle SIGPIPE -n false -p true -s false',
+             '--one-line', 'continue',
+             '--one-line', 'thread backtrace all',
+             '--one-line', 'image list',
+             '--one-line', 'process detach',
+             '--one-line-on-crash', 'thread backtrace all',
+             '--one-line-on-crash', 'image list'], 'startup-debugger.txt', 90)
+    finally:
+        timer.cancel()
+        timer.join(timeout=12)
+    report['deliberate_diagnostic_stop'] = stopped
     run(['xcrun', 'simctl', 'io', udid, 'screenshot', str(out / 'startup-simulator.png')],
         'startup-screenshot.txt')
     process = selected['executable'].replace('\\', '\\\\').replace('"', '\\"')
