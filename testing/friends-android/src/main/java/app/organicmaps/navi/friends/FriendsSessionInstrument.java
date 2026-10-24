@@ -151,6 +151,7 @@ public final class FriendsSessionInstrument extends Instrumentation {
       result = Activity.RESULT_OK;
     } catch (Throwable error) {
       report.putString("native_error", error.getClass().getSimpleName() + ": " + error.getMessage());
+      report.putString("native_error_stack", android.util.Log.getStackTraceString(error));
     } finally {
       try {
         ui(() -> {
