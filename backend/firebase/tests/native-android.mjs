@@ -33,6 +33,8 @@ try {
   const transcript = run(['shell', 'am', 'instrument', '-w',
     'app.navi.friendstest/app.organicmaps.navi.friends.FriendsSessionInstrument'], 180_000);
   await writeFile(output + '.txt', transcript);
+  const pid = transcript.match(/native_pid=(\d+)/)?.[1];
+  if (pid) await writeFile(output + '.logcat.txt', run(['logcat', '-d', '--pid', pid], 30_000));
   const flags = ['native_auth_cloned', 'native_listener_revoked',
     'native_fresh_session_denied_old_peer', 'native_late_session_completion_closed', 'native_friend_actions',
     'native_failed_open_cleanup', 'native_peer_snapshots', 'native_gated_publication',

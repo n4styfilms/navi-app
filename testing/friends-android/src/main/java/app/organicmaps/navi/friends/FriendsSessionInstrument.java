@@ -33,6 +33,8 @@ public final class FriendsSessionInstrument extends Instrumentation {
   private final ArrayList<FriendsDataSession> sessions = new ArrayList<>();
   private FriendsAccountController controller;
   private final FriendsDataSession.Transport local = (auth, database) -> {
+    // Verbose SDK traces exist only in this disposable synthetic fixture.
+    database.setLogLevel(com.google.firebase.database.Logger.Level.DEBUG);
     // Auth's emulator endpoint is shared by API key. Primary identity setup
     // configures it before opening any data apps. Reconfiguring it after app
     // deletion calls the SDK's stale emulator-reset listeners for deleted apps.
@@ -149,7 +151,7 @@ public final class FriendsSessionInstrument extends Instrumentation {
       waitUntil(() -> restoredState.get() == FriendsSharingController.State.PAUSED,
           "Reconnection failed to acknowledge the persisted server revocation");
     } catch (AssertionError error) {
-      throw new AssertionError("Persisted revocation ended in " + restoredState.get(), ui(restored::lastFailure));
+      throw new AssertionError("Persisted revocation ended in " + ui(restored::diagnosticState), ui(restored::lastFailure));
     }
     FriendsDataSession inspector = open(identity, identity.getCurrentUser());
     DataSnapshot disabled = await(inspector.database().getReference("liveControl/" + data.owner()).get());
@@ -171,6 +173,7 @@ public final class FriendsSessionInstrument extends Instrumentation {
 
   public void onStart() {
     Bundle report = new Bundle();
+    report.putInt("native_pid", android.os.Process.myPid());
     int result = Activity.RESULT_CANCELED;
     try {
       FirebaseAuth aliceAuth = identity("alice"); FirebaseUser alice = signup(aliceAuth);
