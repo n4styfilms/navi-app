@@ -1,6 +1,18 @@
-name: iOS preserved startup replay
+name: iOS captured startup diagnostics
 on:
   workflow_dispatch:
+    inputs:
+      source_run:
+        description: Existing Navi iOS artifact run
+        type: string
+        default: '40117020967'
+      mode:
+        description: Decode captured test results or replay its preserved app
+        type: choice
+        default: result
+        options:
+          - result
+          - app
 permissions:
   contents: read
   actions: read
@@ -17,10 +29,14 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
-          run-id: '40051187413'
-          name: navi-ios-40051187413
+          run-id: ${{ inputs.source_run }}
+          name: navi-ios-${{ inputs.source_run }}
           path: ${{ runner.temp }}/preserved
-      - name: Inspect original compiled app without rebuilding
+      - name: Decode original failed XCTest result without rebuilding
+        if: ${{ inputs.mode == 'result' }}
+        run: python3 tools/private/export_ios_xcresult.py "$RUNNER_TEMP/preserved/ios-tests.xcresult" "$RUNNER_TEMP/replay"
+      - name: Replay original preserved app without rebuilding
+        if: ${{ inputs.mode == 'app' }}
         run: python3 tools/private/replay_ios_startup.py "$RUNNER_TEMP/preserved/startup-simulator-app.zip" "$RUNNER_TEMP/replay"
       - uses: actions/upload-artifact@v4
         if: always()
