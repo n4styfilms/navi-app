@@ -7,7 +7,7 @@ on:
         type: boolean
         default: false
       host_only:
-        description: Run only the actual Swift Foundation transport regression
+        description: Run actual Java and Apple Swift host regressions
         type: boolean
         default: false
 permissions:
@@ -59,8 +59,8 @@ jobs:
           submodules: false
           fetch-depth: 1
           persist-credentials: false
-      - name: Run actual Swift URLSession regression
-        run: python3 -m unittest discover -s tools/private/tests -p test_map_transport_swift.py -v
+      - name: Run actual Java and Apple Swift host regressions
+        run: python3 -m unittest discover -s tools/private/tests -v
   map-probe:
     if: ${{ inputs.map_probe }}
     runs-on: macos-26
