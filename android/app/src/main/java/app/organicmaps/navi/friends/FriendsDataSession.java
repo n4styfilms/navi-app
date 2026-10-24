@@ -46,12 +46,17 @@ final class FriendsDataSession implements AutoCloseable {
                                        Transport transport) {
     requireMainThread();
     TaskCompletionSource<FriendsDataSession> result = new TaskCompletionSource<>();
-    FirebaseApp app = FirebaseApp.initializeApp(context.getApplicationContext(), identityApp.getOptions(),
-        "navi-friends-data-" + UUID.randomUUID());
-    FirebaseAuth auth = FirebaseAuth.getInstance(app);
-    FirebaseDatabase database = FirebaseDatabase.getInstance(app);
-    FriendsDataSession session = new FriendsDataSession(app, auth, database, user.getUid());
+    FirebaseApp created = null;
+    FirebaseAuth createdAuth = null;
+    FriendsDataSession pending = null;
     try {
+      created = FirebaseApp.initializeApp(context.getApplicationContext(), identityApp.getOptions(),
+          "navi-friends-data-" + UUID.randomUUID());
+      FirebaseAuth auth = FirebaseAuth.getInstance(created);
+      createdAuth = auth;
+      FirebaseDatabase database = FirebaseDatabase.getInstance(created);
+      FriendsDataSession session = new FriendsDataSession(created, auth, database, user.getUid());
+      pending = session;
       database.setPersistenceEnabled(false);
       transport.configure(auth, database);
       auth.updateCurrentUser(user).addOnCompleteListener(TaskExecutors.MAIN_THREAD, task -> {
@@ -65,7 +70,14 @@ final class FriendsDataSession implements AutoCloseable {
         }
       });
     } catch (Exception failure) {
-      session.close();
+      try {
+        if (pending != null) pending.close();
+        else {
+          // Invalid options can fail before a complete data session exists.
+          try { if (createdAuth != null) createdAuth.signOut(); }
+          finally { if (created != null) created.delete(); }
+        }
+      } catch (Exception cleanup) { failure.addSuppressed(cleanup); }
       result.setException(failure);
     }
     return result.getTask();
