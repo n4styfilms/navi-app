@@ -1,0 +1,1511 @@
+[
+  {
+    "name": "fresh_at_15_seconds",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          16000,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": true,
+          "fresh": true,
+          "publish": true,
+          "state": "sharing"
+        }
+      }
+    ]
+  },
+  {
+    "name": "stale_after_15_seconds",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          16001,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": true,
+          "fresh": false,
+          "publish": false,
+          "state": "starting"
+        }
+      }
+    ]
+  },
+  {
+    "name": "future_measurement_not_live",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1001,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": true,
+          "fresh": false,
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "missing_accuracy",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          null,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": false,
+          "fresh": false,
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "negative_accuracy",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          -1,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": false,
+          "fresh": false,
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "nan_accuracy",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          "NaN",
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": false,
+          "fresh": false,
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "bad_latitude",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          91,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": false,
+          "fresh": false,
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "infinite_longitude",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          "Infinity",
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": false,
+          "fresh": false,
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "zero_sequence",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          0,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "valid": false,
+          "fresh": false,
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "unknown_speed",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          null,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true,
+          "speed": null
+        }
+      }
+    ]
+  },
+  {
+    "name": "negative_speed",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          -1,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true,
+          "speed": null
+        }
+      }
+    ]
+  },
+  {
+    "name": "nan_speed",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          "NaN",
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true,
+          "speed": null
+        }
+      }
+    ]
+  },
+  {
+    "name": "stationary_zero_speed",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          0,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true,
+          "speed": 0
+        }
+      }
+    ]
+  },
+  {
+    "name": "bearing_normalized",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          -45,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true,
+          "bearing": 315
+        }
+      }
+    ]
+  },
+  {
+    "name": "nonfinite_bearing_omitted",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          "Infinity",
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true,
+          "bearing": null
+        }
+      }
+    ]
+  },
+  {
+    "name": "foreground_moving_5sec",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          2,
+          5999,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          5999,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          3,
+          6000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          6000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "background_moving_15sec",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          false,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          2,
+          15999,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          15999,
+          false,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          3,
+          16000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          16000,
+          false,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "stationary_60sec",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          false
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          2,
+          60999,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          60999,
+          true,
+          false
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          3,
+          61000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          61000,
+          true,
+          false
+        ],
+        "expect": {
+          "publish": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "duplicate_and_reordered",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          5,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          5,
+          7000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          4,
+          8000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          8000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          6,
+          999,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          9000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          6,
+          10000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          10000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "pause_invalidates_queued_send",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "pause"
+        ],
+        "expect": {
+          "state": "paused",
+          "generation": 2
+        }
+      },
+      {
+        "command": [
+          "recheck",
+          0,
+          2000
+        ],
+        "expect": {
+          "current": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          2,
+          7000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "restart_requires_new_sample",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "pause"
+        ],
+        "expect": {}
+      },
+      {
+        "command": [
+          "begin",
+          "alice",
+          7000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 3
+        }
+      },
+      {
+        "command": [
+          "sample",
+          3,
+          2,
+          6000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          3,
+          3,
+          7001,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7001,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "account_switch_invalidates_old_generation",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "begin",
+          "bob",
+          7000
+        ],
+        "expect": {
+          "generation": 2,
+          "owner": "bob"
+        }
+      },
+      {
+        "command": [
+          "recheck",
+          0,
+          7000
+        ],
+        "expect": {
+          "current": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          2,
+          7000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          2,
+          3,
+          7001,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7001,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true,
+          "owner": "bob"
+        }
+      }
+    ]
+  },
+  {
+    "name": "error_and_reconnect",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "error"
+        ],
+        "expect": {
+          "state": "error",
+          "generation": 2
+        }
+      },
+      {
+        "command": [
+          "recheck",
+          0,
+          2000
+        ],
+        "expect": {
+          "current": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          2,
+          7000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "begin",
+          "alice",
+          8000
+        ],
+        "expect": {
+          "generation": 3
+        }
+      },
+      {
+        "command": [
+          "sample",
+          3,
+          3,
+          7999,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          8001,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          3,
+          4,
+          8002,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          8002,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "signout_clears_owner",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "off"
+        ],
+        "expect": {
+          "state": "off",
+          "owner": null,
+          "generation": 2
+        }
+      },
+      {
+        "command": [
+          "recheck",
+          0,
+          2000
+        ],
+        "expect": {
+          "current": false
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          2,
+          7000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "queued_sample_expires",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "recheck",
+          0,
+          16000
+        ],
+        "expect": {
+          "current": true
+        }
+      },
+      {
+        "command": [
+          "recheck",
+          0,
+          16001
+        ],
+        "expect": {
+          "current": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "newer_sample_supersedes_queued_candidate",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          1,
+          1000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          1000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "sample",
+          1,
+          2,
+          6000,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          6000,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": true
+        }
+      },
+      {
+        "command": [
+          "recheck",
+          0,
+          6000
+        ],
+        "expect": {
+          "current": false
+        }
+      },
+      {
+        "command": [
+          "recheck",
+          1,
+          6000
+        ],
+        "expect": {
+          "current": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "blank_account_cannot_publish",
+    "events": [
+      {
+        "command": [
+          "begin",
+          "alice",
+          1000
+        ],
+        "expect": {
+          "state": "starting",
+          "generation": 1
+        }
+      },
+      {
+        "command": [
+          "begin",
+          "   ",
+          7000
+        ],
+        "expect": {
+          "state": "error",
+          "generation": 2
+        }
+      },
+      {
+        "command": [
+          "sample",
+          2,
+          2,
+          7001,
+          43.7,
+          7.4,
+          5,
+          8,
+          null,
+          7001,
+          true,
+          true
+        ],
+        "expect": {
+          "publish": false
+        }
+      }
+    ]
+  }
+]
