@@ -1,6 +1,6 @@
 # Native friends integration fixture
 
-This isolated Android application compiles the real production friends sources against Firebase Auth/Database, pinned by BoM 35.0.2. It is a test harness, not the Navi package for users. Its application ID is `app.navi.friendstest`; it never reads the `app.navi.private` sandbox or changes that app's signing key/data.
+This isolated Android application compiles the real production friends sources against Firebase Auth/Database, pinned by BoM 34.19.0 (Auth 24.2.0, Database 22.0.1). BoM 35's Auth 25 requires API 24, so this compatible stable line preserves the main app's API 23 minimum. The manifest merger caught this before any library override or minimum-version change. It is a test harness, not the Navi package for users. Its application ID is `app.navi.friendstest`; it never reads the `app.navi.private` sandbox or changes that app's signing key/data.
 
 Build with the existing wrapper: `android/gradlew -p testing/friends-android assembleDebug` from the repository root. The small fixture uses cached-compatible AGP 8.11.1 independently of the main application's AGP. Its debug signature uses the existing public CoMaps development key so fixture updates do not require deleting installed test data. No private Navi key is uploaded or used here.
 
