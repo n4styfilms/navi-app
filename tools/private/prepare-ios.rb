@@ -15,4 +15,12 @@ app.build_configurations.each do |config|
   config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'app.navi.private'
 end
+# Simulator-only trap diagnostics are empty in device builds. Add the source
+# only in this disposable private-build project, not the upstream project file.
+diagnostics = project.main_group.groups.find { |group| group.display_name == 'Private Startup Diagnostics' }
+diagnostics ||= project.main_group.new_group('Private Startup Diagnostics')
+capture_path = root.join('tools/private/NaviStartupCapture.mm').to_s
+capture = diagnostics.files.find { |file| file.path == capture_path }
+capture ||= diagnostics.new_file(capture_path)
+app.source_build_phase.add_file_reference(capture, true)
 project.save

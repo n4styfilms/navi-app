@@ -52,6 +52,18 @@ def collect(out, derived, udid, archive_app=True):
 
     selected = select_app(derived)
     report.update(selected)
+    # Preserve the real compiled app before simulator commands can hang or fail.
+    # The previous install timeout otherwise lost the only copy of that build.
+    app = Path(selected['app'])
+    app_bytes = sum(p.stat().st_size for p in app.rglob('*') if p.is_file())
+    report['application_bytes'] = app_bytes
+    if archive_app and app_bytes <= 500_000_000:
+        archive = Path(derived).resolve() / 'startup-simulator-app.zip'
+        _, archived = run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(app), str(archive)],
+                          'startup-archive.txt', 180)
+        if archived.get('exit_code') == 0 and archive.stat().st_size <= 150_000_000:
+            shutil.copyfile(archive, out / 'startup-simulator-app.zip')
+            report['application_archive_bytes'] = archive.stat().st_size
     run(['xcrun', 'simctl', 'bootstatus', udid, '-b'], 'startup-boot.txt', 90)
     run(['xcrun', 'simctl', 'terminate', udid, selected['bundleIdentifier']], 'startup-terminate.txt')
     _, installed = run(['xcrun', 'simctl', 'install', udid, selected['app']], 'startup-install.txt')
@@ -99,18 +111,6 @@ def collect(out, derived, udid, archive_app=True):
     run(['xcrun', 'simctl', 'spawn', udid, 'log', 'show', '--last', '3m', '--style', 'compact',
          '--predicate', f'process == "{process}" OR process == "ReportCrash"'],
         'startup-system.log', 90)
-    # Retain the same binary for later diagnosis without another C++ rebuild,
-    # bounded to avoid large optional debug archives consuming artifact storage.
-    app = Path(selected['app'])
-    app_bytes = sum(p.stat().st_size for p in app.rglob('*') if p.is_file())
-    report['application_bytes'] = app_bytes
-    if archive_app and app_bytes <= 500_000_000:
-        archive = Path(derived).resolve() / 'startup-simulator-app.zip'
-        _, archived = run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(app), str(archive)],
-                          'startup-archive.txt', 180)
-        if archived.get('exit_code') == 0 and archive.stat().st_size <= 150_000_000:
-            shutil.copyfile(archive, out / 'startup-simulator-app.zip')
-            report['application_archive_bytes'] = archive.stat().st_size
     (out / 'startup-diagnostic.json').write_text(json.dumps(report, indent=2) + '\n')
 
 
