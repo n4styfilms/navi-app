@@ -1,0 +1,39 @@
+name: Native friends Android fixture
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: navi-friends-android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android build platform
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' > /dev/null || test "${PIPESTATUS[1]}" = 0
+      - name: Compile actual native SDK integration fixture
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/friends-fixture"
+          git rev-parse HEAD > "$RUNNER_TEMP/friends-fixture/source-commit.txt"
+          bash android/gradlew --no-daemon --console=plain -p testing/friends-android assembleDebug 2>&1 | tee "$RUNNER_TEMP/friends-fixture/build.log"
+          cp testing/friends-android/build/outputs/apk/debug/*.apk "$RUNNER_TEMP/friends-fixture/"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: friends-android-${{ github.run_id }}
+          path: ${{ runner.temp }}/friends-fixture/
+          if-no-files-found: error
+          retention-days: 7
