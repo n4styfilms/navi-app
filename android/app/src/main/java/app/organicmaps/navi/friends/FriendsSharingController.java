@@ -35,6 +35,7 @@ final class FriendsSharingController implements AutoCloseable {
   private Exception lastFailure;
   private TaskCompletionSource<Void> completion;
   private AutoCloseable connection;
+  private AutoCloseable controlWatch;
   private AutoCloseable closing;
 
   FriendsSharingController(FriendsDataSession session, FriendsRepository repository,
@@ -54,6 +55,13 @@ final class FriendsSharingController implements AutoCloseable {
     completion = new TaskCompletionSource<>();
     update(!hasIntent ? State.OFF : desired ? State.RECONNECTING : pending ? State.REVOCATION_PENDING : State.PAUSED);
     closing = session.onClose(this::accountClosed);
+    // .info/connected is virtual, not a server data subscription. Keep the
+    // owner's small lease query active so pending reconciliation has real
+    // connection demand and its control node remains in the SDK's cache.
+    controlWatch = session.listen("liveControl/" + session.owner(), new ValueEventListener() {
+      public void onDataChange(DataSnapshot snapshot) {}
+      public void onCancelled(DatabaseError error) { fail(error.toException()); }
+    });
     connection = session.listen(".info/connected", new ValueEventListener() {
       public void onDataChange(DataSnapshot snapshot) { connectionChanged(Boolean.TRUE.equals(snapshot.getValue())); }
       public void onCancelled(DatabaseError error) { fail(error.toException()); }
@@ -220,6 +228,7 @@ final class FriendsSharingController implements AutoCloseable {
     policy.signOut();
     lease = 0;
     FriendsObservation.dispose(connection);
+    FriendsObservation.dispose(controlWatch);
     FriendsObservation.dispose(closing);
     cancelCompletion();
     update(State.CLOSED);
