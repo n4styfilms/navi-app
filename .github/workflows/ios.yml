@@ -59,6 +59,8 @@ jobs:
           submodules: false
           fetch-depth: 1
           persist-credentials: false
+      - name: Checkout header dependency for JNI host test
+        run: git submodule update --init --depth 1 3party/utfcpp
       - name: Run actual Java and Apple Swift host regressions
         run: python3 -m unittest discover -s tools/private/tests -v
   map-probe:
