@@ -26,7 +26,8 @@ final class PresencePolicy {
     lastReservedAtMs = -1
     lastSequence = -1
     lastMeasuredAtMs = -1
-    state = uid == nil || uid?.isEmpty == true || nowMs < 0 ? .error : .starting
+    let validOwner = uid?.unicodeScalars.contains(where: { $0.value > 0x20 }) ?? false
+    state = !validOwner || nowMs < 0 ? .error : .starting
     return generation
   }
 
