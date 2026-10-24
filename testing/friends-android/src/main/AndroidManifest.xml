@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:label="Navi friends local tests" android:allowBackup="false"
+        android:usesCleartextTraffic="false" android:networkSecurityConfig="@xml/test_network_security" />
+    <instrumentation android:name="app.organicmaps.navi.friends.FriendsSessionInstrument"
+        android:targetPackage="app.navi.friendstest" />
+</manifest>

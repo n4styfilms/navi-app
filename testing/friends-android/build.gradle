@@ -1,0 +1,27 @@
+plugins { id 'com.android.application' version '8.11.1' }
+
+android {
+    namespace 'app.navi.friendstest'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'app.navi.friendstest'
+        minSdk 23
+        targetSdk 36
+        versionCode 1
+        versionName 'local-emulator-tests'
+        multiDexEnabled true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    // Compile the production domain/session source, not copies or mocks.
+    sourceSets.main.java.srcDir '../../android/app/src/main/java/app/organicmaps/navi/friends'
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:35.0.2')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'androidx.annotation:annotation:1.10.0'
+}
