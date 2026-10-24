@@ -33,7 +33,7 @@ def main():
     (out / 'destination.json').write_text(json.dumps(selected, indent=2) + '\n')
     udid = selected['udid']
     subprocess.run(['xcrun', 'simctl', 'boot', udid], check=False, capture_output=True, timeout=60)
-    collect(out, derived, udid)
+    collect(out, derived, udid, archive_app=False)
 
 
 if __name__ == '__main__':

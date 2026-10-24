@@ -33,7 +33,7 @@ def select_app(derived):
     return found[0]
 
 
-def collect(out, derived, udid):
+def collect(out, derived, udid, archive_app=True):
     out.mkdir(parents=True, exist_ok=True)
     report = {'diagnostic_only': True, 'original_test_result_preserved': True, 'commands': []}
     def run(args, filename, timeout=60):
@@ -104,7 +104,7 @@ def collect(out, derived, udid):
     app = Path(selected['app'])
     app_bytes = sum(p.stat().st_size for p in app.rglob('*') if p.is_file())
     report['application_bytes'] = app_bytes
-    if app_bytes <= 500_000_000:
+    if archive_app and app_bytes <= 500_000_000:
         archive = Path(derived).resolve() / 'startup-simulator-app.zip'
         _, archived = run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(app), str(archive)],
                           'startup-archive.txt', 180)
