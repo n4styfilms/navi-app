@@ -61,15 +61,27 @@ def main():
     report['process_alive'] = identity.returncode == 0 and Path(identity.stdout.strip()).name == report['executable']
     if report['process_alive']:
         run(['/usr/bin/sample', pid, '5', '-file', str(out / 'normal-sample.txt')], 'normal-sample-command.txt', 45)
+    else:
+        # A normally launched process really exits within ten seconds. Capture
+        # its stderr directly: Swift/ObjC fatal errors need not enter unified log.
+        try:
+            run(['xcrun', 'simctl', 'launch', '--console', udid, report['bundleIdentifier']],
+                'normal-console.txt', 45)
+        except subprocess.TimeoutExpired as failure:
+            (out / 'normal-console.txt').write_bytes((failure.stdout or b'') + (failure.stderr or b''))
+            report['console_timed_out'] = True
     run(['xcrun', 'simctl', 'io', udid, 'screenshot', str(out / 'normal-simulator.png')], 'normal-screenshot.txt', 30)
     time.sleep(5)
     run(['xcrun', 'simctl', 'spawn', udid, 'log', 'show', '--last', '5m', '--style', 'compact',
          '--predicate', f'process == "{report["executable"]}" OR process == "ReportCrash"'],
         'normal-system.log', 90)
-    roots = [Path.home() / 'Library/Logs/DiagnosticReports',
+    run(['/usr/bin/log', 'show', '--last', '3m', '--style', 'compact', '--predicate',
+         'process == "ReportCrash" OR eventMessage CONTAINS "app.navi.private" OR eventMessage CONTAINS "CoMaps (Debug)"'],
+        'normal-host.log', 60)
+    roots = [Path.home() / 'Library/Logs/DiagnosticReports', Path('/Library/Logs/DiagnosticReports'),
              Path.home() / f'Library/Developer/CoreSimulator/Devices/{udid}/data/Library/Logs/CrashReporter']
     for root in roots:
-        for source in root.rglob('*.ips'):
+        for source in [*root.rglob('*.ips'), *root.rglob('*.crash')]:
             if source.stat().st_mtime >= (out / 'archive-sha256.txt').stat().st_mtime:
                 raw = source.read_text(errors='replace')
                 if report['bundleIdentifier'] in raw or report['executable'] in raw:
