@@ -153,6 +153,21 @@ public final class FriendsSessionInstrument extends Instrumentation {
       check(!await(a.database().getReference("grants/" + aliceId + "/" + bobId).get()).exists(), "Own grants survived removal");
       report.putBoolean("native_friend_actions", true);
 
+      FirebaseApp incomplete = ui(() -> {
+        FirebaseApp app = FirebaseApp.initializeApp(getTargetContext(), new FirebaseOptions.Builder()
+            .setApplicationId("1:1234567890:android:0123456789abcdef")
+            .setApiKey("fake-emulator-api-key").build(), "incomplete-" + UUID.randomUUID());
+        primaryApps.add(app);
+        return app;
+      });
+      int beforeFailedOpen = FirebaseApp.getApps(getTargetContext()).size();
+      boolean invalidConfigurationRejected = false;
+      try { await(ui(() -> FriendsDataSession.open(getTargetContext(), incomplete, eve, local))); }
+      catch (Exception expected) { invalidConfigurationRejected = true; }
+      check(invalidConfigurationRejected, "Incomplete configuration unexpectedly opened a data session");
+      check(FirebaseApp.getApps(getTargetContext()).size() == beforeFailedOpen, "Failed open leaked a named FirebaseApp");
+      report.putBoolean("native_failed_open_cleanup", true);
+
       CountDownLatch opened = new CountDownLatch(1);
       TaskCompletionSource<FriendsDataSession> delivery = new TaskCompletionSource<>();
       AtomicReference<FriendsDataSession> delayed = new AtomicReference<>();
