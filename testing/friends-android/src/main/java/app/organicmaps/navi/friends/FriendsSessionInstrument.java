@@ -159,6 +159,18 @@ public final class FriendsSessionInstrument extends Instrumentation {
           "Peer speed freshness boundary is wrong");
       check(firstSnapshot.position.speedMetersPerSecond() == null && !firstSnapshot.speedAllowed,
           "A retained immutable snapshot changed after a rights update");
+      PresenceSample second = new PresenceSample(2, measured + 1, 43.7296, 7.4209, 5.0, 12.0, null);
+      PresencePolicy.Upload secondUpload = policy.prepare(second, measured + 5000, ticket, true, true);
+      await(ui(() -> aliceRepository.publish(policy, secondUpload, 1, measured + 5000)));
+      waitUntil(() -> peer(observed, aliceId) != null && peer(observed, aliceId).position != null
+          && peer(observed, aliceId).position.sequence == 2
+          && Double.valueOf(12).equals(peer(observed, aliceId).speedMetersPerSecondAt(measured + 5000)),
+          "Atomic next sample did not replace the joined position/speed");
+      check(firstSnapshot.position.sequence == 1, "A retained earlier position mutated");
+      await(ui(() -> aliceRepository.setGrant(bobId, new FriendsRepository.Grant(true, false, false))));
+      waitUntil(() -> peer(observed, aliceId) != null && !peer(observed, aliceId).speedAllowed
+          && peer(observed, aliceId).position != null && peer(observed, aliceId).speedMetersPerSecondAt(measured + 5000) == null,
+          "Speed revocation removed position or retained visible speed");
       check(await(b.database().getReference("profiles/" + aliceId).get()).exists(), "Confirmed native peer cannot read profile");
       report.putBoolean("native_auth_cloned", true);
 
@@ -180,7 +192,31 @@ public final class FriendsSessionInstrument extends Instrumentation {
       try { await(ui(() -> aliceRepository.publish(policy, upload, 1, measured))); }
       catch (java.util.concurrent.ExecutionException expected) { pausedRejected = true; }
       check(pausedRejected, "Repository accepted a generation-invalidated upload");
+      await(a.database().getReference("liveControl/" + aliceId).setValue(values("generation", 3L, "enabled", true)));
+      waitUntil(() -> peer(observed, aliceId) != null && peer(observed, aliceId).liveGeneration == 3
+          && peer(observed, aliceId).awaitingFreshSample,
+          "Resumed generation did not wait for a fresh sample");
+      check(peer(observed, aliceId).position == null, "Resume exposed an old-generation point");
+      long resumedAt = System.currentTimeMillis();
+      long resumedTicket = policy.begin(aliceId, resumedAt);
+      PresencePolicy.Upload resumed = policy.prepare(new PresenceSample(1, resumedAt, 43.7297, 7.421, 4.0, 6.0, null),
+          resumedAt, resumedTicket, true, true);
+      await(ui(() -> aliceRepository.publish(policy, resumed, 3, resumedAt)));
+      waitUntil(() -> peer(observed, aliceId) != null && peer(observed, aliceId).position != null
+          && peer(observed, aliceId).position.sequence == 1 && peer(observed, aliceId).liveGeneration == 3,
+          "Fresh resumed sample did not reattach the native position subscription");
       report.putBoolean("native_gated_publication", true);
+
+      await(ui(() -> aliceRepository.removeFriend(bobId)));
+      waitUntil(() -> observed.get() != null && observed.get().isEmpty(), "Consent revocation retained a peer snapshot");
+      await(ui(() -> aliceRepository.requestFriend(bobId)));
+      await(ui(() -> bobRepository.confirmFriend(aliceId)));
+      waitUntil(() -> peer(observed, aliceId) != null && !peer(observed, aliceId).positionAllowed,
+          "Reconfirmed peer incorrectly regained old sharing grants");
+      check(peer(observed, aliceId).position == null, "Reconfirmed peer retained an old marker without a new grant");
+      await(ui(() -> aliceRepository.setGrant(bobId, new FriendsRepository.Grant(true, true, false))));
+      waitUntil(() -> peer(observed, aliceId) != null && peer(observed, aliceId).position != null,
+          "Explicit new grant did not restore the permitted current-generation point");
 
       String oldDataApp = b.appName();
       ui(() -> { b.close(); return null; });
