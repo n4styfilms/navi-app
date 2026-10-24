@@ -16,9 +16,10 @@ before(async () => {
 after(async () => { if (env) await env.cleanup(); });
 beforeEach(async () => { await env.clearDatabase(); });
 const db = (uid) => (uid ? env.authenticatedContext(uid) : env.unauthenticatedContext()).database();
-const position = (extra = {}) => ({sequence: 1, latitude: 43.7295, longitude: 7.4208,
+const position = (extra = {}) => ({sharingGeneration: 1, sequence: 1, latitude: 43.7295, longitude: 7.4208,
   accuracyMeters: 5, measuredAtMs: Date.now(), receivedAtMs: serverTimestamp(), ...extra});
-const speed = (extra = {}) => ({sequence: 1, metersPerSecond: 8, measuredAtMs: Date.now(), ...extra});
+const speed = (extra = {}) => ({sharingGeneration: 1, sequence: 1, metersPerSecond: 8, measuredAtMs: Date.now(), ...extra});
+const control = (extra = {}) => ({generation: 1, enabled: true, ...extra});
 const grant = (extra = {}) => ({position: true, speed: false, trips: false, ...extra});
 const trip = (extra = {}) => ({startedAtMs: Date.now() - 60_000, endedAtMs: Date.now() - 1000,
   distanceMeters: 300, durationSeconds: 59, ...extra});
@@ -27,6 +28,7 @@ async function seed({consent = true, rights = grant(), oldTrip = false, staleSpe
     await set(ref(context.database()), {
       friendConsent: {alice: {bob: true}, ...(consent ? {bob: {alice: true}} : {})},
       grants: {alice: {bob: rights}},
+      liveControl: {alice: control()},
       profiles: {alice: {displayName: 'Alice'}},
       live: {alice: {position: position({receivedAtMs: Date.now()}),
         speed: speed({sequence: staleSpeed ? 0 : 1})}},
@@ -49,13 +51,14 @@ test('one-sided consent, stranger and anonymous position reads deny', async () =
   for (const uid of ['bob', 'eve', null]) await assertFails(get(ref(db(uid), 'live/alice/position')));
 });
 test('only owner can write location; owner can remove it', async () => {
+  await assertSucceeds(set(ref(db('alice'), 'liveControl/alice'), control()));
   await assertSucceeds(set(ref(db('alice'), 'live/alice/position'), position()));
   await assertFails(set(ref(db('eve'), 'live/alice/position'), position({sequence: 2})));
   await assertSucceeds(remove(ref(db('alice'), 'live/alice/position')));
 });
 test('root, user catalog and entire live record reads deny', async () => {
   await seed({rights: grant({speed: true, trips: true})});
-  for (const path of ['', 'live', 'live/alice', 'profiles', 'grants', 'friendConsent', 'tripIndex'])
+  for (const path of ['', 'live', 'live/alice', 'liveControl', 'profiles', 'grants', 'friendConsent', 'tripIndex'])
     await assertFails(get(ref(db('bob'), path || undefined)));
 });
 test('position permission does not grant speed, trips or raw points', async () => {
@@ -111,6 +114,7 @@ test('removing friendship cancels an existing location subscription', async () =
 });
 test('position schema bounds, required fields and monotonic sequence are enforced', async () => {
   const owner = db('alice');
+  await assertSucceeds(set(ref(owner, 'liveControl/alice'), control()));
   for (const extra of [{latitude: 91}, {longitude: -181}, {accuracyMeters: -1},
     {latitude: '43.7'}, {bearingDegrees: 360}, {sequence: 1.5}, {sequence: -1},
     {measuredAtMs: Date.now() + DAY}, {receivedAtMs: 0}, {privateEmail: 'hidden@example.invalid'}])
@@ -186,4 +190,66 @@ test('owner writes bounded trip chunks; stranger and extra or oversized points d
   await assertFails(set(ref(owner, 'tripIndex/alice/other'), trip({distanceMeters: -1})));
   await assertSucceeds(remove(ref(owner, 'tripChunks/alice/ride/0')));
   await assertSucceeds(remove(ref(owner, 'tripIndex/alice/ride')));
+});
+
+test('global pause hides live position and speed without revoking separately shared trips', async () => {
+  await seed({rights: grant({speed: true, trips: true})});
+  const reader = db('bob');
+  await assertSucceeds(get(ref(reader, 'live/alice/position')));
+  await assertSucceeds(get(ref(reader, 'live/alice/speed')));
+  await assertSucceeds(set(ref(db('alice'), 'liveControl/alice'), control({generation: 2, enabled: false})));
+  await assertFails(get(ref(reader, 'live/alice/position')));
+  await assertFails(get(ref(reader, 'live/alice/speed')));
+  await assertSucceeds(get(ref(reader, 'tripIndex/alice/ride')));
+});
+
+test('old live session cannot reactivate sharing or publish after pause and resume', async () => {
+  await seed({rights: grant({speed: true})});
+  const owner = db('alice'); const reader = db('bob');
+  await assertSucceeds(set(ref(owner, 'liveControl/alice'), control({generation: 2, enabled: false})));
+  await assertFails(set(ref(owner, 'liveControl/alice'), control()));
+  await assertFails(set(ref(owner, 'live/alice/position'), position({sequence: 2})));
+  await assertFails(set(ref(owner, 'live/alice/speed'), speed()));
+  await assertSucceeds(set(ref(owner, 'liveControl/alice'), control({generation: 3})));
+  await assertFails(get(ref(reader, 'live/alice/position')));
+  await assertFails(get(ref(reader, 'live/alice/speed')));
+  await assertFails(set(ref(owner, 'live/alice/position'), position({sequence: 3})));
+  await assertSucceeds(set(ref(owner, 'live/alice/position'), position({sharingGeneration: 3})));
+  await assertFails(get(ref(reader, 'live/alice/speed')));
+  await assertFails(set(ref(owner, 'live/alice/speed'), speed({sharingGeneration: 2})));
+  await assertSucceeds(set(ref(owner, 'live/alice/speed'), speed({sharingGeneration: 3})));
+  await assertSucceeds(get(ref(reader, 'live/alice/position')));
+  await assertSucceeds(get(ref(reader, 'live/alice/speed')));
+});
+
+test('live control is owner written, complete, monotonic and cannot be reset by deletion', async () => {
+  await seed(); const owner = db('alice');
+  await assertFails(set(ref(db('bob'), 'liveControl/alice'), control({generation: 2})));
+  await assertFails(set(ref(db(null), 'liveControl/alice'), control({generation: 2})));
+  await assertFails(set(ref(owner, 'liveControl/alice'), {enabled: false}));
+  await assertFails(set(ref(owner, 'liveControl/alice'), control({generation: 1, enabled: false})));
+  await assertFails(set(ref(owner, 'liveControl/alice'), control({generation: 1.5})));
+  await assertFails(set(ref(owner, 'liveControl/alice'), {...control({generation: 2}), extra: true}));
+  await assertFails(remove(ref(owner, 'liveControl/alice')));
+  await assertSucceeds(get(ref(db('bob'), 'liveControl/alice')));
+  await assertFails(get(ref(db('eve'), 'liveControl/alice')));
+  await update(ref(owner, 'grants/alice/bob'), {position: false});
+  await assertFails(get(ref(db('bob'), 'liveControl/alice')));
+});
+
+test('global control pause cancels an already permitted live listener', async () => {
+  await seed(); let unsubscribe;
+  const canceled = new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Live listener remained permitted after global pause')), 5000);
+    let seen = false;
+    unsubscribe = onValue(ref(db('bob'), 'live/alice/position'), () => {
+      if (seen) return; seen = true;
+      set(ref(db('alice'), 'liveControl/alice'), control({generation: 2, enabled: false})).catch(reject);
+    }, (error) => {
+      clearTimeout(timer);
+      if (!seen) reject(new Error('Live subscription was never initially permitted'));
+      else resolve(error);
+    });
+  });
+  try {assert.match((await canceled).code, /PERMISSION_DENIED/i);} finally {unsubscribe?.();}
 });

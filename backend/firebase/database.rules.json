@@ -66,7 +66,7 @@
     "live": {
       "$owner": {
         "position": {
-          ".validate": "newData.hasChildren([\"sequence\", \"latitude\", \"longitude\", \"accuracyMeters\", \"measuredAtMs\", \"receivedAtMs\"]) && (!data.exists() || newData.child('sequence').val() > data.child('sequence').val())",
+          ".validate": "newData.hasChildren([\"sequence\", \"latitude\", \"longitude\", \"accuracyMeters\", \"measuredAtMs\", \"receivedAtMs\"]) && (!data.exists() || !data.hasChild('sharingGeneration') || newData.child('sharingGeneration').val() > data.child('sharingGeneration').val() || newData.child('sequence').val() > data.child('sequence').val()) && newData.hasChild('sharingGeneration')",
           "sequence": {
             ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.val() % 1 === 0"
           },
@@ -91,11 +91,14 @@
           "$other": {
             ".validate": false
           },
-          ".read": "(auth != null && auth.uid === $owner) || (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('position').val() === true)",
-          ".write": "auth != null && auth.uid === $owner"
+          ".read": "(auth != null && auth.uid === $owner) || ((auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('position').val() === true) && (root.child('liveControl').child($owner).child('enabled').val() === true) && (data.child('sharingGeneration').val() === root.child('liveControl').child($owner).child('generation').val()))",
+          ".write": "(auth != null && auth.uid === $owner) && (!newData.exists() || ((root.child('liveControl').child($owner).child('enabled').val() === true) && (newData.child('sharingGeneration').val() === root.child('liveControl').child($owner).child('generation').val())))",
+          "sharingGeneration": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.val() % 1 === 0"
+          }
         },
         "speed": {
-          ".validate": "newData.hasChildren([\"sequence\", \"measuredAtMs\"]) && newData.child('sequence').val() === newData.parent().child('position').child('sequence').val()",
+          ".validate": "newData.hasChildren([\"sequence\", \"measuredAtMs\"]) && newData.child('sequence').val() === newData.parent().child('position').child('sequence').val() && newData.hasChild('sharingGeneration') && newData.child('sharingGeneration').val() === newData.parent().child('position').child('sharingGeneration').val()",
           "sequence": {
             ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.val() % 1 === 0"
           },
@@ -108,8 +111,11 @@
           "$other": {
             ".validate": false
           },
-          ".read": "((auth != null && auth.uid === $owner) || ((auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('position').val() === true) && (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('speed').val() === true))) && data.child('sequence').val() === root.child('live').child($owner).child('position').child('sequence').val()",
-          ".write": "auth != null && auth.uid === $owner"
+          ".read": "((auth != null && auth.uid === $owner) || ((auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('position').val() === true) && (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('speed').val() === true) && (root.child('liveControl').child($owner).child('enabled').val() === true) && (data.child('sharingGeneration').val() === root.child('liveControl').child($owner).child('generation').val()))) && data.child('sequence').val() === root.child('live').child($owner).child('position').child('sequence').val() && data.child('sharingGeneration').val() === root.child('live').child($owner).child('position').child('sharingGeneration').val()",
+          ".write": "(auth != null && auth.uid === $owner) && (!newData.exists() || ((root.child('liveControl').child($owner).child('enabled').val() === true) && (newData.child('sharingGeneration').val() === root.child('liveControl').child($owner).child('generation').val())))",
+          "sharingGeneration": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.val() % 1 === 0"
+          }
         }
       }
     },
@@ -182,6 +188,22 @@
             },
             ".write": "(auth != null && auth.uid === $owner) && (!newData.exists() || root.child('tripIndex').child($owner).child($tripId).exists())"
           }
+        }
+      }
+    },
+    "liveControl": {
+      "$owner": {
+        ".read": "(auth != null && auth.uid === $owner) || (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('position').val() === true)",
+        ".write": "(auth != null && auth.uid === $owner) && newData.exists()",
+        ".validate": "newData.hasChildren([\"enabled\", \"generation\"]) && (!data.exists() || newData.child('generation').val() > data.child('generation').val())",
+        "enabled": {
+          ".validate": "newData.isBoolean()"
+        },
+        "generation": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.val() % 1 === 0"
+        },
+        "$other": {
+          ".validate": false
         }
       }
     }
