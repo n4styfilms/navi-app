@@ -15,6 +15,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
+    signingConfigs {
+        debug {
+            // Existing public upstream development key, never the owner's Navi release key.
+            storeFile file('../../android/app/comaps-debug.keystore')
+            storePassword '12345678'
+            keyAlias 'CoMaps Debug'
+            keyPassword '12345678'
+        }
+    }
     // Compile the production domain/session source, not copies or mocks.
     sourceSets.main.java.srcDir '../../android/app/src/main/java/app/organicmaps/navi/friends'
 }
