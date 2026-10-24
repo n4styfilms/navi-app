@@ -34,7 +34,7 @@ try {
     'app.navi.friendstest/app.organicmaps.navi.friends.FriendsSessionInstrument'], 180_000);
   await writeFile(output + '.txt', transcript);
   const flags = ['native_auth_cloned', 'native_listener_revoked',
-    'native_fresh_session_denied_old_peer', 'native_late_session_completion_closed'];
+    'native_fresh_session_denied_old_peer', 'native_late_session_completion_closed', 'native_friend_actions'];
   for (const flag of flags) assert.match(transcript, new RegExp(`${flag}=true`), transcript);
   assert.match(transcript, /INSTRUMENTATION_CODE: -1\s*$/, transcript);
   assert.doesNotMatch(transcript, /native_error=|cleanup_error=/);

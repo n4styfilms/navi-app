@@ -107,10 +107,20 @@ public final class FriendsSessionInstrument extends Instrumentation {
       FirebaseAuth eveAuth = identity("eve"); FirebaseUser eve = signup(eveAuth);
       FriendsDataSession a = open(aliceAuth, alice), b = open(bobAuth, bob);
       String aliceId = alice.getUid(), bobId = bob.getUid();
+      FriendsRepository aliceRepository = ui(() -> new FriendsRepository(a));
+      FriendsRepository bobRepository = ui(() -> new FriendsRepository(b));
       await(a.database().getReference("profiles/" + aliceId).setValue(values("displayName", "Alice test")));
-      await(a.database().getReference("friendConsent/" + aliceId + "/" + bobId).setValue(true));
-      await(b.database().getReference("friendConsent/" + bobId + "/" + aliceId).setValue(true));
-      await(a.database().getReference("grants/" + aliceId + "/" + bobId).setValue(values("position", true, "speed", false, "trips", false)));
+      await(ui(() -> aliceRepository.requestFriend(bobId)));
+      check(await(b.database().getReference("requests/" + bobId + "/" + aliceId).get()).exists(), "Native request was not delivered");
+      denied(b, "profiles/" + aliceId);
+      boolean missingRejected = false;
+      try { await(ui(() -> bobRepository.confirmFriend(eve.getUid()))); }
+      catch (java.util.concurrent.ExecutionException expected) { missingRejected = true; }
+      check(missingRejected, "A nonexistent request was confirmed");
+      await(ui(() -> bobRepository.confirmFriend(aliceId)));
+      check(!await(b.database().getReference("requests/" + bobId + "/" + aliceId).get()).exists(), "Confirmed request was not removed");
+      await(ui(() -> aliceRepository.setGrant(bobId, new FriendsRepository.Grant(true, false, false))));
+      check(!await(a.database().getReference("grants/" + aliceId + "/" + bobId + "/speed").get()).getValue(Boolean.class), "Position action implicitly granted speed");
       await(a.database().getReference("liveControl/" + aliceId).setValue(values("generation", 1L, "enabled", true)));
       await(a.database().getReference("live/" + aliceId + "/position").setValue(values(
           "sharingGeneration", 1L, "sequence", 1L, "latitude", 43.7295, "longitude", 7.4208,
@@ -137,6 +147,11 @@ public final class FriendsSessionInstrument extends Instrumentation {
       FriendsDataSession e = open(eveAuth, eve);
       denied(e, "profiles/" + aliceId);
       report.putBoolean("native_fresh_session_denied_old_peer", true);
+
+      await(ui(() -> aliceRepository.removeFriend(bobId)));
+      check(!await(a.database().getReference("friendConsent/" + aliceId + "/" + bobId).get()).exists(), "Own consent survived removal");
+      check(!await(a.database().getReference("grants/" + aliceId + "/" + bobId).get()).exists(), "Own grants survived removal");
+      report.putBoolean("native_friend_actions", true);
 
       CountDownLatch opened = new CountDownLatch(1);
       TaskCompletionSource<FriendsDataSession> delivery = new TaskCompletionSource<>();
