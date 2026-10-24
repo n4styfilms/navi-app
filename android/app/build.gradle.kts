@@ -370,6 +370,9 @@ androidComponents {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
     implementation(libs.maplibre.opengl)
     implementation(libs.okhttp)
     implementation(project(":sdk"))
