@@ -4,7 +4,7 @@ The map/fuel Android package remains Karte05. The following source work is a fou
 
 ## Server access rules
 
-`backend/firebase` has pinned local Auth/Realtime Database emulators and 22 passing multi-identity rule tests. Consent is bilateral; position, speed and trip access are distinct. Tests include an initial allowed live listener followed by permission cancellation after revoking friendship or globally pausing live sharing. A monotonic server sharing generation gates position/speed reads and writes; old queued sessions cannot reactivate or publish after pause, and resume exposes no location until a new-generation sample arrives. Trip indexes and chunks expire after 30 days regardless of client cleanup. The rules have not been deployed to a real cloud project. See that directory's README for the supported bounded query and emulator cursor limitation.
+`backend/firebase` has pinned local Auth/Realtime Database emulators and 25 passing multi-identity rule tests. Consent is bilateral; position, speed and trip access are distinct. Tests include an initial allowed live listener followed by permission cancellation after revoking friendship or globally pausing live sharing. A monotonic server sharing generation gates position/speed reads and writes; old queued sessions cannot reactivate or publish after pause, and resume exposes no location until a new-generation sample arrives. Trip indexes and chunks expire after 30 days regardless of client cleanup. The rules have not been deployed to a real cloud project. See that directory's README for the supported bounded query and emulator cursor limitation.
 
 ## Presence quality and upload gate
 
