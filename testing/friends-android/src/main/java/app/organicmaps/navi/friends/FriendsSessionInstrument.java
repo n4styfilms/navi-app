@@ -31,7 +31,9 @@ public final class FriendsSessionInstrument extends Instrumentation {
   private final ArrayList<FriendsDataSession> sessions = new ArrayList<>();
   private FriendsAccountController controller;
   private final FriendsDataSession.Transport local = (auth, database) -> {
-    auth.useEmulator("10.0.2.2", 9099);
+    // Auth's emulator endpoint is shared by API key. Primary identity setup
+    // configures it before opening any data apps. Reconfiguring it after app
+    // deletion calls the SDK's stale emulator-reset listeners for deleted apps.
     database.useEmulator("10.0.2.2", 9000);
   };
 
@@ -75,6 +77,10 @@ public final class FriendsSessionInstrument extends Instrumentation {
     FriendsDataSession session = await(ui(() -> FriendsDataSession.open(getTargetContext(), auth.getApp(), user, local)));
     sessions.add(session);
     check(session.owner().equals(user.getUid()), "Cloned session has the wrong owner");
+    // Force a real copied-Auth request; copying an unexpired token alone would
+    // not prove that the secondary Auth client still uses the local emulator.
+    check(await(FirebaseAuth.getInstance(FirebaseApp.getInstance(session.appName()))
+        .getCurrentUser().getIdToken(true)).getToken() != null, "Copied native Auth refresh failed");
     return session;
   }
   private void denied(FriendsDataSession session, String path) throws Exception {
