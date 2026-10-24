@@ -10,6 +10,7 @@ cd "$ROOT"
 xcrun simctl list devices available --json > "$OUT/simulator-inventory.json"
 python3 tools/private/select_ios_simulator.py "$OUT/simulator-inventory.json" > "$OUT/simulator-destination.json"
 UDID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["udid"])' "$OUT/simulator-destination.json")"
+set +e
 xcodebuild test \
   -workspace xcode/CoMaps.xcworkspace -scheme CoMaps -configuration Debug \
   -destination "platform=iOS Simulator,id=$UDID" \
@@ -18,6 +19,16 @@ xcodebuild test \
   CODE_SIGN_ENTITLEMENTS="$ROOT/packaging/private/PrivateSideload.entitlements" \
   CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM= \
   2>&1 | tee "$OUT/xcode-tests.log"
+TEST_PIPE_STATUS=("${PIPESTATUS[@]}")
+set -e
+if [[ "${TEST_PIPE_STATUS[0]}" != 0 ]]; then
+  python3 tools/private/collect_ios_failure.py --out "$OUT" --derived "$DERIVED" --udid "$UDID" \
+    || echo 'Additional simulator failure collection was incomplete; original test failure is preserved' >&2
+  exit "${TEST_PIPE_STATUS[0]}"
+fi
+if [[ "${TEST_PIPE_STATUS[1]}" != 0 ]]; then
+  exit "${TEST_PIPE_STATUS[1]}"
+fi
 xcrun xcresulttool get test-results summary --path "$OUT/ios-tests.xcresult" > "$OUT/ios-test-summary.json"
 python3 - "$OUT/ios-test-summary.json" <<'PY'
 import json, sys
