@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 from collect_ios_failure import collect
 
@@ -34,6 +35,26 @@ def main():
     udid = selected['udid']
     subprocess.run(['xcrun', 'simctl', 'boot', udid], check=False, capture_output=True, timeout=60)
     collect(out, derived, udid, archive_app=False)
+    # Let the detached app finish loading before inspecting it again. The first
+    # diagnostic stop can land in dyld while LLDB loads this large binary.
+    time.sleep(15)
+    report = json.loads((out / 'startup-diagnostic.json').read_text())
+    pid = str(report['pid'])
+    identity = subprocess.run(['ps', '-p', pid, '-o', 'comm='], capture_output=True, text=True, timeout=10)
+    (out / 'post-detach-process.txt').write_text(identity.stdout + identity.stderr)
+    if identity.returncode == 0 and Path(identity.stdout.strip()).name == report['executable']:
+        sampled = subprocess.run(['/usr/bin/sample', pid, '5', '-file', str(out / 'post-detach-sample.txt')],
+                                 capture_output=True, text=True, timeout=45)
+        (out / 'post-detach-sample-command.txt').write_text(sampled.stdout + sampled.stderr)
+        subprocess.run(['xcrun', 'simctl', 'io', udid, 'screenshot', str(out / 'post-detach-simulator.png')],
+                       capture_output=True, timeout=30)
+    # Keep genuine crash reports, if startup ended after detaching the debugger.
+    reports = Path.home() / 'Library/Logs/DiagnosticReports'
+    for source in reports.glob('*.ips'):
+        if source.stat().st_mtime >= (out / 'archive-sha256.txt').stat().st_mtime:
+            raw = source.read_text(errors='replace')
+            if report['bundleIdentifier'] in raw or report['executable'] in raw:
+                (out / ('crash-' + source.stem + '.txt')).write_text(raw)
 
 
 if __name__ == '__main__':
