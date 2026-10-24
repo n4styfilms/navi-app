@@ -145,8 +145,12 @@ public final class FriendsSessionInstrument extends Instrumentation {
     check(restoredState.get() == FriendsSharingController.State.REVOCATION_PENDING,
         "Recreated controller lost the persisted offline revocation intent");
     ui(() -> { data.database().goOnline(); return null; });
-    waitUntil(() -> restoredState.get() == FriendsSharingController.State.PAUSED,
-        "Reconnection failed to acknowledge the persisted server revocation");
+    try {
+      waitUntil(() -> restoredState.get() == FriendsSharingController.State.PAUSED,
+          "Reconnection failed to acknowledge the persisted server revocation");
+    } catch (AssertionError error) {
+      throw new AssertionError("Persisted revocation ended in " + restoredState.get(), ui(restored::lastFailure));
+    }
     FriendsDataSession inspector = open(identity, identity.getCurrentUser());
     DataSnapshot disabled = await(inspector.database().getReference("liveControl/" + data.owner()).get());
     check(Boolean.FALSE.equals(disabled.child("enabled").getValue()), "Independent client saw sharing enabled after pause acknowledgement");

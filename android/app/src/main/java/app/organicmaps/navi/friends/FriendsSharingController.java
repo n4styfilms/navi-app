@@ -32,6 +32,7 @@ final class FriendsSharingController implements AutoCloseable {
   private boolean connected, hasIntent, desired, pending, inFlight;
   private long lease, policyTicket;
   private State state;
+  private Exception lastFailure;
   private TaskCompletionSource<Void> completion;
   private AutoCloseable connection;
   private AutoCloseable closing;
@@ -60,6 +61,7 @@ final class FriendsSharingController implements AutoCloseable {
   }
 
   State state() { return state; }
+  Exception lastFailure() { return lastFailure; }
   private void update(State next) { state = next; observer.accept(next); }
   private void persist() {
     if (!preferences.edit().putBoolean(prefix + "/desired", desired)
@@ -193,6 +195,7 @@ final class FriendsSharingController implements AutoCloseable {
 
   private void fail(Exception error) {
     if (closed) return;
+    lastFailure = error;
     lease = 0;
     policy.fail();
     inFlight = false;
