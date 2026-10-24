@@ -1,0 +1,34 @@
+name: iOS preserved startup replay
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: macos-26
+    timeout-minutes: 12
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: '40051187413'
+          name: navi-ios-40051187413
+          path: ${{ runner.temp }}/preserved
+      - name: Inspect original compiled app without rebuilding
+        run: python3 tools/private/replay_ios_startup.py "$RUNNER_TEMP/preserved/startup-simulator-app.zip" "$RUNNER_TEMP/replay"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-startup-replay-${{ github.run_id }}
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/replay/*.txt
+            ${{ runner.temp }}/replay/*.json
+            ${{ runner.temp }}/replay/*.log
+            ${{ runner.temp }}/replay/*.png
