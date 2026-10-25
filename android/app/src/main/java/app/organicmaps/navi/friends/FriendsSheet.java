@@ -16,7 +16,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import java.util.Locale;
 
 /** Small extension of the approved rounded Navi palette; no placeholder people. */
-public final class FriendsSheet {
+public final class FriendsSheet implements AutoCloseable {
   private final Context context;
   private final FriendsRuntime runtime;
   private final Runnable enableSharing;
@@ -24,6 +24,14 @@ public final class FriendsSheet {
   private LinearLayout body;
   private AutoCloseable subscription;
   private boolean accountForm;
+  private final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+  private final java.util.ArrayList<Runnable> ageLabels = new java.util.ArrayList<>();
+  private final Runnable tick = new Runnable() {
+    @Override public void run() {
+      for (Runnable update : new java.util.ArrayList<>(ageLabels)) update.run();
+      main.postDelayed(this, 1000);
+    }
+  };
 
   public FriendsSheet(Context context, FriendsRuntime runtime, Runnable enableSharing) {
     this.context = context; this.runtime = runtime; this.enableSharing = enableSharing;
@@ -36,12 +44,18 @@ public final class FriendsSheet {
     body.setBackground(shape(R.color.navi_surface, 30)); scroll.addView(body);
     dialog.setContentView(scroll);
     subscription = runtime.observe(() -> { if (!accountForm) render(); });
-    dialog.setOnDismissListener(ignored -> { try { subscription.close(); } catch (Exception ignoredError) {} });
-    render(); dialog.show();
+    dialog.setOnDismissListener(ignored -> dispose());
+    render(); dialog.show(); main.post(tick);
   }
+  private void dispose() {
+    main.removeCallbacks(tick); ageLabels.clear();
+    if (subscription != null) try { subscription.close(); } catch (Exception ignored) {}
+    subscription = null;
+  }
+  @Override public void close() { dialog.dismiss(); dispose(); }
   private String t(String de, String en) { return Locale.getDefault().getLanguage().equals("de") ? de : en; }
   private void render() {
-    body.removeAllViews(); label(t("Deine Freunde", "Your friends"), 25, true);
+    ageLabels.clear(); body.removeAllViews(); label(t("Deine Freunde", "Your friends"), 25, true);
     if (!runtime.configured()) {
       label(t("Für eure private Gruppe muss einmal der kostenlose Gruppen-Zugang eingerichtet werden. Danach meldet ihr euch einfach an.",
               "Set up your group's free private connection once. Then each friend can sign in."), 16, false);
@@ -71,7 +85,8 @@ public final class FriendsSheet {
                                                          "No confirmed friends yet. Exchange friend codes and accept the request."), 16, false);
     long now = runtime.serverNowMs();
     for (FriendsRuntime.Friend friend : runtime.peers()) {
-      action(friend.name + "\n" + friend.description(now, Locale.getDefault()), () -> rights(friend));
+      Button row = action(friend.name + "\n" + friend.description(now, Locale.getDefault()), () -> rights(friend));
+      ageLabels.add(() -> row.setText(friend.name + "\n" + friend.description(runtime.serverNowMs(), Locale.getDefault())));
     }
     action(t("Abmelden", "Sign out"), runtime::signOut);
   }
@@ -130,11 +145,12 @@ public final class FriendsSheet {
     value.setPadding(dp(16), dp(12), dp(16), dp(12)); value.setBackground(shape(R.color.navi_field, 18));
     body.addView(value, new LinearLayout.LayoutParams(-1, dp(60))); return value;
   }
-  private void action(String title, Runnable click) {
+  private Button action(String title, Runnable click) {
     Button value = new Button(context); value.setText(title); value.setAllCaps(false); value.setTextSize(16);
     value.setTextColor(color(R.color.navi_ink)); value.setBackgroundTintList(null); value.setBackground(shape(R.color.navi_field, 26));
     value.setPadding(dp(16), dp(12), dp(16), dp(12)); value.setMinHeight(dp(52)); value.setOnClickListener(v -> click.run());
     LinearLayout.LayoutParams layout = new LinearLayout.LayoutParams(-1, -2); layout.topMargin = dp(10); body.addView(value, layout);
+    return value;
   }
   private void label(String title, int size, boolean bold) {
     TextView value = new TextView(context); value.setText(title); value.setTextSize(size); value.setTextColor(color(bold ? R.color.navi_ink : R.color.navi_muted));

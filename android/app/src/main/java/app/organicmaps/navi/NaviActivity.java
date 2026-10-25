@@ -91,6 +91,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   private FriendsRuntime friends;
   private AutoCloseable friendsSubscription;
   private Button friendsButton;
+  private FriendsSheet friendsSheet;
   private boolean pendingFriendSharing;
   private final Runnable tick = new Runnable() {
     @Override public void run() {
@@ -225,7 +226,10 @@ public final class NaviActivity extends BaseMwmFragmentActivity
     dock.addView(mode, new LinearLayout.LayoutParams(-2, dp(52)));
     friendsButton = button(0, false);
     friendsButton.setText(friendsText("Freunde", "Friends"));
-    friendsButton.setOnClickListener(v -> new FriendsSheet(this, friends, this::startFriendsSharing).show());
+    friendsButton.setOnClickListener(v -> {
+      if (friendsSheet != null) friendsSheet.close();
+      friendsSheet = new FriendsSheet(this, friends, this::startFriendsSharing); friendsSheet.show();
+    });
     LinearLayout.LayoutParams friendsLayout = new LinearLayout.LayoutParams(-2, dp(52)); friendsLayout.leftMargin = dp(8);
     dock.addView(friendsButton, friendsLayout);
     Space spacer = new Space(this);
@@ -522,6 +526,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   private void showVehicle(Bundle draft)
   {
     if (sheet != null) sheet.dismiss();
+    if (friendsSheet != null) friendsSheet.close();
     VehicleFormView form = new VehicleFormView(this, () -> { sheet.dismiss(); loadVehicle(); refresh(); }, draft);
     showSheet(form);
     vehicleEditor = form;
@@ -689,6 +694,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   {
     main.removeCallbacksAndMessages(null);
     if (sheet != null) sheet.dismiss();
+    if (friendsSheet != null) friendsSheet.close();
     if (map != null) map.destroy();
     if (mapView != null) mapView.onDestroy();
     if (locations != null) locations.setExternalMapReady(false);
