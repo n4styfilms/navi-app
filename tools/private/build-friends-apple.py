@@ -5,6 +5,7 @@ import plistlib
 import shlex
 import subprocess
 import sys
+from select_ios_simulator import select
 
 out = Path(sys.argv[1]).resolve()
 root = Path(__file__).resolve().parents[2]
@@ -49,9 +50,23 @@ end
 project.save
 ''', encoding='utf-8')
 subprocess.run(['ruby', str(script), str(out)], check=True, timeout=30)
+# First boot includes Apple data migration. Start it while the SDK is compiling,
+# rather than consuming the native test's execution deadline before its app starts.
+inventory = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '--json']))
+device = select(inventory)
+(out / 'simulator.json').write_text(json.dumps(device, indent=2), encoding='utf-8')
+if device['state'] != 'Booted':
+    subprocess.run(['xcrun', 'simctl', 'boot', device['udid']], check=True, timeout=60)
+boot_log = (out.parent / 'friends-evidence/simulator-boot.log').open('w', encoding='utf-8')
+boot = subprocess.Popen(['xcrun', 'simctl', 'bootstatus', device['udid'], '-b'], stdout=boot_log, stderr=subprocess.STDOUT)
 subprocess.run(['xcodebuild', '-project', str(out / 'FriendsNativeProbe.xcodeproj'), '-scheme', 'FriendsNativeProbe',
-    '-sdk', 'iphonesimulator', '-destination', 'generic/platform=iOS Simulator', '-configuration', 'Debug',
+    '-sdk', 'iphonesimulator', '-destination', 'platform=iOS Simulator,id=' + device['udid'], '-configuration', 'Debug',
     '-derivedDataPath', str(out / 'DerivedData'), 'CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'build'], check=True, timeout=900)
+try:
+    if boot.wait(timeout=600) != 0:
+        raise RuntimeError('Simulator boot failed before native friends tests; see simulator-boot.log')
+finally:
+    boot_log.close()
 resolved = out / 'FriendsNativeProbe.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved'
 (out / 'Package.resolved').write_bytes(resolved.read_bytes())
 # Keep the host protocol unchanged: this executable now launches the real Simulator app.
