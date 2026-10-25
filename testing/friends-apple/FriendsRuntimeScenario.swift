@@ -5,6 +5,7 @@ import FirebaseAuth
 /// Application model boundary: actual Auth/DB clients, no navigation or map dependency.
 @MainActor enum FriendsRuntimeScenario {
   static func run() async throws {
+    print("native_apple_runtime_stage=unconfigured")
     let suite = "navi-runtime-probe-" + UUID().uuidString
     let preferences = UserDefaults(suiteName: suite)!
     defer { preferences.removePersistentDomain(forName: suite) }
@@ -20,16 +21,20 @@ import FirebaseAuth
     let group = try JSONSerialization.data(withJSONObject: ["projectId": "demo-navi-friends",
       "applicationId": "1:1234567890:ios:abcdef0123456789", "apiKey": "fake-api-key",
       "databaseUrl": "https://demo-navi-friends.firebaseio.com"])
+    print("native_apple_runtime_stage=configure")
     try empty.configure(json: group)
+    print("native_apple_runtime_stage=register")
     try await empty.register(email: "runtime-group-" + UUID().uuidString + "@example.test",
       password: "synthetic-local-password-123")
     try await FriendsNativeProbe.waitFor("configured runtime registration", {
       empty.snapshot.configured && empty.snapshot.accountState == .ready && !empty.snapshot.uid.isEmpty
     })
+    print("native_apple_runtime_stage=configured_logout")
     let configuredLogout = try await empty.signOut()
     try FriendsNativeProbe.check(configuredLogout == .acknowledged, "Configured runtime did not coordinate logout")
     empty.close()
 
+    print("native_apple_runtime_stage=peer_accounts")
     let (sourceApp, sourceUser) = try await FriendsNativeProbe.identity("runtime-source")
     let (receiverApp, receiverUser) = try await FriendsNativeProbe.identity("runtime-receiver")
     let (strangerApp, strangerUser) = try await FriendsNativeProbe.identity("runtime-stranger")
@@ -54,6 +59,7 @@ import FirebaseAuth
     try await source.grant(receiverUser.uid, grant: .init(position: true, speed: true, trips: false))
     try await FriendsNativeProbe.waitFor("runtime confirmed peer", { observed.count == 1 })
     let beforeACK = Int64(Date().timeIntervalSince1970 * 1000) - 1
+    print("native_apple_runtime_stage=sharing")
     try await source.setSharing(true)
     try FriendsNativeProbe.check(source.locationDemand, "Acknowledged sharing did not demand the existing provider")
     let old = FriendsRuntime.Fix(measuredAtDeviceMs: beforeACK, latitude: 43.7295, longitude: 7.4208,
@@ -80,6 +86,7 @@ import FirebaseAuth
     try await FriendsNativeProbe.waitFor("runtime independent speed revoke", {
       observed.first?.position != nil && observed.first?.speedAllowed == false
     })
+    print("native_apple_runtime_stage=peer_logout")
     let result = try await receiver.signOut()
     try FriendsNativeProbe.check(result == .acknowledged && observed.isEmpty
       && receiver.snapshot.requests.isEmpty && !receiver.locationDemand,

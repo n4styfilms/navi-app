@@ -4,6 +4,10 @@ import UIKit
   var window: UIWindow?
   func application(_ application: UIApplication,
                    didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    // Preserve completed proof markers even if a later SDK exception aborts the process.
+    setbuf(stdout, nil)
+    setbuf(stderr, nil)
+    print("NAVI_APPLE_NATIVE_STARTED")
     let window = UIWindow(frame: UIScreen.main.bounds)
     let view = UIViewController()
     view.view.backgroundColor = .systemBackground
