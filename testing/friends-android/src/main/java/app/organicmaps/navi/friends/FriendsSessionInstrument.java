@@ -329,6 +329,23 @@ public final class FriendsSessionInstrument extends Instrumentation {
       report.putBoolean("native_late_session_completion_closed", true);
       persistentSharing(bobAuth);
       report.putBoolean("native_persistent_pause_reconnect", true);
+      FriendsRuntime runtime = ui(() -> new FriendsRuntime(getTargetContext(), bobAuth.getApp(), local));
+      try {
+        waitUntil(() -> ui(() -> runtime.ready() && runtime.serverNowMs() > 0), "App runtime did not acquire account and server clock");
+        android.location.Location fix = new android.location.Location("synthetic-runtime-test");
+        fix.setLatitude(43.73); fix.setLongitude(7.42); fix.setAccuracy(8);
+        fix.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos());
+        check(!await(ui(() -> runtime.onLocation(fix, true))), "App runtime published without explicit sharing");
+        await(ui(() -> runtime.setSharing(true)));
+        fix.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos() - 16000000000L);
+        check(!await(ui(() -> runtime.onLocation(fix, true))), "App runtime retimestamped a stale cached GPS fix");
+        fix.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos());
+        check(await(ui(() -> runtime.onLocation(fix, true))), "App runtime did not publish a fresh existing-provider fix");
+        await(ui(() -> runtime.setSharing(false)));
+        ui(() -> { runtime.signOut(); return null; });
+        check(ui(() -> !runtime.ready() && runtime.peers().isEmpty()), "App runtime retained signed-out peer data");
+      } finally { ui(() -> { runtime.close(); return null; }); }
+      report.putBoolean("native_app_runtime_location", true);
       result = Activity.RESULT_OK;
     } catch (Throwable error) {
       android.util.Log.e("NaviFriendsNativeTest", "Synthetic integration failure", error);
