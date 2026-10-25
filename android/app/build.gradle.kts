@@ -389,8 +389,10 @@ dependencies {
     // ls -la src/$flavor/java/app/organicmaps/location/GoogleFusedLocationProvider.java
     // ```
     //
-    // microG project's FOSS re-implementation of the proprietary libs.google.services.location
-    implementation(libs.microg.services.location)
+    // Firebase Auth supplies Google's base/tasks modules. Use the matching
+    // location client family to avoid packaging duplicate microG classes.
+    // The existing provider factory and Android native fallback remain shared.
+    implementation(libs.google.services.location)
     implementation(libs.androidx.core)
     implementation(platform(libs.jetbrains.kotlin.bom))
     implementation(libs.androidx.annotation)

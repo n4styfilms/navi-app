@@ -51,7 +51,7 @@ try {
   const flags = ['native_auth_cloned', 'native_listener_revoked',
     'native_fresh_session_denied_old_peer', 'native_late_session_completion_closed', 'native_friend_actions',
     'native_failed_open_cleanup', 'native_peer_snapshots', 'native_gated_publication',
-    'native_persistent_pause_reconnect', 'native_app_runtime_location', 'native_friends_sheet'];
+    'native_persistent_pause_reconnect', 'native_app_runtime_location', 'native_friends_sheet', 'native_signout_server_revoked'];
   for (const flag of flags) assert.match(transcript, new RegExp(`${flag}=true`), transcript);
   assert.match(transcript, /INSTRUMENTATION_CODE: -1\s*$/, transcript);
   assert.doesNotMatch(transcript, /native_error=|cleanup_error=/);

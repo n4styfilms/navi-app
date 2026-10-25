@@ -72,6 +72,11 @@ public final class FriendsSheet implements AutoCloseable {
       action(t("Gruppe einrichten", "Set up group"), this::configure); return;
     }
     if (!runtime.ready()) {
+      if (runtime.accountState().equals("SIGNING_OUT")) {
+        label(t("Freigabe wird beendet und du wirst abgemeldet …", "Stopping sharing and signing out…"), 16, false); return;
+      }
+      if (runtime.hasPendingRevocations()) label(t("Lokal abgemeldet. Eine Serverbestätigung der Pausierung steht noch aus. Melde dich mit dem bisherigen Konto bei bestehender Verbindung an, um sie abzuschließen.",
+          "Signed out locally. A server pause is still pending. Sign in to the previous account while connected to finish it."), 15, false);
       label(runtime.accountState().equals("LOADING") ? t("Verbinde …", "Connecting…") : t("Melde dich für deine private Freundeskarte an.", "Sign in to your private friends map."), 16, false);
       action(t("Anmelden / Konto erstellen", "Sign in / create account"), this::account);
       if (runtime.error() != null) label(t("Verbindung oder Anmeldung fehlgeschlagen. Prüfe deinen Zugang.", "Connection or sign-in failed. Check your account."), 15, false);

@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import org.json.JSONObject;
 
 /** Application-owned account and sharing state, independent of activity recreation. */
@@ -43,6 +45,10 @@ public final class FriendsRuntime implements AutoCloseable {
   private String locationDiagnostic = "No location evaluated";
   String locationDiagnostic() { return locationDiagnostic; }
   private boolean desired, closed;
+  private boolean signingOut;
+  private long logoutRevision;
+  private final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+  private final Set<String> pendingRevocations = new HashSet<>();
   private boolean mapVisible;
   public void setMapVisible(boolean visible) { mapVisible = visible; }
   public boolean isMapVisible() { return mapVisible; }
@@ -54,13 +60,26 @@ public final class FriendsRuntime implements AutoCloseable {
   }
   private FriendsRuntime(Context context) {
     this.context = context.getApplicationContext();
+    loadPendingRevocations();
     String saved = this.context.getSharedPreferences("navi-friends-group", Context.MODE_PRIVATE).getString("configuration", "");
     if (!saved.isEmpty()) try { configure(saved); } catch (Exception invalid) { error = invalid; }
   }
   FriendsRuntime(Context context, FirebaseApp identity, FriendsDataSession.Transport transport) {
     this.context = context.getApplicationContext(); this.transport = transport;
+    loadPendingRevocations();
     attach(identity);
   }
+  private void loadPendingRevocations() {
+    pendingRevocations.addAll(context.getSharedPreferences("navi-friends-group", Context.MODE_PRIVATE)
+        .getStringSet("pendingRevocations", Collections.emptySet()));
+  }
+  private void pendingRevocation(String uid, boolean pending) {
+    if (pending) pendingRevocations.add(uid); else pendingRevocations.remove(uid);
+    if (!context.getSharedPreferences("navi-friends-group", Context.MODE_PRIVATE).edit()
+        .putStringSet("pendingRevocations", new HashSet<>(pendingRevocations)).commit())
+      error = new IllegalStateException("Cannot persist pending revocation status");
+  }
+  public boolean hasPendingRevocations() { return !pendingRevocations.isEmpty(); }
   public void configure(String json) throws Exception {
     FriendsDataSession.requireMainThread();
     if (identity != null || closed) throw new IllegalStateException("Group is already configured");
@@ -91,6 +110,7 @@ public final class FriendsRuntime implements AutoCloseable {
     identity = app; auth = FirebaseAuth.getInstance(app);
     accounts = new FriendsAccountController(auth,
         user -> FriendsDataSession.open(context, identity, user, transport), (state, opened, failure) -> {
+      ++logoutRevision; signingOut = false;
       clearData(); accountState = state.name(); error = failure;
       if (state == FriendsAccountController.State.READY) openData(opened);
       emit();
@@ -114,6 +134,8 @@ public final class FriendsRuntime implements AutoCloseable {
       sharingStartedElapsed = state == FriendsSharingController.State.SHARING ? SystemClock.elapsedRealtimeNanos() : 0;
       desired = state == FriendsSharingController.State.SHARING || state == FriendsSharingController.State.ENABLING
           || state == FriendsSharingController.State.RECONNECTING;
+      if (state == FriendsSharingController.State.PAUSED && pendingRevocations.contains(opened.owner()))
+        pendingRevocation(opened.owner(), false);
       emit();
     });
     subscriptions.add(repository.observe(values -> {
@@ -157,7 +179,7 @@ public final class FriendsRuntime implements AutoCloseable {
     return () -> { FriendsDataSession.requireMainThread(); observers.remove(observer); };
   }
   public boolean configured() { return identity != null && !closed; }
-  public boolean ready() { return session != null && !session.isClosed() && !closed; }
+  public boolean ready() { return session != null && !session.isClosed() && !closed && !signingOut; }
   public String uid() { return ready() ? session.owner() : ""; }
   public String accountState() { return accountState; }
   public String sharingState() { return sharingState; }
@@ -173,11 +195,11 @@ public final class FriendsRuntime implements AutoCloseable {
     return serverAnchorMs + elapsed / 1000000L;
   }
   public Task<?> signIn(String email, String password) {
-    if (!configured()) return Tasks.forException(new IllegalStateException("No group configured"));
+    if (!configured() || signingOut) return Tasks.forException(new IllegalStateException("No available group session"));
     return auth.signInWithEmailAndPassword(email, password);
   }
   public Task<?> register(String email, String password) {
-    if (!configured()) return Tasks.forException(new IllegalStateException("No group configured"));
+    if (!configured() || signingOut) return Tasks.forException(new IllegalStateException("No available group session"));
     return auth.createUserWithEmailAndPassword(email, password);
   }
   public Task<Void> setSharing(boolean enabled) {
@@ -215,11 +237,32 @@ public final class FriendsRuntime implements AutoCloseable {
   }
   public void signOut() {
     FriendsDataSession.requireMainThread();
-    if (sharing != null) sharing.setEnabled(false);
-    if (accounts != null) accounts.signOut();
+    if (closed || signingOut || accounts == null) return;
+    if (sharing == null || "PAUSED".equals(sharingState) || "OFF".equals(sharingState)) {
+      accounts.signOut(); return;
+    }
+    String owner = session.owner();
+    long ticket = ++logoutRevision;
+    signingOut = true; accountState = "SIGNING_OUT";
+    pendingRevocation(owner, true);
+    // Remove peer data immediately. Keep only the authenticated revocation
+    // connection until its ACK, or a bounded offline timeout.
+    for (AutoCloseable subscription : subscriptions) FriendsObservation.dispose(subscription);
+    subscriptions.clear(); peers = Collections.emptyList(); requests = Collections.emptyList(); grants.clear();
+    Task<Void> revoke = sharing.setEnabled(false);
+    emit();
+    revoke.addOnCompleteListener(result -> finishSignOut(ticket, owner, result.isSuccessful()));
+    main.postDelayed(() -> finishSignOut(ticket, owner, false), 5000);
+  }
+  private void finishSignOut(long ticket, String owner, boolean revoked) {
+    if (closed || !signingOut || ticket != logoutRevision) return;
+    if (revoked) pendingRevocation(owner, false);
+    // If offline, the sharing controller has already persisted a pending pause.
+    // Signing in as this owner later completes it before another publication.
+    accounts.signOut();
   }
   public void close() {
-    if (closed) return; closed = true;
+    if (closed) return; closed = true; ++logoutRevision; main.removeCallbacksAndMessages(null);
     if (accounts != null) accounts.close(); clearData(); observers.clear();
   }
   public static final class Friend {
