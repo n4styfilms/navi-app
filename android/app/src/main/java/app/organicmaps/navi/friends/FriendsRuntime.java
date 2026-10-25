@@ -238,7 +238,7 @@ public final class FriendsRuntime implements AutoCloseable {
   public void signOut() {
     FriendsDataSession.requireMainThread();
     if (closed || signingOut || accounts == null) return;
-    if (sharing == null || "PAUSED".equals(sharingState) || "OFF".equals(sharingState)) {
+    if (sharing == null || "PAUSED".equals(sharingState)) {
       accounts.signOut(); return;
     }
     String owner = session.owner();
