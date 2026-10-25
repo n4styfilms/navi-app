@@ -2,6 +2,14 @@
 
 The map/fuel Android package remains Karte05. The following source work is a foundation; neither packaged app yet offers a functioning friends list or account synchronization.
 
+## 25 October app integration
+
+The Android source now includes application-owned `FriendsRuntime`, the real `FriendsSheet`, MapLibre friend circles/labels retained across style changes, and `FriendsShareService` using the existing `LocationHelper`. The main activity connects these pieces; the service has a visible notification and pause action, and provider stops account for sharing demand. No new APK has yet passed the complete build/runtime gate.
+
+Actual native run 40154813615, source `d5957cd`, fixture SHA256 `f0a49c7838381f1cfff84e4f5a1be57cb25091ed333931038e6496fd67e0ac70`, passed ten native proofs on the owned Android emulator. The new proof opens the application runtime with a real native Firebase identity, obtains server time, rejects publication without sharing, rejects an old cached GPS measurement, publishes a newly measured sample, pauses, and clears peers on sign-out. The previous nine consent/session/reconnect proofs also pass. This fixture does not yet prove the activity, visible sheet, map glyphs or foreground service. Source `34fe71e` additionally enforces fix monotonic time after the sharing acknowledgement; its full APK build is running. A separate updated native fixture compiles the actual sheet/resources and captures its real screen.
+
+Group configuration is opt-in and absent by default. See [private group setup](friends-group-setup.md). There is no deployed real project, physical two-device/background proof, trip history/analysis, or Apple Firebase integration yet. Older sections below record the preceding staged evidence and may describe tasks that the newer source now implements.
+
 ## Server access rules
 
 `backend/firebase` has pinned local Auth/Realtime Database emulators and 25 passing multi-identity rule tests. Consent is bilateral; position, speed and trip access are distinct. Tests include an initial allowed live listener followed by permission cancellation after revoking friendship or globally pausing live sharing. A monotonic server sharing generation gates position/speed reads and writes; old queued sessions cannot reactivate or publish after pause, and resume exposes no location until a new-generation sample arrives. Trip indexes and chunks expire after 30 days regardless of client cleanup. The rules have not been deployed to a real cloud project. See that directory's README for the supported bounded query and emulator cursor limitation.
