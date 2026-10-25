@@ -37,7 +37,8 @@ struct FriendsGroupConfiguration: Sendable {
   }
 
   private static func string(_ value: Any?) -> String? {
-    guard let text = value as? String else { return nil }
+    guard let text = value as? String,
+          text.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { return nil }
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     return trimmed.isEmpty || trimmed.count > 4096 ? nil : trimmed
   }

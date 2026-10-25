@@ -20,7 +20,7 @@ import Foundation
 
     var rejected = 0
     func reject(_ object: [String: Any]) {
-      do { _ = try decode(object); preconditionFailure("Invalid group accepted") }
+      do { _ = try decode(object); preconditionFailure("Invalid group accepted after \(rejected) rejected cases") }
       catch { rejected += 1 }
     }
     for key in ["projectId", "applicationId", "apiKey", "databaseUrl"] {
