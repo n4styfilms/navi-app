@@ -20,7 +20,6 @@ jobs:
       CXX: g++-14
       CMAKE_C_COMPILER_LAUNCHER: ccache
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
-      CCACHE_DIR: ${{ runner.temp }}/navi-ccache
       CCACHE_BASEDIR: ${{ github.workspace }}
       CCACHE_MAXSIZE: 3G
       NAVI_BUILD_JOBS: 4
@@ -40,6 +39,8 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y g++-14 ninja-build ccache qt6-base-dev qt6-declarative-dev qt6-positioning-dev libqt6svg6-dev optipng libfreetype-dev libharfbuzz-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev python3-venv zlib1g-dev
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1' > /dev/null || test "${PIPESTATUS[1]}" = 0
+      - name: Set native compilation cache directory
+        run: echo "CCACHE_DIR=$RUNNER_TEMP/navi-ccache" >> "$GITHUB_ENV"
       - name: Reuse public native compilation cache
         uses: actions/cache@v4
         with:
