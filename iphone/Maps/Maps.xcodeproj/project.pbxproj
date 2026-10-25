@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A71F00000000000000000005 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A71F00000000000000000002 /* FirebaseCore */; };
+		A71F00000000000000000006 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A71F00000000000000000003 /* FirebaseAuth */; };
+		A71F00000000000000000007 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = A71F00000000000000000004 /* FirebaseDatabase */; };
+		A71F0000000000000000000B /* PresenceSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000008 /* PresenceSample.swift */; };
+		A71F0000000000000000000C /* PresencePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000009 /* PresencePolicy.swift */; };
+		A71F0000000000000000000D /* FriendsDataSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F0000000000000000000A /* FriendsDataSession.swift */; };
 		A71E00000000000000000008 /* NaviViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000007 /* NaviViewController.swift */; };
 		A71E00000000000000000006 /* NaviMapKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000005 /* NaviMapKeyStore.swift */; };
 		A71E00000000000000000004 /* NaviMapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000003 /* NaviMapController.swift */; };
@@ -785,6 +791,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A71F00000000000000000008 /* PresenceSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceSample.swift; sourceTree = "<group>"; };
+		A71F00000000000000000009 /* PresencePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresencePolicy.swift; sourceTree = "<group>"; };
+		A71F0000000000000000000A /* FriendsDataSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsDataSession.swift; sourceTree = "<group>"; };
 		A71E00000000000000000007 /* NaviViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviViewController.swift; sourceTree = "<group>"; };
 		A71E00000000000000000005 /* NaviMapKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviMapKeyStore.swift; sourceTree = "<group>"; };
 		A71E00000000000000000003 /* NaviMapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviMapController.swift; sourceTree = "<group>"; };
@@ -1862,6 +1871,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A71A00000000000000000003 /* MapLibre in Frameworks */,
+				A71F00000000000000000005 /* FirebaseCore in Frameworks */,
+				A71F00000000000000000006 /* FirebaseAuth in Frameworks */,
+				A71F00000000000000000007 /* FirebaseDatabase in Frameworks */,
 				FAF9DDA32A86DC54000D7037 /* libharfbuzz.a in Frameworks */,
 				FA456C3C26BDC6AD00B83C20 /* Chart.framework in Frameworks */,
 				FA853BF326BC5DE50026D455 /* libshaders.a in Frameworks */,
@@ -1924,6 +1936,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A71F0000000000000000000E /* NaviFriends */ = {isa = PBXGroup; children = (A71F00000000000000000008 /* PresenceSample.swift */,A71F00000000000000000009 /* PresencePolicy.swift */,A71F0000000000000000000A /* FriendsDataSession.swift */,); path = NaviFriends; sourceTree = "<group>"; };
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -3693,6 +3706,7 @@
 			isa = PBXGroup;
 			children = (
 				A71C00000000000000000003 /* NaviMap */,
+				A71F0000000000000000000E /* NaviFriends */,
 				A71B00000000000000000003 /* Vehicle */,
 				27362B9B2F4240CE00BCB1FB /* MainView.swift */,
 				27362BA92F4240CE00BCB1FB /* Map */,
@@ -4149,6 +4163,9 @@
 			name = CoMaps;
 			packageProductDependencies = (
 				A71A00000000000000000002 /* MapLibre */,
+				A71F00000000000000000002 /* FirebaseCore */,
+				A71F00000000000000000003 /* FirebaseAuth */,
+				A71F00000000000000000004 /* FirebaseDatabase */,
 			);
 			productName = Maps;
 			productReference = 6741AA5D1BF340DE002C974C /* CoMaps (Debug).app */;
@@ -4275,6 +4292,7 @@
 			mainGroup = 29B97314FDCFA39411CA2CEA /* Maps */;
 			packageReferences = (
 				A71A00000000000000000001 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */,
+				A71F00000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 19C28FACFE9D520D11CA2CBB /* Products */;
 			projectDirPath = "";
@@ -4508,6 +4526,9 @@
 				A71E00000000000000000006 /* NaviMapKeyStore.swift in Sources */,
 				A71E00000000000000000008 /* NaviViewController.swift in Sources */,
 				A71C00000000000000000002 /* NaviMapPolicy.swift in Sources */,
+				A71F0000000000000000000B /* PresenceSample.swift in Sources */,
+				A71F0000000000000000000C /* PresencePolicy.swift in Sources */,
+				A71F0000000000000000000D /* FriendsDataSession.swift in Sources */,
 				A71B00000000000000000002 /* NaviVehicleViewController.swift in Sources */,
 				ED914ABE2D351FF800973C45 /* UILabel+SetFontStyle.swift in Sources */,
 				34845DB71E166084003D55B9 /* Common.swift in Sources */,
@@ -5563,6 +5584,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		A71F00000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = { kind = exactVersion; version = 13.1.1; };
+		};
 		A71A00000000000000000001 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/maplibre/maplibre-gl-native-distribution";
@@ -5574,6 +5600,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A71F00000000000000000002 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A71F00000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		A71F00000000000000000003 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A71F00000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		A71F00000000000000000004 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A71F00000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
 		A71A00000000000000000002 /* MapLibre */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A71A00000000000000000001 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */;

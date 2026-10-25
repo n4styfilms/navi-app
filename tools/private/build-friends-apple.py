@@ -20,6 +20,10 @@ subprocess.run(['gem', 'install', '--user-install', 'xcodeproj', '--no-document'
 script = out / 'generate-project.rb'
 script.write_text('''require 'xcodeproj'
 out = ARGV.fetch(0)
+root = ARGV.fetch(1)
+# Parse the shipping project with Xcode's actual project model as well. This is
+# syntax/schema evidence only; the complete main-app build remains a separate gate.
+Xcodeproj::Project.open(File.join(root, 'iphone/Maps/Maps.xcodeproj'))
 project = Xcodeproj::Project.new(File.join(out, 'FriendsNativeProbe.xcodeproj'))
 target = project.new_target(:application, 'FriendsNativeProbe', :ios, '15.6')
 target.build_configurations.each do |config|
@@ -49,7 +53,7 @@ project.root_object.package_references << package
 end
 project.save
 ''', encoding='utf-8')
-subprocess.run(['ruby', str(script), str(out)], check=True, timeout=30)
+subprocess.run(['ruby', str(script), str(out), str(root)], check=True, timeout=30)
 # First boot includes Apple data migration. Start it while the SDK is compiling,
 # rather than consuming the native test's execution deadline before its app starts.
 inventory = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '--json']))

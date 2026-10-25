@@ -22,9 +22,10 @@ try {
   clearTimeout(timer);
   await writeFile(report + '.log', transcript);
   assert.equal(code, 0, transcript);
-  const flags = ['native_apple_auth_cloned', 'native_apple_listener_revoked', 'native_apple_fresh_session_denied_old_peer'];
+  const flags = ['native_apple_auth_cloned', 'native_apple_listener_revoked', 'native_apple_fresh_session_denied_old_peer',
+    'native_apple_late_session_completion_closed', 'native_apple_failed_open_cleanup'];
   for (const flag of flags) assert.ok(transcript.includes(flag + '=true'), transcript);
-  assert.ok(transcript.includes('NAVI_APPLE_NATIVE_SUCCESS proofs=3'), transcript);
+  assert.ok(transcript.includes('NAVI_APPLE_NATIVE_SUCCESS proofs=5'), transcript);
   await writeFile(report, JSON.stringify({proofs: flags, passed: flags.length}, null, 2));
 } finally {
   await env.cleanup();

@@ -91,7 +91,42 @@ enum ProbeError: Error { case failed(String) }
     try check(oldPeerValues == 0, "Fresh account inherited another account's cached peer")
     deniedObservation.close()
     print("native_apple_fresh_session_denied_old_peer=true")
-    print("NAVI_APPLE_NATIVE_SUCCESS proofs=3")
+
+    var delayed: FriendsDataSession?
+    var release = false
+    var readyCount = 0
+    let controller = FriendsAccountController(auth: Auth.auth(app: bobApp), opener: { user in
+      let data = try await FriendsDataSession.open(identityApp: bobApp, user: user, transport: local)
+      delayed = data
+      try await waitFor("release delayed session", { release })
+      return data
+    }, listener: { state, _, _ in
+      if state == .ready { readyCount += 1 }
+    })
+    try await waitFor("real delayed session created", { delayed != nil })
+    try controller.signOut()
+    release = true
+    try await waitFor("late session disposed after logout", { delayed?.isClosed == true })
+    try check(readyCount == 0 && Auth.auth(app: bobApp).currentUser == nil,
+              "Late session became ready after account logout")
+    controller.close()
+    print("native_apple_late_session_completion_closed=true")
+
+    let beforeFailure = Set(FirebaseApp.allApps?.keys.map { $0 } ?? [])
+    do {
+      _ = try await FriendsDataSession.open(identityApp: aliceApp, user: alice, transport: { _, _ in
+        throw ProbeError.failed("synthetic transport setup failure")
+      })
+      throw ProbeError.failed("Broken transport unexpectedly opened a session")
+    } catch ProbeError.failed(let message) where message == "synthetic transport setup failure" {
+      // The partially created secondary app must be deleted; primary Auth stays usable.
+    }
+    try await waitFor("partial app cleanup", {
+      Set(FirebaseApp.allApps?.keys.map { $0 } ?? []).subtracting(beforeFailure).isEmpty
+    })
+    try check(Auth.auth(app: aliceApp).currentUser?.uid == alice.uid, "Failed session changed primary identity")
+    print("native_apple_failed_open_cleanup=true")
+    print("NAVI_APPLE_NATIVE_SUCCESS proofs=5")
     for app in [aliceApp, bobApp, chrisApp] {
       try Auth.auth(app: app).signOut()
       app.delete { _ in }
