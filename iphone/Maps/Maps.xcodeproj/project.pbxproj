@@ -29,6 +29,7 @@
 		A71A00000000000000000003 /* MapLibre in Frameworks */ = {isa = PBXBuildFile; productRef = A71A00000000000000000002 /* MapLibre */; };
 		A71900000000000000000002 /* NaviFuel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71900000000000000000001 /* NaviFuel.swift */; };
 		A71800000000000000000005 /* NaviRouteBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = A71800000000000000000002 /* NaviRouteBridge.mm */; };
+		A71F0000000000000000001E /* NaviLocationSharingTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = A71F0000000000000000001D /* NaviLocationSharingTests.mm */; };
 		A71800000000000000000006 /* NaviRouteBridgeTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = A71800000000000000000004 /* NaviRouteBridgeTests.mm */; };
 		039371B62C5B68CD00708377 /* UIFont+monospaced.swift in Sources */ = {isa = PBXBuildFile; fileRef = 039371B52C5B68CD00708377 /* UIFont+monospaced.swift */; };
 		165953742CB1D85500CFED7C /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 165953732CB1D83700CFED7C /* fonts */; };
@@ -818,6 +819,7 @@
 		A71800000000000000000001 /* NaviRouteBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NaviRouteBridge.h; sourceTree = "<group>"; };
 		A71800000000000000000002 /* NaviRouteBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NaviRouteBridge.mm; sourceTree = "<group>"; };
 		A71800000000000000000003 /* NaviRouteBridge+Core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NaviRouteBridge+Core.h"; sourceTree = "<group>"; };
+		A71F0000000000000000001D /* NaviLocationSharingTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Core/NaviLocationSharingTests.mm; sourceTree = "<group>"; };
 		A71800000000000000000004 /* NaviRouteBridgeTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Core/NaviRouteBridgeTests.mm; sourceTree = "<group>"; };
 		039371B52C5B68CD00708377 /* UIFont+monospaced.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIFont+monospaced.swift"; sourceTree = "<group>"; };
 		165953732CB1D83700CFED7C /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fonts; path = ../../data/fonts; sourceTree = "<group>"; };
@@ -3348,6 +3350,7 @@
 		ED1ADA312BC6B19E0029209F /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				A71F0000000000000000001D /* NaviLocationSharingTests.mm */,
 				A71800000000000000000004 /* NaviRouteBridgeTests.mm */,
 				ED810EC02D566E6F00ECDE2C /* UI */,
 				EDC4E3442C5D1BD3009286A2 /* Bookmarks */,
@@ -5038,6 +5041,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A71F0000000000000000001E /* NaviLocationSharingTests.mm in Sources */,
 				A71800000000000000000006 /* NaviRouteBridgeTests.mm in Sources */,
 				A15DEE01A15DEE01A15DEE01 /* DeepLinkHandlerTests.swift in Sources */,
 				EDF838C12C00B9D6007E4E67 /* iCloudDirectoryMonitorTests.swift in Sources */,
