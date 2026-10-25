@@ -14,6 +14,8 @@ from pathlib import Path
 Path('android/sdk/src/main/assets/private-build.json').write_text(json.dumps({'source_commit':sys.argv[1]}),encoding='utf-8')
 PY
 cd android
+BUILD_JOBS="${NAVI_BUILD_JOBS:-2}"
+[[ "$BUILD_JOBS" =~ ^[1-4]$ ]] || { echo 'NAVI_BUILD_JOBS must be between 1 and 4' >&2; exit 1; }
 collect_unit_reports() {
   if [[ -d "$ROOT/android/app/build/test-results/testWebBetaUnitTest" ]]; then
     cp -R "$ROOT/android/app/build/test-results/testWebBetaUnitTest" "$OUT/android-unit-tests"
@@ -21,8 +23,8 @@ collect_unit_reports() {
 }
 trap collect_unit_reports EXIT
 # Catch Java/resource integration failures before spending runner time compiling the C++ core.
-./gradlew --no-daemon -Parm64 -PnaviPrivate -Pnjobs=2 :app:compileWebBetaJavaWithJavac 2>&1 | tee "$OUT/android-build.log"
-./gradlew --no-daemon -Parm64 -PnaviPrivate -Pnjobs=2 testWebBetaUnitTest assembleWebBeta 2>&1 | tee -a "$OUT/android-build.log"
+./gradlew --no-daemon -Parm64 -PnaviPrivate -Pnjobs="$BUILD_JOBS" :app:compileWebBetaJavaWithJavac 2>&1 | tee "$OUT/android-build.log"
+./gradlew --no-daemon -Parm64 -PnaviPrivate -Pnjobs="$BUILD_JOBS" testWebBetaUnitTest assembleWebBeta 2>&1 | tee -a "$OUT/android-build.log"
 mapfile -t APKS < <(find app/build/outputs/apk/web/beta -name '*.apk')
 [[ "${#APKS[@]}" == 1 ]] || { echo 'Expected exactly one built APK' >&2; exit 1; }
 cp "${APKS[0]}" "$OUT/Navi-Karte-unsigned.apk"
