@@ -38,6 +38,17 @@ enum ProbeError: Error { case failed(String) }
     database.useEmulator(withHost: "127.0.0.1", port: 9000)
   }
 
+  static func permissionDenied(_ reference: DatabaseReference) async throws {
+    do {
+      _ = try await reference.getData()
+      throw ProbeError.failed("Unauthorized native read succeeded")
+    } catch {
+      let failure = error as NSError
+      // Pinned FirebaseDatabase 13.1.1 FConstants/FUtilities mapping.
+      guard failure.domain == "com.firebase", failure.code == 1 else { throw error }
+    }
+  }
+
   static func run() async throws {
     let (aliceApp, alice) = try await identity("alice")
     let (bobApp, bob) = try await identity("bob")
@@ -126,7 +137,45 @@ enum ProbeError: Error { case failed(String) }
     })
     try check(Auth.auth(app: aliceApp).currentUser?.uid == alice.uid, "Failed session changed primary identity")
     print("native_apple_failed_open_cleanup=true")
-    print("NAVI_APPLE_NATIVE_SUCCESS proofs=5")
+
+    let aliceRepo = try FriendsRepository(session: aliceData)
+    let chrisRepo = try FriendsRepository(session: chrisData)
+    try await a.child("profiles/\(alice.uid)").setValue(["displayName": "Alice test"])
+    try await permissionDenied(chrisData.database().reference(withPath: "profiles/\(alice.uid)"))
+    try await chrisRepo.requestFriend(alice.uid)
+    let incoming = try await a.child("requests/\(alice.uid)/\(chris.uid)").getData()
+    try check(incoming.exists(), "Request was not delivered to recipient")
+    try await aliceRepo.confirmFriend(chris.uid)
+    let removedRequest = try await a.child("requests/\(alice.uid)/\(chris.uid)").getData()
+    try check(!removedRequest.exists(), "Confirmation retained the old request")
+    let profile = try await chrisData.database().reference(withPath: "profiles/\(alice.uid)").getData()
+    try check(profile.childSnapshot(forPath: "displayName").value as? String == "Alice test",
+              "Bilateral confirmation did not unlock the public friend profile")
+    do {
+      try await aliceRepo.confirmFriend(chris.uid)
+      throw ProbeError.failed("Missing request was confirmed")
+    } catch FriendsRepository.RepositoryError.noIncomingRequest { }
+    try await aliceRepo.setGrant(chris.uid, grant: .init(position: true, speed: false, trips: false))
+    let grant = try await a.child("grants/\(alice.uid)/\(chris.uid)").getData()
+    try check(grant.childSnapshot(forPath: "position").value as? Bool == true
+      && grant.childSnapshot(forPath: "speed").value as? Bool == false
+      && grant.childSnapshot(forPath: "trips").value as? Bool == false, "Rights were not independent")
+    try await aliceRepo.removeFriend(chris.uid)
+    let clearedGrant = try await a.child("grants/\(alice.uid)/\(chris.uid)").getData()
+    let clearedConsent = try await a.child("friendConsent/\(alice.uid)/\(chris.uid)").getData()
+    try check(!clearedGrant.exists() && !clearedConsent.exists(), "Removal retained own grant or consent")
+    // A fresh named connection proves server denial without reading an old local snapshot.
+    let revokedData = try await FriendsDataSession.open(identityApp: chrisApp, user: chris, transport: local)
+    defer { revokedData.close() }
+    try await permissionDenied(revokedData.database().reference(withPath: "profiles/\(alice.uid)"))
+    for invalid in ["", "bad/path", alice.uid] {
+      do {
+        try await aliceRepo.requestFriend(invalid)
+        throw ProbeError.failed("Invalid peer accepted")
+      } catch FriendsRepository.RepositoryError.invalidPeer { }
+    }
+    print("native_apple_friend_actions=true")
+    print("NAVI_APPLE_NATIVE_SUCCESS proofs=6")
     for app in [aliceApp, bobApp, chrisApp] {
       try Auth.auth(app: app).signOut()
       app.delete { _ in }
