@@ -507,6 +507,11 @@
         android:enabled="true"
         android:stopWithTask="false"/>
 
+    <service android:name=".navi.FriendsShareService"
+        android:foregroundServiceType="location"
+        android:exported="false"
+        android:stopWithTask="false"/>
+
     <service android:name=".location.TrackRecordingService"
       android:foregroundServiceType="location"
       android:exported="false"

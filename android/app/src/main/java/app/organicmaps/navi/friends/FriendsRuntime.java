@@ -39,7 +39,11 @@ public final class FriendsRuntime implements AutoCloseable {
   private String accountState = "SIGNED_OUT", sharingState = "OFF";
   private Throwable error;
   private long serverAnchorMs, anchorElapsedNanos, sequence, lastFixElapsed;
+  private long sharingStartedElapsed;
   private boolean desired, closed;
+  private boolean mapVisible;
+  public void setMapVisible(boolean visible) { mapVisible = visible; }
+  public boolean isMapVisible() { return mapVisible; }
 
   public static FriendsRuntime get(Context context) {
     FriendsDataSession.requireMainThread();
@@ -105,6 +109,7 @@ public final class FriendsRuntime implements AutoCloseable {
     sharing = new FriendsSharingController(opened, repository,
         context.getSharedPreferences("navi-friends-sharing", Context.MODE_PRIVATE), this::serverNowMs, state -> {
       sharingState = state.name();
+      sharingStartedElapsed = state == FriendsSharingController.State.SHARING ? SystemClock.elapsedRealtimeNanos() : 0;
       desired = state == FriendsSharingController.State.SHARING || state == FriendsSharingController.State.ENABLING
           || state == FriendsSharingController.State.RECONNECTING;
       emit();
@@ -183,7 +188,7 @@ public final class FriendsRuntime implements AutoCloseable {
     if (!ready() || sharing == null || !desired || location == null || !location.hasAccuracy()) return Tasks.forResult(false);
     long now = serverNowMs(), elapsed = SystemClock.elapsedRealtimeNanos(), fix = location.getElapsedRealtimeNanos();
     long age = elapsed - fix;
-    if (now <= 0 || fix <= lastFixElapsed || fix <= 0 || age < 0 || age > 15000000000L) return Tasks.forResult(false);
+    if (now <= 0 || sharingStartedElapsed <= 0 || fix < sharingStartedElapsed || fix <= lastFixElapsed || fix <= 0 || age < 0 || age > 15000000000L) return Tasks.forResult(false);
     lastFixElapsed = fix;
     PresenceSample sample = new PresenceSample(++sequence, now - age / 1000000L,
         location.getLatitude(), location.getLongitude(), (double) location.getAccuracy(),

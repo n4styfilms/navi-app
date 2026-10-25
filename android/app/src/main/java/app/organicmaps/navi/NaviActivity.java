@@ -34,6 +34,8 @@ import app.organicmaps.base.BaseMwmFragmentActivity;
 import app.organicmaps.downloader.DownloaderActivity;
 import app.organicmaps.fuel.*;
 import app.organicmaps.navi.map.*;
+import app.organicmaps.navi.friends.FriendsRuntime;
+import app.organicmaps.navi.friends.FriendsSheet;
 import app.organicmaps.routing.NavigationService;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.Router;
@@ -86,10 +88,15 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   private ActivityResultLauncher<String[]> permission;
   private BottomSheetDialog sheet;
   private Runnable pendingSearch;
+  private FriendsRuntime friends;
+  private AutoCloseable friendsSubscription;
+  private Button friendsButton;
+  private boolean pendingFriendSharing;
   private final Runnable tick = new Runnable() {
     @Override public void run() {
       if (!foreground || map == null) return;
       refresh();
+      refreshFriends();
       main.postDelayed(this, 500);
     }
   };
@@ -104,10 +111,15 @@ public final class NaviActivity extends BaseMwmFragmentActivity
       return;
     }
     preferences = getSharedPreferences("navi-map", MODE_PRIVATE);
+    friends = FriendsRuntime.get(this);
     androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
     locations = MwmApplication.from(this).getLocationHelper();
     permission = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), granted -> {
       if (LocationUtils.checkLocationPermission(this)) locations.resumeLocationInForeground();
+      if (pendingFriendSharing) {
+        pendingFriendSharing = false;
+        if (LocationUtils.checkLocationPermission(this)) FriendsShareService.start(this);
+      }
       refresh();
     });
     MapLibre.getInstance(this);
@@ -211,6 +223,11 @@ public final class NaviActivity extends BaseMwmFragmentActivity
       map.setBasemap(basemap);
     });
     dock.addView(mode, new LinearLayout.LayoutParams(-2, dp(52)));
+    friendsButton = button(0, false);
+    friendsButton.setText(friendsText("Freunde", "Friends"));
+    friendsButton.setOnClickListener(v -> new FriendsSheet(this, friends, this::startFriendsSharing).show());
+    LinearLayout.LayoutParams friendsLayout = new LinearLayout.LayoutParams(-2, dp(52)); friendsLayout.leftMargin = dp(8);
+    dock.addView(friendsButton, friendsLayout);
     Space spacer = new Space(this);
     dock.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1));
     Button position = button(R.string.navi_position, false);
@@ -599,11 +616,33 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   }
 
   private void requestLocation() { permission.launch(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}); }
+  private String friendsText(String de, String en) { return Locale.getDefault().getLanguage().equals("de") ? de : en; }
+  private void startFriendsSharing() {
+    boolean notifications = Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    if (!LocationUtils.checkLocationPermission(this) || !notifications) {
+      pendingFriendSharing = true;
+      permission.launch(Build.VERSION.SDK_INT >= 33 ? new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.POST_NOTIFICATIONS}
+          : new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION});
+    } else FriendsShareService.start(this);
+  }
+  private void refreshFriends() {
+    if (map == null || friends == null) return;
+    java.util.ArrayList<NaviMapController.FriendMarker> markers = new java.util.ArrayList<>();
+    long now = friends.serverNowMs();
+    for (FriendsRuntime.Friend friend : friends.peers()) if (friend.position != null) {
+      markers.add(new NaviMapController.FriendMarker(friend.position.latitude, friend.position.longitude,
+          friend.name + "\n" + friend.description(now, Locale.getDefault()), friend.fresh(now)));
+    }
+    map.setFriends(markers);
+    if (friendsButton != null) friendsButton.setText(friendsText("Freunde", "Friends") + (markers.isEmpty() ? "" : " · " + markers.size()));
+  }
   @Override protected void onStart()
   {
     super.onStart();
     if (mapView == null) return;
     mapView.onStart();
+    friendsSubscription = friends.observe(this::refreshFriends);
+    refreshFriends();
     locations.addListener(this);
     SearchEngine.INSTANCE.addListener(this);
     routing.attach(this);
@@ -615,6 +654,8 @@ public final class NaviActivity extends BaseMwmFragmentActivity
     super.onResume();
     if (mapView == null) return;
     foreground = true;
+    friends.setMapVisible(true);
+    if (friends.sharingDesired() && LocationUtils.checkLocationPermission(this) && !FriendsShareService.isActive()) FriendsShareService.start(this);
     mapView.onResume();
     if (LocationUtils.checkLocationPermission(this)) locations.resumeLocationInForeground();
     else locations.stop();
@@ -624,6 +665,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   @Override protected void onPause()
   {
     foreground = false;
+    if (friends != null) friends.setMapVisible(false);
     Utils.keepScreenOn(false, getWindow());
     main.removeCallbacks(tick);
     if (mapView != null) mapView.onPause();
@@ -637,7 +679,9 @@ public final class NaviActivity extends BaseMwmFragmentActivity
       locations.removeListener(this);
       SearchEngine.INSTANCE.removeListener(this);
       routing.detach();
-      if (!routing.isNavigating() && !TrackRecorder.nativeIsTrackRecordingEnabled()) locations.stop();
+      if (friendsSubscription != null) try { friendsSubscription.close(); } catch (Exception ignored) {}
+      friendsSubscription = null;
+      if (!routing.isNavigating() && !TrackRecorder.nativeIsTrackRecordingEnabled() && !FriendsShareService.isActive()) locations.stop();
     }
     super.onStop();
   }

@@ -73,12 +73,7 @@ public final class FriendsSheet {
     for (FriendsRuntime.Friend friend : runtime.peers()) {
       action(friend.name + "\n" + friend.description(now, Locale.getDefault()), () -> rights(friend));
     }
-    action(t("Abmelden", "Sign out"), () -> {
-      task(runtime.setSharing(false).continueWithTask(com.google.android.gms.tasks.TaskExecutors.MAIN_THREAD, result -> {
-        if (!result.isSuccessful()) return result;
-        runtime.signOut(); return com.google.android.gms.tasks.Tasks.forResult(null);
-      }));
-    });
+    action(t("Abmelden", "Sign out"), runtime::signOut);
   }
   private String sharingLabel() {
     return switch (runtime.sharingState()) {
