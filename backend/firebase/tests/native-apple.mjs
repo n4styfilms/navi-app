@@ -24,9 +24,10 @@ try {
   assert.equal(code, 0, transcript);
   const flags = ['native_apple_auth_cloned', 'native_apple_listener_revoked', 'native_apple_fresh_session_denied_old_peer',
     'native_apple_late_session_completion_closed', 'native_apple_failed_open_cleanup', 'native_apple_friend_actions',
-    'native_apple_peer_snapshots', 'native_apple_gated_publication'];
+    'native_apple_peer_snapshots', 'native_apple_gated_publication',
+    'native_apple_sharing_ack', 'native_apple_durable_offline_pause'];
   for (const flag of flags) assert.ok(transcript.includes(flag + '=true'), transcript);
-  assert.ok(transcript.includes('NAVI_APPLE_NATIVE_SUCCESS proofs=8'), transcript);
+  assert.ok(transcript.includes('NAVI_APPLE_NATIVE_SUCCESS proofs=10'), transcript);
   await writeFile(report, JSON.stringify({proofs: flags, passed: flags.length}, null, 2));
 } finally {
   await env.cleanup();
