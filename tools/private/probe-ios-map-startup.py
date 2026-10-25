@@ -14,6 +14,8 @@ import zipfile
 
 out = Path(sys.argv[1]).resolve()
 out.mkdir(parents=True, exist_ok=True)
+subprocess.run([sys.executable, str(Path(__file__).with_name('probe-ios-controls.py')),
+                str(out / 'controls')], check=True, timeout=360)
 work = out/'work'
 work.mkdir(exist_ok=True)
 repo = Path(__file__).resolve().parents[2]
