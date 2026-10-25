@@ -44,8 +44,14 @@ enum ProbeError: Error { case failed(String) }
       throw ProbeError.failed("Unauthorized native read succeeded")
     } catch {
       let failure = error as NSError
-      // Pinned FirebaseDatabase 13.1.1 FConstants/FUtilities mapping.
-      guard failure.domain == "com.firebase", failure.code == 1 else { throw error }
+      // FUtilities emits com.firebase; FRepo.getData wraps the server rejection
+      // in com.firebase.core and preserves its reason. Never accept a generic
+      // network/cache error merely because it also has code 1.
+      let reason = (failure.userInfo[NSLocalizedFailureReasonErrorKey] as? String)?.lowercased()
+      let direct = failure.domain == "com.firebase" && failure.code == 1
+      let wrapped = failure.domain == "com.firebase.core" && failure.code == 1
+        && (reason == "permission denied" || reason == "permission_denied")
+      guard direct || wrapped else { throw error }
     }
   }
 
