@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A71F00000000000000000014 /* FriendsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000013 /* FriendsRepository.swift */; };
 		A71F00000000000000000012 /* FriendsGroupConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000010 /* FriendsGroupConfiguration.swift */; };
 		A71F00000000000000000011 /* FriendsAccountController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F0000000000000000000F /* FriendsAccountController.swift */; };
 		A71F00000000000000000005 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A71F00000000000000000002 /* FirebaseCore */; };
@@ -793,6 +794,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A71F00000000000000000013 /* FriendsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsRepository.swift; sourceTree = "<group>"; };
 		A71F00000000000000000010 /* FriendsGroupConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsGroupConfiguration.swift; sourceTree = "<group>"; };
 		A71F0000000000000000000F /* FriendsAccountController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsAccountController.swift; sourceTree = "<group>"; };
 		A71F00000000000000000008 /* PresenceSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceSample.swift; sourceTree = "<group>"; };
@@ -1940,7 +1942,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A71F0000000000000000000E /* NaviFriends */ = {isa = PBXGroup; children = (A71F00000000000000000008 /* PresenceSample.swift */,A71F00000000000000000010 /* FriendsGroupConfiguration.swift */,A71F0000000000000000000F /* FriendsAccountController.swift */,A71F00000000000000000009 /* PresencePolicy.swift */,A71F0000000000000000000A /* FriendsDataSession.swift */,); path = NaviFriends; sourceTree = "<group>"; };
+		A71F0000000000000000000E /* NaviFriends */ = {isa = PBXGroup; children = (A71F00000000000000000008 /* PresenceSample.swift */,A71F00000000000000000013 /* FriendsRepository.swift */,A71F00000000000000000010 /* FriendsGroupConfiguration.swift */,A71F0000000000000000000F /* FriendsAccountController.swift */,A71F00000000000000000009 /* PresencePolicy.swift */,A71F0000000000000000000A /* FriendsDataSession.swift */,); path = NaviFriends; sourceTree = "<group>"; };
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -4531,6 +4533,7 @@
 				A71E00000000000000000008 /* NaviViewController.swift in Sources */,
 				A71C00000000000000000002 /* NaviMapPolicy.swift in Sources */,
 				A71F0000000000000000000B /* PresenceSample.swift in Sources */,
+				A71F00000000000000000014 /* FriendsRepository.swift in Sources */,
 				A71F00000000000000000012 /* FriendsGroupConfiguration.swift in Sources */,
 				A71F00000000000000000011 /* FriendsAccountController.swift in Sources */,
 				A71F0000000000000000000C /* PresencePolicy.swift in Sources */,

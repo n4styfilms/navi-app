@@ -168,7 +168,7 @@ enum ProbeError: Error { case failed(String) }
     let revokedData = try await FriendsDataSession.open(identityApp: chrisApp, user: chris, transport: local)
     defer { revokedData.close() }
     try await permissionDenied(revokedData.database().reference(withPath: "profiles/\(alice.uid)"))
-    for invalid in ["", "bad/path", alice.uid] {
+    for invalid in ["", "bad/path", "peer\n", "peer#bad", alice.uid] {
       do {
         try await aliceRepo.requestFriend(invalid)
         throw ProbeError.failed("Invalid peer accepted")

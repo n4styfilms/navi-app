@@ -23,7 +23,8 @@ import FirebaseDatabase
   private func validate(_ peer: String) throws {
     guard !session.isClosed else { throw RepositoryError.closed }
     guard peer != owner,
-          peer.range(of: "^[A-Za-z0-9_-]{1,128}$", options: .regularExpression) != nil
+          let match = peer.range(of: "^[A-Za-z0-9_-]{1,128}$", options: .regularExpression),
+          match == peer.startIndex..<peer.endIndex
     else { throw RepositoryError.invalidPeer }
   }
 
