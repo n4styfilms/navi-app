@@ -340,7 +340,7 @@ public final class FriendsSessionInstrument extends Instrumentation {
         fix.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos() - 16000000000L);
         check(!await(ui(() -> runtime.onLocation(fix, true))), "App runtime retimestamped a stale cached GPS fix");
         fix.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos());
-        check(await(ui(() -> runtime.onLocation(fix, true))), "App runtime did not publish a fresh existing-provider fix");
+        check(await(ui(() -> runtime.onLocation(fix, true))), "App runtime did not publish a fresh existing-provider fix: " + ui(runtime::locationDiagnostic));
         await(ui(() -> runtime.setSharing(false)));
         ui(() -> { FriendsUiActivity.runtime = runtime; return null; });
         Activity screen = startActivitySync(new android.content.Intent(getTargetContext(), FriendsUiActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));

@@ -40,6 +40,8 @@ public final class FriendsRuntime implements AutoCloseable {
   private Throwable error;
   private long serverAnchorMs, anchorElapsedNanos, sequence, lastFixElapsed;
   private long sharingStartedElapsed;
+  private String locationDiagnostic = "No location evaluated";
+  String locationDiagnostic() { return locationDiagnostic; }
   private boolean desired, closed;
   private boolean mapVisible;
   public void setMapVisible(boolean visible) { mapVisible = visible; }
@@ -188,12 +190,15 @@ public final class FriendsRuntime implements AutoCloseable {
     if (!ready() || sharing == null || !desired || location == null || !location.hasAccuracy()) return Tasks.forResult(false);
     long now = serverNowMs(), elapsed = SystemClock.elapsedRealtimeNanos(), fix = location.getElapsedRealtimeNanos();
     long age = elapsed - fix;
+    locationDiagnostic = "now=" + now + " fixElapsed=" + fix + " sharingStart=" + sharingStartedElapsed
+        + " lastFix=" + lastFixElapsed + " age=" + age + " state=" + sharing.diagnosticState();
     if (now <= 0 || sharingStartedElapsed <= 0 || fix < sharingStartedElapsed || fix <= lastFixElapsed || fix <= 0 || age < 0 || age > 15000000000L) return Tasks.forResult(false);
     lastFixElapsed = fix;
     PresenceSample sample = new PresenceSample(++sequence, now - age / 1000000L,
         location.getLatitude(), location.getLongitude(), (double) location.getAccuracy(),
         location.hasSpeed() ? (double) location.getSpeed() : null,
         location.hasBearing() ? (double) location.getBearing() : null);
+    locationDiagnostic += " measured=" + sample.measuredAtMs + " valid=" + sample.isValid();
     return sharing.accept(sample, foregroundMap, !location.hasSpeed() || location.getSpeed() >= 0.5f);
   }
   private <T> Task<T> unavailable() { return Tasks.forException(new IllegalStateException("Friends connection is not ready")); }
