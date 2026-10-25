@@ -1,0 +1,50 @@
+name: Native Apple friends sessions
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: navi-friends-apple-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    runs-on: macos-26
+    timeout-minutes: 25
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Prepare real production Swift session fixture
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/friends-evidence"
+          git rev-parse HEAD > "$RUNNER_TEMP/friends-evidence/source-commit.txt"
+          python3 tools/private/prepare-friends-apple.py "$RUNNER_TEMP/friends-apple"
+          cp "$RUNNER_TEMP/friends-apple/source-copies.json" "$RUNNER_TEMP/friends-evidence/"
+      - name: Compile pinned Apple Auth and Database SDKs
+        run: |
+          set -euo pipefail
+          swift build --package-path "$RUNNER_TEMP/friends-apple" 2>&1 | tee "$RUNNER_TEMP/friends-evidence/build.log"
+          cp "$RUNNER_TEMP/friends-apple/Package.resolved" "$RUNNER_TEMP/friends-evidence/"
+      - name: Run actual native clients against local locked rules
+        working-directory: backend/firebase
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npx firebase emulators:exec --project demo-navi-friends --only auth,database "node tests/native-apple.mjs '$RUNNER_TEMP/friends-apple/.build/debug/FriendsNativeProbe' '$RUNNER_TEMP/friends-evidence/native-report.json'" 2>&1 | tee "$RUNNER_TEMP/friends-evidence/runtime.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: friends-apple-${{ github.run_id }}
+          path: ${{ runner.temp }}/friends-evidence/
+          if-no-files-found: error
+          retention-days: 7
