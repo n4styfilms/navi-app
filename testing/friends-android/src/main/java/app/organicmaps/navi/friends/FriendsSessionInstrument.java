@@ -341,14 +341,23 @@ public final class FriendsSessionInstrument extends Instrumentation {
         check(!await(ui(() -> runtime.onLocation(fix, true))), "App runtime retimestamped a stale cached GPS fix");
         fix.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos());
         check(await(ui(() -> runtime.onLocation(fix, true))), "App runtime did not publish a fresh existing-provider fix: " + ui(runtime::locationDiagnostic));
+        report.putString("native_location_timing", ui(runtime::locationDiagnostic));
         await(ui(() -> runtime.setSharing(false)));
+        await(ui(() -> aliceRepository.requestFriend(bobId)));
+        await(ui(() -> runtime.confirm(aliceId)));
+        await(ui(() -> aliceRepository.setGrant(bobId, new FriendsRepository.Grant(true, false, false))));
+        waitUntil(() -> ui(() -> runtime.peers().stream().anyMatch(friend -> friend.uid.equals(aliceId) && friend.position != null)),
+            "App runtime did not show its confirmed position-only friend");
+        check(ui(() -> runtime.peers().stream().filter(friend -> friend.uid.equals(aliceId)).findFirst().get().speed(runtime.serverNowMs()) == null),
+            "App runtime exposed speed without the separate grant");
         ui(() -> { FriendsUiActivity.runtime = runtime; return null; });
         Activity screen = startActivitySync(new android.content.Intent(getTargetContext(), FriendsUiActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
         try {
           waitUntil(() -> {
             android.view.accessibility.AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
             return root != null && (!root.findAccessibilityNodeInfosByText("Your friends").isEmpty()
-                || !root.findAccessibilityNodeInfosByText("Deine Freunde").isEmpty());
+                || !root.findAccessibilityNodeInfosByText("Deine Freunde").isEmpty())
+                && !root.findAccessibilityNodeInfosByText("Alice test").isEmpty();
           }, "Production friends sheet did not render its heading");
           android.graphics.Bitmap screenshot = getUiAutomation().takeScreenshot();
           check(screenshot != null, "No actual friends-sheet screenshot");

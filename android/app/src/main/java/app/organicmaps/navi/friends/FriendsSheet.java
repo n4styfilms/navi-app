@@ -45,6 +45,16 @@ public final class FriendsSheet implements AutoCloseable {
     dialog.setContentView(scroll);
     subscription = runtime.observe(() -> { if (!accountForm) render(); });
     dialog.setOnDismissListener(ignored -> dispose());
+    dialog.setOnShowListener(ignored -> {
+      FrameLayout frame = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+      if (frame != null) {
+        frame.setBackground(shape(R.color.navi_surface, 32)); frame.setClipToOutline(true);
+        frame.getLayoutParams().height = (int) (context.getResources().getDisplayMetrics().heightPixels * 0.9);
+        frame.requestLayout();
+        com.google.android.material.bottomsheet.BottomSheetBehavior.from(frame).setState(
+            com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED);
+      }
+    });
     render(); dialog.show(); main.post(tick);
   }
   private void dispose() {
