@@ -381,6 +381,31 @@ public final class FriendsSessionInstrument extends Instrumentation {
         report.putBoolean("native_signout_server_revoked", true);
       } finally { ui(() -> { runtime.close(); return null; }); }
       report.putBoolean("native_app_runtime_location", true);
+      AtomicReference<FirebaseDatabase> offlineDatabase = new AtomicReference<>();
+      FriendsRuntime offlineRuntime = ui(() -> new FriendsRuntime(getTargetContext(), eveAuth.getApp(), (auth, database) -> {
+        local.configure(auth, database); offlineDatabase.set(database);
+      }));
+      try {
+        waitUntil(() -> ui(() -> offlineRuntime.ready() && offlineRuntime.serverNowMs() > 0), "Offline sign-out runtime did not open");
+        await(ui(() -> offlineRuntime.setSharing(true)));
+        String eveEmail = ui(() -> eveAuth.getCurrentUser().getEmail());
+        FriendsDataSession inspector = open(eveAuth, eveAuth.getCurrentUser());
+        String eveUid = inspector.owner();
+        ui(() -> { offlineDatabase.get().goOffline(); return null; });
+        waitUntil(() -> ui(() -> offlineRuntime.sharingState().equals("RECONNECTING")), "Offline sign-out did not detect lost connection");
+        ui(() -> { offlineRuntime.signOut(); return null; });
+        check(ui(() -> !offlineRuntime.ready() && offlineRuntime.peers().isEmpty()), "Offline sign-out retained visible account data");
+        waitUntil(() -> ui(() -> eveAuth.getCurrentUser() == null), "Offline sign-out never completed locally");
+        check(ui(offlineRuntime::hasPendingRevocations), "Offline sign-out falsely claimed server revocation");
+        check(Boolean.TRUE.equals(await(inspector.database().getReference("liveControl/" + eveUid + "/enabled").get()).getValue()),
+            "Disconnected sign-out test did not retain the actual pending server state");
+        await(eveAuth.signInWithEmailAndPassword(eveEmail, "local-test-password-123"));
+        waitUntil(() -> ui(() -> offlineRuntime.ready() && offlineRuntime.sharingState().equals("PAUSED")),
+            "Returning account did not finish its persisted pending revocation");
+        check(Boolean.FALSE.equals(await(inspector.database().getReference("liveControl/" + eveUid + "/enabled").get()).getValue()),
+            "Returning account left server sharing enabled");
+        report.putBoolean("native_offline_signout_pending", true);
+      } finally { ui(() -> { offlineRuntime.close(); return null; }); }
       result = Activity.RESULT_OK;
     } catch (Throwable error) {
       android.util.Log.e("NaviFriendsNativeTest", "Synthetic integration failure", error);
