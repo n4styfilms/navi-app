@@ -2,6 +2,7 @@
 """Decode an existing CI XCTest result; never rebuild or alter the original test verdict."""
 import argparse
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -19,6 +20,30 @@ def main():
     if not (bundle / 'Info.plist').is_file():
         parser.error('The captured XCTest result bundle is missing')
     out.mkdir(parents=True, exist_ok=False)
+    # Symbolicate the exact preserved binary, rather than rebuilding a possibly
+    # different executable. The simulator capture prints both PC and image base.
+    archive = bundle.parent / 'startup-simulator-app.zip'
+    startup_log = bundle.parent / 'xcode-tests.log'
+    if archive.is_file() and startup_log.is_file():
+        text = startup_log.read_text(errors='replace')
+        pc = re.search(r'NAVI_STARTUP_PC (0x[0-9a-fA-F]+)', text)
+        base = re.search(r'NAVI_STARTUP_IMAGE_BASE (0x[0-9a-fA-F]+)', text)
+        if pc and base:
+            images = out / 'symbolication'
+            subprocess.run(['ditto', '-x', '-k', str(archive), str(images)], check=True, timeout=120)
+            binaries = list(images.rglob('*.debug.dylib'))
+            if len(binaries) != 1:
+                raise RuntimeError('Expected one preserved app debug image')
+            binary = binaries[0]
+            offset = int(pc[1], 16) - int(base[1], 16)
+            commands = ['target create ' + json.dumps(str(binary)), 'image list -o -f',
+                        f'image lookup -v -a {hex(offset)}',
+                        f'disassemble -s {hex(offset - 160)} -c 64']
+            command_file = out / 'symbolication-commands.txt'
+            command_file.write_text('\n'.join(commands) + '\n')
+            symbols = subprocess.run(['xcrun', 'lldb', '-b', '-s', str(command_file)],
+                                     capture_output=True, timeout=90)
+            (out / 'symbolication.txt').write_bytes(symbols.stdout + symbols.stderr)
     records = []
     def run(arguments, filename, timeout=90):
         result = subprocess.run(['xcrun', 'xcresulttool', *arguments], capture_output=True, timeout=timeout)
