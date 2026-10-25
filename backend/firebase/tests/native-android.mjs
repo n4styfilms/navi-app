@@ -46,10 +46,12 @@ try {
   await writeFile(output + '.txt', transcript);
   const pid = transcript.match(/native_pid=(\d+)/)?.[1];
   if (pid) await writeFile(output + '.logcat.txt', run(['logcat', '-d', '--pid', pid], 30_000));
+  const screenshot = transcript.match(/native_ui_screenshot=(\/storage\/emulated\/0\/Android\/data\/app\.navi\.friendstest\/files\/friends-sheet\.png)/)?.[1];
+  if (screenshot) run(['pull', screenshot, output + '.png']);
   const flags = ['native_auth_cloned', 'native_listener_revoked',
     'native_fresh_session_denied_old_peer', 'native_late_session_completion_closed', 'native_friend_actions',
     'native_failed_open_cleanup', 'native_peer_snapshots', 'native_gated_publication',
-    'native_persistent_pause_reconnect', 'native_app_runtime_location'];
+    'native_persistent_pause_reconnect', 'native_app_runtime_location', 'native_friends_sheet'];
   for (const flag of flags) assert.match(transcript, new RegExp(`${flag}=true`), transcript);
   assert.match(transcript, /INSTRUMENTATION_CODE: -1\s*$/, transcript);
   assert.doesNotMatch(transcript, /native_error=|cleanup_error=/);

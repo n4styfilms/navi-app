@@ -342,6 +342,24 @@ public final class FriendsSessionInstrument extends Instrumentation {
         fix.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos());
         check(await(ui(() -> runtime.onLocation(fix, true))), "App runtime did not publish a fresh existing-provider fix");
         await(ui(() -> runtime.setSharing(false)));
+        ui(() -> { FriendsUiActivity.runtime = runtime; return null; });
+        Activity screen = startActivitySync(new android.content.Intent(getTargetContext(), FriendsUiActivity.class).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
+        try {
+          waitUntil(() -> {
+            android.view.accessibility.AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
+            return root != null && (!root.findAccessibilityNodeInfosByText("Your friends").isEmpty()
+                || !root.findAccessibilityNodeInfosByText("Deine Freunde").isEmpty());
+          }, "Production friends sheet did not render its heading");
+          android.graphics.Bitmap screenshot = getUiAutomation().takeScreenshot();
+          check(screenshot != null, "No actual friends-sheet screenshot");
+          java.io.File captured = new java.io.File(getTargetContext().getExternalFilesDir(null), "friends-sheet.png");
+          try (java.io.FileOutputStream output = new java.io.FileOutputStream(captured)) {
+            screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output);
+          }
+          screenshot.recycle();
+          report.putString("native_ui_screenshot", captured.getAbsolutePath());
+          report.putBoolean("native_friends_sheet", true);
+        } finally { ui(() -> { screen.finish(); FriendsUiActivity.runtime = null; return null; }); }
         ui(() -> { runtime.signOut(); return null; });
         check(ui(() -> !runtime.ready() && runtime.peers().isEmpty()), "App runtime retained signed-out peer data");
       } finally { ui(() -> { runtime.close(); return null; }); }

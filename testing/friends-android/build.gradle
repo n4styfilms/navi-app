@@ -1,7 +1,7 @@
 plugins { id 'com.android.application' version '8.11.1' }
 
 android {
-    namespace 'app.navi.friendstest'
+    namespace 'app.organicmaps'
     compileSdk 36
     defaultConfig {
         applicationId 'app.navi.friendstest'
@@ -26,12 +26,20 @@ android {
     }
     // Compile the production domain/session source, not copies or mocks.
     sourceSets.main.java.srcDir '../../android/app/src/main/java/app/organicmaps/navi/friends'
-    sourceSets.main.java.exclude '**/FriendsSheet.java'
+    sourceSets.main.res.srcDir layout.buildDirectory.dir('generated/navi-res')
 }
+
+def copyNaviResources = tasks.register('copyNaviResources', Sync) {
+    from '../../android/app/src/main/res'
+    include 'values/navi.xml', 'values-night/navi.xml'
+    into layout.buildDirectory.dir('generated/navi-res')
+}
+tasks.named('preBuild').configure { dependsOn copyNaviResources }
 
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:34.19.0')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-database'
     implementation 'androidx.annotation:annotation:1.10.0'
+    implementation 'com.google.android.material:material:1.12.0'
 }
