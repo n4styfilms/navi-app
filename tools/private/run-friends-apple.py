@@ -21,7 +21,7 @@ try:
     transcript = result.stdout + result.stderr
     (out / 'simulator-runtime.log').write_bytes(transcript)
     sys.stdout.buffer.write(transcript)
-    if result.returncode != 0 or b'NAVI_APPLE_NATIVE_ERROR' in transcript or b'NAVI_APPLE_NATIVE_SUCCESS proofs=10' not in transcript:
+    if result.returncode != 0 or b'NAVI_APPLE_NATIVE_ERROR' in transcript or b'NAVI_APPLE_NATIVE_SUCCESS proofs=12' not in transcript:
         raise SystemExit('Simulator native friends fixture did not pass')
 finally:
     subprocess.run(['xcrun', 'simctl', 'terminate', udid, 'app.navi.friendstest'], capture_output=True, timeout=30)
