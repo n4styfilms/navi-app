@@ -263,7 +263,8 @@ public final class NaviMapController
     style.addLayer(new CircleLayer("navi-friends-dot", FRIENDS).withProperties(
         circleColor(Expression.get("color")), circleRadius(9f), circleStrokeColor("#FAF9F5"), circleStrokeWidth(3f)));
     style.addLayer(new SymbolLayer("navi-friends-label", FRIENDS).withProperties(
-        textField(Expression.get("label")), textSize(12f), textColor("#292C28"),
+        textField(Expression.get("label")), textFont(new String[]{"Noto Sans Regular"}),
+        textSize(12f), textColor("#292C28"),
         textHaloColor("#FAF9F5"), textHaloWidth(2f), textOffset(new Float[]{0f, 1.8f})));
   }
 

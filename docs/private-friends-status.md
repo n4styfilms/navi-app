@@ -1,6 +1,16 @@
 # Friends implementation status
 
-The map/fuel Android package remains Karte05. The following source work is a foundation; neither packaged app yet offers a functioning friends list or account synchronization.
+## Current packaged evidence — 25 October 2026
+
+Android Freunde-01 is now signed and delivered: version 2026.10.25-1-test, source `0485a6506ea91713d9ab794b46d0523411cf0144`, full build 40156336979 succeeded. SHA256 `14b0bf63f589bcc7587e561ea0deae508bad0c6ae280b37a39dee30883024a31`. The actual package was freshly installed on the disposable emulator; the main friends sheet opens and correctly requests group setup. A 20-point synthetic navigation replay proved background NavigationService operation, a known speed limit and fuel remaining falling from approximately EUR 0.41 to EUR 0.34. Live graphical map connectivity was blocked by host Norton HTTPS inspection. The main-app friends service, map labels, real cloud and physical phones remain unverified. The newer OFF-state logout edge fix is not included in this source-pinned APK.
+
+The separate production-class Android fixture passes all 13 proofs at run 40156823921, source `49e030c`, including the actual friends sheet and independent online/offline logout server checks. Component proofs do not establish whole-app background sharing.
+
+A subsequent actual MapLibre GL regression caught the friends layer requesting an unavailable default Open Sans/Arial font stack (public glyph HTTP 404). The source now explicitly uses the available Noto Sans Regular glyphs. The same shipping controller then passed three rendered checks: dot/name/speed without a route, retention after style reload without changing the camera, and removal when peers are cleared. See [native regression instructions](../tools/private/tests/friend-labels-android.md). This fix is newer than the delivered Freunde-01 APK. The fixture uses synthetic markers and pinned public glyph bytes, not authenticated whole-app friends or live satellite imagery.
+
+iOS Karte-01 is now delivered, source `72b287e95177ae0b150f37fe9ae9c6998125448e`, full build 40154532276 succeeded with 122/122 simulator tests and a verified ARM64 device IPA embedding MapLibre. No friends integration or physical iPhone sideload is claimed.
+
+Remaining original scope includes real group/device verification, iOS friends integration, trip recording/history/quality-qualified events, driving-style fuel correction and final whole-branch review. Historical sections below describe intermediate evidence and are superseded by this current section where they refer to pending builds.
 
 ## 25 October app integration
 
