@@ -369,8 +369,16 @@ public final class FriendsSessionInstrument extends Instrumentation {
           report.putString("native_ui_screenshot", captured.getAbsolutePath());
           report.putBoolean("native_friends_sheet", true);
         } finally { ui(() -> { screen.finish(); FriendsUiActivity.runtime = null; return null; }); }
+        await(ui(() -> runtime.setSharing(true)));
+        FriendsDataSession revokeInspector = open(bobAuth, bobAuth.getCurrentUser());
+        check(Boolean.TRUE.equals(await(revokeInspector.database().getReference("liveControl/" + bobId + "/enabled").get()).getValue()),
+            "Sign-out test never began with active server sharing");
         ui(() -> { runtime.signOut(); return null; });
         check(ui(() -> !runtime.ready() && runtime.peers().isEmpty()), "App runtime retained signed-out peer data");
+        waitUntil(() -> ui(() -> bobAuth.getCurrentUser() == null), "Primary sign-out did not complete");
+        check(Boolean.FALSE.equals(await(revokeInspector.database().getReference("liveControl/" + bobId + "/enabled").get()).getValue()),
+            "Online sign-out closed authentication before revoking server sharing");
+        report.putBoolean("native_signout_server_revoked", true);
       } finally { ui(() -> { runtime.close(); return null; }); }
       report.putBoolean("native_app_runtime_location", true);
       result = Activity.RESULT_OK;
