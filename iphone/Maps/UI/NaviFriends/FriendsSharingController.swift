@@ -22,6 +22,11 @@ private final class FriendsSharingRevision: @unchecked Sendable {
   enum State: Equatable { case off, enabling, sharing, reconnecting, revocationPending, paused, error, closed }
   enum SharingError: Error { case closed, invalidSession, invalidLease, persistence, superseded }
   private struct Intent: Codable { var desired: Bool; var pending: Bool }
+  static func persistPendingRevocation(preferences: UserDefaults, applicationID: String, owner: String) throws {
+    let key = "navi-friends-sharing/" + applicationID + "/" + owner
+    preferences.set(try JSONEncoder().encode(Intent(desired: false, pending: true)), forKey: key)
+    guard preferences.synchronize() else { throw SharingError.persistence }
+  }
   private let session: FriendsDataSession
   private let repository: FriendsRepository
   private let preferences: UserDefaults
