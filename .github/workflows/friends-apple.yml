@@ -33,7 +33,7 @@ jobs:
       - name: Compile pinned Apple Auth and Database SDKs
         run: |
           set -euo pipefail
-          swift build --package-path "$RUNNER_TEMP/friends-apple" 2>&1 | tee "$RUNNER_TEMP/friends-evidence/build.log"
+          python3 tools/private/build-friends-apple.py "$RUNNER_TEMP/friends-apple" 2>&1 | tee "$RUNNER_TEMP/friends-evidence/build.log"
           cp "$RUNNER_TEMP/friends-apple/Package.resolved" "$RUNNER_TEMP/friends-evidence/"
       - name: Run actual native clients against local locked rules
         working-directory: backend/firebase
