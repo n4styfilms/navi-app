@@ -26,6 +26,7 @@ android {
     }
     // Compile the production domain/session source, not copies or mocks.
     sourceSets.main.java.srcDir '../../android/app/src/main/java/app/organicmaps/navi/friends'
+    sourceSets.main.java.exclude '**/FriendsSheet.java'
 }
 
 dependencies {

@@ -18,6 +18,8 @@ import org.maplibre.android.maps.Style;
 import org.maplibre.android.module.http.HttpRequestUtil;
 import org.maplibre.android.style.layers.CircleLayer;
 import org.maplibre.android.style.layers.LineLayer;
+import org.maplibre.android.style.layers.SymbolLayer;
+import org.maplibre.android.style.expressions.Expression;
 import org.maplibre.android.style.sources.GeoJsonSource;
 import org.maplibre.geojson.Feature;
 import org.maplibre.geojson.FeatureCollection;
@@ -31,6 +33,35 @@ public final class NaviMapController
   private static final String ROUTE = "navi-route";
   private static final String POSITION = "navi-position";
   private static final String TARGET = "navi-target";
+  private static final String FRIENDS = "navi-friends";
+  private FeatureCollection friends = FeatureCollection.fromFeatures(Collections.emptyList());
+
+  public static final class FriendMarker {
+    public final double latitude, longitude;
+    public final String label;
+    public final boolean fresh;
+    public FriendMarker(double latitude, double longitude, String label, boolean fresh) {
+      this.latitude = latitude; this.longitude = longitude; this.label = label; this.fresh = fresh;
+    }
+  }
+
+  public void setFriends(List<FriendMarker> markers) {
+    requireMainThread();
+    List<Feature> copied = new ArrayList<>();
+    for (FriendMarker marker : markers) {
+      if (!Double.isFinite(marker.latitude) || !Double.isFinite(marker.longitude)
+          || Math.abs(marker.latitude) > 90 || Math.abs(marker.longitude) > 180) continue;
+      Feature feature = Feature.fromGeometry(Point.fromLngLat(marker.longitude, marker.latitude));
+      feature.addStringProperty("label", marker.label);
+      feature.addStringProperty("color", marker.fresh ? "#526F4C" : "#858780");
+      copied.add(feature);
+    }
+    friends = FeatureCollection.fromFeatures(copied);
+    if (style != null && style.isFullyLoaded()) {
+      GeoJsonSource source = style.getSourceAs(FRIENDS);
+      if (source != null) source.setGeoJson(friends);
+    }
+  }
   private final Handler main = new Handler(Looper.getMainLooper());
   private final MapLoadState state = new MapLoadState();
   private final EsriHttpClient http;
@@ -220,6 +251,7 @@ public final class NaviMapController
     style.addSource(new GeoJsonSource(ROUTE, empty));
     style.addSource(new GeoJsonSource(POSITION, empty));
     style.addSource(new GeoJsonSource(TARGET, empty));
+    style.addSource(new GeoJsonSource(FRIENDS, friends));
     style.addLayer(new LineLayer("navi-route-outline", ROUTE).withProperties(
         lineColor("#FAF9F5"), lineWidth(9f), lineJoin("round"), lineCap("round")));
     style.addLayer(new LineLayer("navi-route-line", ROUTE).withProperties(
@@ -228,6 +260,11 @@ public final class NaviMapController
         circleColor("#292C28"), circleRadius(7f), circleStrokeColor("#FAF9F5"), circleStrokeWidth(3f)));
     style.addLayer(new CircleLayer("navi-position-dot", POSITION).withProperties(
         circleColor("#526F4C"), circleRadius(8f), circleStrokeColor("#FAF9F5"), circleStrokeWidth(3f)));
+    style.addLayer(new CircleLayer("navi-friends-dot", FRIENDS).withProperties(
+        circleColor(Expression.get("color")), circleRadius(9f), circleStrokeColor("#FAF9F5"), circleStrokeWidth(3f)));
+    style.addLayer(new SymbolLayer("navi-friends-label", FRIENDS).withProperties(
+        textField(Expression.get("label")), textSize(12f), textColor("#292C28"),
+        textHaloColor("#FAF9F5"), textHaloWidth(2f), textOffset(new Float[]{0f, 1.8f})));
   }
 
   private void renderOverlays()
