@@ -181,7 +181,9 @@ enum ProbeError: Error { case failed(String) }
       } catch FriendsRepository.RepositoryError.invalidPeer { }
     }
     print("native_apple_friend_actions=true")
-    print("NAVI_APPLE_NATIVE_SUCCESS proofs=6")
+    try await FriendsSnapshotScenario.run(alice: alice, chris: chris, aliceData: aliceData, chrisData: chrisData,
+      aliceRepo: aliceRepo, chrisRepo: chrisRepo)
+    print("NAVI_APPLE_NATIVE_SUCCESS proofs=8")
     for app in [aliceApp, bobApp, chrisApp] {
       try Auth.auth(app: app).signOut()
       app.delete { _ in }
