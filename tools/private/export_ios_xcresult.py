@@ -38,7 +38,7 @@ def main():
             offset = int(pc[1], 16) - int(base[1], 16)
             commands = ['target create ' + json.dumps(str(binary)), 'image list -o -f',
                         f'image lookup -v -a {hex(offset)}',
-                        f'disassemble -s {hex(offset - 160)} -c 64']
+                        f'disassemble -a {hex(offset)}']
             command_file = out / 'symbolication-commands.txt'
             command_file.write_text('\n'.join(commands) + '\n')
             symbols = subprocess.run(['xcrun', 'lldb', '-b', '-s', str(command_file)],
