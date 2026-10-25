@@ -158,8 +158,8 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     table.backgroundColor = NaviPalette.paper; table.layer.cornerRadius = 24
     table.rowHeight = UITableView.automaticDimension; table.estimatedRowHeight = 70
     table.keyboardDismissMode = .onDrag; table.isHidden = true
-    table.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.3).isActive = true
     top.addArrangedSubview(table)
+    table.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.3).isActive = true
 
     panelScroll.translatesAutoresizingMaskIntoConstraints = false
     panelScroll.backgroundColor = NaviPalette.paper

@@ -2,7 +2,6 @@
 import json
 from pathlib import Path
 import plistlib
-import re
 import subprocess
 import sys
 
@@ -74,10 +73,14 @@ final class Controls: UIViewController, UITableViewDataSource, UITableViewDelega
     except subprocess.TimeoutExpired as error:
         logs = (error.stdout or b'') + (error.stderr or b'')
     finally:
-        subprocess.run(['xcrun', 'simctl', 'terminate', udid, 'app.navi.controlsprobe'],
-                       capture_output=True, timeout=30)
+        try:
+            subprocess.run(['xcrun', 'simctl', 'terminate', udid, 'app.navi.controlsprobe'],
+                           capture_output=True, timeout=30)
+        except subprocess.TimeoutExpired:
+            pass  # Cleanup must not erase the actual launch output.
     (out.parent / 'controls-probe.txt').write_bytes(logs)
     if b'NAVI_CONTROLS_READY' not in logs:
+        print(logs.decode(errors='replace')[-100000:], flush=True)
         raise SystemExit('Production search-results layout failed before readiness; see controls-probe.txt')
     print('PASS actual UIKit production search-results layout')
 
