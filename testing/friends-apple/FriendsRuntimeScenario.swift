@@ -9,11 +9,25 @@ import FirebaseAuth
     let preferences = UserDefaults(suiteName: suite)!
     defer { preferences.removePersistentDomain(forName: suite) }
     let before = Set(FirebaseApp.allApps?.keys.map { $0 } ?? [])
-    let empty = try FriendsRuntime(preferences: preferences)
+    let groupSuite = suite + "-group"
+    let groupPreferences = UserDefaults(suiteName: groupSuite)!
+    defer { groupPreferences.removePersistentDomain(forName: groupSuite) }
+    let empty = try FriendsRuntime(preferences: groupPreferences, transport: FriendsNativeProbe.local)
     try FriendsNativeProbe.check(!empty.snapshot.configured && empty.snapshot.peers.isEmpty
       && !empty.locationDemand, "Missing group configuration fabricated an account or sharing demand")
     let after = Set(FirebaseApp.allApps?.keys.map { $0 } ?? [])
     try FriendsNativeProbe.check(after.subtracting(before).isEmpty, "Unconfigured runtime initialized Firebase")
+    let group = try JSONSerialization.data(withJSONObject: ["projectId": "demo-navi-friends",
+      "applicationId": "1:1234567890:ios:abcdef0123456789", "apiKey": "fake-api-key",
+      "databaseUrl": "https://demo-navi-friends.firebaseio.com"])
+    try empty.configure(json: group)
+    try await empty.register(email: "runtime-group-" + UUID().uuidString + "@example.test",
+      password: "synthetic-local-password-123")
+    try await FriendsNativeProbe.waitFor("configured runtime registration", {
+      empty.snapshot.configured && empty.snapshot.accountState == .ready && !empty.snapshot.uid.isEmpty
+    })
+    let configuredLogout = try await empty.signOut()
+    try FriendsNativeProbe.check(configuredLogout == .acknowledged, "Configured runtime did not coordinate logout")
     empty.close()
 
     let (sourceApp, sourceUser) = try await FriendsNativeProbe.identity("runtime-source")
