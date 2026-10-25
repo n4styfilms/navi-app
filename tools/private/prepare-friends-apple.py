@@ -10,8 +10,10 @@ out = Path(sys.argv[1]).resolve()
 out.mkdir(parents=True, exist_ok=False)
 sources = out / 'Sources/FriendsNativeProbe'
 sources.mkdir(parents=True)
-files = list((root / 'iphone/Maps/UI/NaviFriends').glob('*.swift'))
-files.append(root / 'testing/friends-apple/FriendsNativeProbe.swift')
+domain = root / 'iphone/Maps/UI/NaviFriends'
+files = [domain / name for name in ('PresenceSample.swift', 'PresencePolicy.swift', 'FriendsDataSession.swift',
+    'FriendsAccountController.swift') if (domain / name).exists()]
+files.extend([root / 'testing/friends-apple/FriendsNativeProbe.swift', root / 'testing/friends-apple/FriendsProbeApp.swift'])
 for source in files:
     shutil.copyfile(source, sources / source.name)
 (out / 'source-copies.json').write_text(json.dumps([

@@ -5,7 +5,7 @@ import FirebaseDatabase
 
 enum ProbeError: Error { case failed(String) }
 
-@main @MainActor struct FriendsNativeProbe {
+@MainActor enum FriendsNativeProbe {
   static func check(_ condition: Bool, _ message: String) throws {
     if !condition { throw ProbeError.failed(message) }
   }
@@ -38,7 +38,7 @@ enum ProbeError: Error { case failed(String) }
     database.useEmulator(withHost: "127.0.0.1", port: 9000)
   }
 
-  static func main() async throws {
+  static func run() async throws {
     let (aliceApp, alice) = try await identity("alice")
     let (bobApp, bob) = try await identity("bob")
     let (chrisApp, chris) = try await identity("chris")

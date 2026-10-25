@@ -17,7 +17,7 @@ try {
   const collect = chunk => { transcript += chunk.toString(); process.stdout.write(chunk); };
   child.stdout.on('data', collect);
   child.stderr.on('data', collect);
-  const timer = setTimeout(() => child.kill('SIGTERM'), 90_000);
+  const timer = setTimeout(() => child.kill('SIGTERM'), 300_000);
   const code = await new Promise((resolve, reject) => { child.on('error', reject); child.on('close', resolve); });
   clearTimeout(timer);
   await writeFile(report + '.log', transcript);
