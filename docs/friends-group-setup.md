@@ -2,7 +2,7 @@
 
 Die Straßenkarte braucht kein Konto. Für die Freundeskarte verwenden alle fünf Personen dasselbe eigene Firebase-Projekt und jeweils ein eigenes Konto. Im Quellcode und in den Builds ist kein fremder Projektzugang enthalten.
 
-Diese Anleitung gehört zur signierten Android-Testversion Freunde 01 (2026.10.25-1-test). Der vollständige Build und das Öffnen des echten Freunde-Menüs sind geprüft. Euer Cloud-Projekt und die Freigabe auf zwei echten Handys sind noch nicht geprüft. Karte 05 und die aktuelle iOS-Karte-01-IPA enthalten keine Freundesoberfläche.
+Diese Anleitung gehört zur signierten Android-Testversion Freunde 02 (2026.10.25-1-test). Der vollständige Build und das Öffnen des echten Freunde-Menüs sind geprüft. Euer Cloud-Projekt und die Freigabe auf zwei echten Handys sind noch nicht geprüft. Karte 05 und die aktuelle iOS-Karte-01-IPA enthalten keine Freundesoberfläche.
 
 1. In der [Firebase-Konsole](https://console.firebase.google.com/) ein Projekt im **Spark-Tarif** anlegen. Keine Abrechnung verbinden und nicht auf Blaze wechseln. Analytics ist für Navi nicht nötig.
 2. Unter **Authentication → Anmeldemethode** E-Mail/Passwort einschalten. Die App verwendet keine SMS-Anmeldung.
