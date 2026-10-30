@@ -112,6 +112,10 @@ import FirebaseAuth
     try await FriendsNativeProbe.waitFor("sheet actual peer speed", {
       let label: UILabel? = find(speedID, in: window); return label?.text?.contains("32 km/h") == true
     })
+    if let scroll: UIScrollView = find("friends.scroll", in: window),
+       let label: UILabel = find(speedID, in: window) {
+      scroll.scrollRectToVisible(label.convert(label.bounds, to: scroll).insetBy(dx: 0, dy: -60), animated: false)
+    }
     try capture(window, name: "friends-ui-light.png")
     clockOffset = 16_000 // UI clock injection; the real SDK and DTO remain unchanged.
     try await FriendsNativeProbe.waitFor("sheet hides stale speed", {
@@ -120,6 +124,10 @@ import FirebaseAuth
     navigation.overrideUserInterfaceStyle = .dark
     navigation.setOverrideTraitCollection(UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge), forChild: sheet)
     try await Task.sleep(nanoseconds: 200_000_000)
+    if let scroll: UIScrollView = find("friends.scroll", in: window),
+       let label: UILabel = find(speedID, in: window) {
+      scroll.scrollRectToVisible(label.convert(label.bounds, to: scroll).insetBy(dx: 0, dy: -60), animated: false)
+    }
     try capture(window, name: "friends-ui-dark-large.png")
     print("native_apple_sheet=true")
   }

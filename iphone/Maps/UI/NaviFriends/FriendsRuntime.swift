@@ -21,6 +21,7 @@ import FirebaseDatabase
     let accountState: FriendsAccountController.State
     let sharingState: FriendsSharingController.State
     let uid: String
+    let ownName: String
     let peers: [FriendsRepository.Peer]
     let requests: [String]
     let grants: [String: FriendsRepository.Grant]
@@ -54,6 +55,7 @@ import FirebaseDatabase
   private var accountState: FriendsAccountController.State = .signedOut
   private var sharingState: FriendsSharingController.State = .off
   private var peers: [FriendsRepository.Peer] = []
+  private var ownName = ""
   private var requests: [String] = []
   private var grants: [String: FriendsRepository.Grant] = [:]
   private var pendingOwners = Set<String>()
@@ -88,7 +90,8 @@ import FirebaseDatabase
   var projectID: String? { identity?.options.projectID }
   var snapshot: Snapshot {
     .init(configured: !closed && identity != nil, accountState: accountState, sharingState: sharingState,
-      uid: ready ? session!.owner : "", peers: peers, requests: requests, grants: grants,
+      uid: ready ? session!.owner : "", ownName: ready ? ownName : "",
+      peers: ready ? peers : [], requests: ready ? requests : [], grants: ready ? grants : [:],
       signingOut: signingOut, pendingRevocations: !pendingOwners.isEmpty, lastError: lastFailure?.localizedDescription)
   }
   var locationDemand: Bool { ready && sharingState == .sharing && serverNowMs > 0 }
@@ -178,6 +181,11 @@ import FirebaseDatabase
     session = opened
     let repo = try FriendsRepository(session: opened, now: { [weak self] in self?.serverNowMs ?? 0 })
     repository = repo
+    subscriptions.append(try opened.listen("profiles/\(opened.owner)", onValue: { [weak self] data in
+      guard let self, !self.closed, self.session === opened, !self.signingOut else { return }
+      self.ownName = data.childSnapshot(forPath: "displayName").value as? String ?? ""
+      self.emit()
+    }, onCancel: { [weak self] error in self?.receive(error, from: opened) }))
     subscriptions.append(try opened.listen(".info/serverTimeOffset", onValue: { [weak self] data in
       guard let self, !self.closed, self.session === opened, !self.signingOut,
             let offset = data.value as? NSNumber, CFGetTypeID(offset) != CFBooleanGetTypeID() else { return }
@@ -225,7 +233,7 @@ import FirebaseDatabase
   private func clearViewData() {
     peerObservation?.close(); peerObservation = nil
     subscriptions.forEach { $0.close() }; subscriptions.removeAll()
-    peers = []; requests = []; grants = [:]; anchorServerMs = 0
+    peers = []; requests = []; grants = [:]; ownName = ""; anchorServerMs = 0
   }
   private func clearData() {
     session = nil

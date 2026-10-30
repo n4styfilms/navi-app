@@ -25,6 +25,8 @@
 		A71E00000000000000000004 /* NaviMapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000003 /* NaviMapController.swift */; };
 		A71E00000000000000000002 /* NaviEsriTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000001 /* NaviEsriTransport.swift */; };
 		A71C00000000000000000002 /* NaviMapPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71C00000000000000000001 /* NaviMapPolicy.swift */; };
+		A71F00000000000000000020 /* NaviPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F0000000000000000001F /* NaviPalette.swift */; };
+		A71F00000000000000000022 /* FriendsSheetController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000021 /* FriendsSheetController.swift */; };
 		A71B00000000000000000002 /* NaviVehicleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71B00000000000000000001 /* NaviVehicleViewController.swift */; };
 		A71A00000000000000000003 /* MapLibre in Frameworks */ = {isa = PBXBuildFile; productRef = A71A00000000000000000002 /* MapLibre */; };
 		A71900000000000000000002 /* NaviFuel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71900000000000000000001 /* NaviFuel.swift */; };
@@ -814,6 +816,8 @@
 		A71E00000000000000000003 /* NaviMapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviMapController.swift; sourceTree = "<group>"; };
 		A71E00000000000000000001 /* NaviEsriTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviEsriTransport.swift; sourceTree = "<group>"; };
 		A71C00000000000000000001 /* NaviMapPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviMapPolicy.swift; sourceTree = "<group>"; };
+		A71F0000000000000000001F /* NaviPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviPalette.swift; sourceTree = "<group>"; };
+		A71F00000000000000000021 /* FriendsSheetController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsSheetController.swift; sourceTree = "<group>"; };
 		A71B00000000000000000001 /* NaviVehicleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviVehicleViewController.swift; sourceTree = "<group>"; };
 		A71900000000000000000001 /* NaviFuel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviFuel.swift; sourceTree = "<group>"; };
 		A71800000000000000000001 /* NaviRouteBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NaviRouteBridge.h; sourceTree = "<group>"; };
@@ -1952,7 +1956,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A71F0000000000000000000E /* NaviFriends */ = {isa = PBXGroup; children = (A71F0000000000000000001B /* FriendsRuntime.swift */,A71F00000000000000000019 /* FriendsSignOutCoordinator.swift */,A71F00000000000000000017 /* FriendsSharingController.swift */,A71F00000000000000000015 /* FriendsObservation.swift */,A71F00000000000000000008 /* PresenceSample.swift */,A71F00000000000000000013 /* FriendsRepository.swift */,A71F00000000000000000010 /* FriendsGroupConfiguration.swift */,A71F0000000000000000000F /* FriendsAccountController.swift */,A71F00000000000000000009 /* PresencePolicy.swift */,A71F0000000000000000000A /* FriendsDataSession.swift */,); path = NaviFriends; sourceTree = "<group>"; };
+		A71F0000000000000000000E /* NaviFriends */ = {isa = PBXGroup; children = (A71F00000000000000000021 /* FriendsSheetController.swift */,A71F0000000000000000001B /* FriendsRuntime.swift */,A71F00000000000000000019 /* FriendsSignOutCoordinator.swift */,A71F00000000000000000017 /* FriendsSharingController.swift */,A71F00000000000000000015 /* FriendsObservation.swift */,A71F00000000000000000008 /* PresenceSample.swift */,A71F00000000000000000013 /* FriendsRepository.swift */,A71F00000000000000000010 /* FriendsGroupConfiguration.swift */,A71F0000000000000000000F /* FriendsAccountController.swift */,A71F00000000000000000009 /* PresencePolicy.swift */,A71F0000000000000000000A /* FriendsDataSession.swift */,); path = NaviFriends; sourceTree = "<group>"; };
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -4154,7 +4158,7 @@
 			path = Fuel;
 			sourceTree = "<group>";
 		};
-		A71B00000000000000000003 /* Vehicle */ = {isa = PBXGroup; children = (A71B00000000000000000001 /* NaviVehicleViewController.swift */,); path = Vehicle; sourceTree = "<group>"; };
+		A71B00000000000000000003 /* Vehicle */ = {isa = PBXGroup; children = (A71F0000000000000000001F /* NaviPalette.swift */,A71B00000000000000000001 /* NaviVehicleViewController.swift */,); path = Vehicle; sourceTree = "<group>"; };
 		A71C00000000000000000003 /* NaviMap */ = {isa = PBXGroup; children = (A71E00000000000000000007 /* NaviViewController.swift */,A71E00000000000000000005 /* NaviMapKeyStore.swift */,A71E00000000000000000003 /* NaviMapController.swift */,A71E00000000000000000001 /* NaviEsriTransport.swift */,A71C00000000000000000001 /* NaviMapPolicy.swift */,); path = NaviMap; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
@@ -4553,6 +4557,8 @@
 				A71F00000000000000000011 /* FriendsAccountController.swift in Sources */,
 				A71F0000000000000000000C /* PresencePolicy.swift in Sources */,
 				A71F0000000000000000000D /* FriendsDataSession.swift in Sources */,
+				A71F00000000000000000020 /* NaviPalette.swift in Sources */,
+				A71F00000000000000000022 /* FriendsSheetController.swift in Sources */,
 				A71B00000000000000000002 /* NaviVehicleViewController.swift in Sources */,
 				ED914ABE2D351FF800973C45 /* UILabel+SetFontStyle.swift in Sources */,
 				34845DB71E166084003D55B9 /* Common.swift in Sources */,
