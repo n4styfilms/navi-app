@@ -40,6 +40,7 @@ private final class FriendsSharingRevision: @unchecked Sendable {
   private var intent = Intent(desired: false, pending: false)
   private var closed = false
   private var inFlight = false
+  private var pendingPresencePublications = 0
   private var lease: Int64 = 0
   private var policyTicket: UInt64 = 0
   private var completion: CheckedContinuation<Void, Error>?
@@ -84,10 +85,13 @@ private final class FriendsSharingRevision: @unchecked Sendable {
     previous?.resume(with: result)
   }
   private func invalidate() {
+    // Starting from OFF must not cancel unrelated queued profile writes.
+    // A pending lease or presence publication still needs cancellation on pause.
+    let needsPurge = inFlight || pendingPresencePublications > 0
     revision = gate.advance()
     inFlight = false; lease = 0
     policy.pause()
-    if !session.isClosed { try? session.database().purgeOutstandingWrites() }
+    if needsPurge && !session.isClosed { try? session.database().purgeOutstandingWrites() }
   }
 
   func setEnabled(_ enabled: Bool) async throws {
@@ -167,6 +171,8 @@ private final class FriendsSharingRevision: @unchecked Sendable {
           let upload = policy.prepare(sample, at: now(), generation: policyTicket,
             foregroundMap: foregroundMap, moving: moving) else { return false }
     let ticket = revision
+    pendingPresencePublications += 1
+    defer { pendingPresencePublications -= 1 }
     do {
       try await repository.publish(policy: policy, upload: upload, lease: lease)
       return true

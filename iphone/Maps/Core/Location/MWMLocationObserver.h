@@ -15,6 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 @optional
 - (void)onHeadingUpdate:(CLHeading *)heading;
 - (void)onLocationUpdate:(CLLocation *)location;
+// Device measurements only; predicted display positions are never shared fixes.
+- (void)onRawLocationUpdate:(CLLocation *)location;
 - (void)onLocationError:(MWMLocationStatus)locationError;
 
 @end

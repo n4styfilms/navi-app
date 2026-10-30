@@ -376,6 +376,8 @@ void setShowLocationAlert(BOOL needShow) {
   self.locationSource = source;
   for (Observer observer in self.observers)
   {
+    if (source == location::EAppleNative && [observer respondsToSelector:@selector(onRawLocationUpdate:)])
+      [observer onRawLocationUpdate:locationInfo];
     if ([observer respondsToSelector:@selector(onLocationUpdate:)])
       [observer onLocationUpdate:locationInfo];
   }
