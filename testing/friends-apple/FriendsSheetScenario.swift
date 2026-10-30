@@ -37,8 +37,14 @@ import FirebaseAuth
     let navigation = UINavigationController(rootViewController: sheet)
     host.present(navigation, animated: false)
     defer { navigation.dismiss(animated: false) }
-    try await Task.sleep(nanoseconds: 200_000_000)
+    try await FriendsNativeProbe.waitFor("sheet presentation completed", {
+      host.presentedViewController === navigation && !navigation.isBeingPresented && sheet.view.window != nil
+    })
     try tap("friends.group.setup", in: window)
+    try await FriendsNativeProbe.waitFor("group editor presentation", {
+      let field: UITextView? = find("friends.group.json", in: window)
+      return field != nil && navigation.presentedViewController?.isBeingPresented == false
+    })
     guard let config: UITextView = find("friends.group.json", in: window) else {
       throw ProbeError.failed("Group editor missing")
     }
@@ -47,7 +53,8 @@ import FirebaseAuth
       """
     try tap("friends.group.save", in: window)
     try await FriendsNativeProbe.waitFor("sheet login form", {
-      let field: UITextField? = find("friends.auth.email", in: window); return field != nil
+      let field: UITextField? = find("friends.auth.email", in: window)
+      return field != nil && navigation.presentedViewController == nil
     })
     let email: UITextField = find("friends.auth.email", in: window)!
     let password: UITextField = find("friends.auth.password", in: window)!
@@ -81,10 +88,18 @@ import FirebaseAuth
     try await FriendsNativeProbe.waitFor("sheet peer ready", { peer.snapshot.accountState == .ready && peer.serverNowMs > 0 })
     try await peer.setName("UI peer")
     try tap("friends.add", in: window)
+    try await FriendsNativeProbe.waitFor("friend editor presentation", {
+      let field: UITextField? = find("friends.add.code", in: window)
+      return field != nil && navigation.presentedViewController?.isBeingPresented == false
+    })
     let code: UITextField = find("friends.add.code", in: window)!
     code.text = "wrong-project/" + peerUser.uid
     try tap("friends.add.send", in: window)
-    try await Task.sleep(nanoseconds: 200_000_000)
+    try await FriendsNativeProbe.waitFor("foreign code validation completed", {
+      let button: UIButton? = find("friends.add.send", in: window)
+      let message: UILabel? = find("friends.editor.message", in: window)
+      return button?.isEnabled == true && message?.text?.isEmpty == false
+    })
     try FriendsNativeProbe.check(peer.snapshot.requests.isEmpty, "Foreign-project code was accepted")
     code.text = "demo-navi-friends/" + peerUser.uid
     try tap("friends.add.send", in: window)

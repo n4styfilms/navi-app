@@ -334,6 +334,7 @@ private final class FriendsTextEditor: UIViewController {
   required init?(coder: NSCoder) { fatalError("Use init(title:)") }
   override func viewDidLoad() {
     super.viewDidLoad(); FriendsUI.navigation(self)
+    message.accessibilityIdentifier = "friends.editor.message"
     navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
     let stack = FriendsUI.column(); _ = FriendsUI.layout(stack, in: view)
     if multiline {
