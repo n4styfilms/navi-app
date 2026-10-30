@@ -80,6 +80,8 @@ import FirebaseAuth
     })
     try tap("friends.sharing", in: window)
     try await FriendsNativeProbe.waitFor("sheet pause action", { runtime.snapshot.sharingState == .paused })
+    try FriendsNativeProbe.check(runtime.snapshot.ownName == "UI driver" && name.text == "UI driver",
+      "Changing location sharing reverted the saved display name")
 
     let (peerApp, peerUser) = try await FriendsNativeProbe.identity("sheet-peer")
     defer { try? Auth.auth(app: peerApp).signOut(); peerApp.delete { _ in } }

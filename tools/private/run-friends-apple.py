@@ -37,7 +37,7 @@ try:
         screenshot = Path(container) / 'Documents' / name
         if screenshot.is_file():
             shutil.copyfile(screenshot, evidence / name)
-    if result.returncode != 0 or b'NAVI_APPLE_NATIVE_ERROR' in transcript or b'NAVI_APPLE_NATIVE_SUCCESS proofs=14' not in transcript:
+    if result.returncode != 0 or b'NAVI_APPLE_NATIVE_ERROR' in transcript or b'NAVI_APPLE_NATIVE_SUCCESS proofs=15' not in transcript:
         raise SystemExit('Simulator native friends fixture did not pass')
     passed = True
 except subprocess.TimeoutExpired as error:

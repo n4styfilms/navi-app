@@ -109,7 +109,12 @@ final class FriendsSheetController: UIViewController {
     super.viewDidLoad()
     FriendsUI.navigation(self)
     title = NaviPalette.text("Deine Freunde", "Your friends")
-    navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(closeSheet))
+    let close = FriendsUI.button("", id: "friends.close") { [weak self] _ in self?.closeSheet() }
+    close.configuration?.image = UIImage(systemName: "xmark")
+    close.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
+    close.accessibilityLabel = NaviPalette.text("Schließen", "Close")
+    close.widthAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+    navigationItem.rightBarButtonItem = UIBarButtonItem(customView: close)
     navigationController?.sheetPresentationController?.detents = [.large()]
     navigationController?.sheetPresentationController?.prefersGrabberVisible = true
     navigationController?.sheetPresentationController?.preferredCornerRadius = 30

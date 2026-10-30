@@ -17,7 +17,7 @@ palette = root / 'iphone/Maps/UI/Vehicle/NaviPalette.swift'
 if palette.exists():
     files.append(palette)
 files.extend([root / 'testing/friends-apple/FriendsNativeProbe.swift', root / 'testing/friends-apple/FriendsProbeApp.swift',
-    root / 'testing/friends-apple/FriendsSnapshotScenario.swift', root / 'testing/friends-apple/FriendsSharingScenario.swift', root / 'testing/friends-apple/FriendsSignOutScenario.swift', root / 'testing/friends-apple/FriendsRuntimeScenario.swift', root / 'testing/friends-apple/FriendsSheetScenario.swift'])
+    root / 'testing/friends-apple/FriendsSnapshotScenario.swift', root / 'testing/friends-apple/FriendsSharingScenario.swift', root / 'testing/friends-apple/FriendsSignOutScenario.swift', root / 'testing/friends-apple/FriendsRuntimeScenario.swift', root / 'testing/friends-apple/FriendsSheetScenario.swift', root / 'testing/friends-apple/FriendsPendingWriteScenario.swift'])
 for source in files:
     shutil.copyfile(source, sources / source.name)
 (out / 'source-copies.json').write_text(json.dumps([
