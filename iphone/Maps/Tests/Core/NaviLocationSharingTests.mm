@@ -25,7 +25,8 @@
 @end
 @implementation NaviLocationSharingTests
 - (void)testPredictionDoesNotBecomeAFreshSharedFix {
-  void (^check)(void) = ^{
+  XCTestExpectation * finished = [self expectationWithDescription:@"Actual queued location observer delivery"];
+  dispatch_async(dispatch_get_main_queue(), ^{
     XCTAssertFalse(GetFramework().IsDrapeEngineCreated());
     NaviRawLocationProbe * probe = [NaviRawLocationProbe new];
     CLLocation * raw = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(43.7295, 7.4208)
@@ -33,19 +34,27 @@
     CLLocation * prediction = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(43.7305, 7.4218)
       altitude:0 horizontalAccuracy:4 verticalAccuracy:5 course:180 speed:6 timestamp:NSDate.date];
     [MWMLocationManager addObserver:probe];
-    @try {
-      [[MWMLocationManager manager] onLocationUpdate:raw source:location::EAppleNative];
-      [[MWMLocationManager manager] onLocationUpdate:prediction source:location::EPredictor];
-      XCTAssertEqual(probe.displayCount, 2);
-      XCTAssertEqual(probe.rawCount, 1);
-      XCTAssertEqualWithAccuracy(probe.lastRaw.coordinate.latitude, raw.coordinate.latitude, 0.0000001);
-      XCTAssertFalse(GetFramework().IsDrapeEngineCreated());
-    } @finally { [MWMLocationManager removeObserver:probe]; }
-    [[MWMLocationManager manager] onLocationUpdate:raw source:location::EAppleNative];
-    XCTAssertEqual(probe.rawCount, 1);
-    XCTAssertEqual(probe.displayCount, 2);
-  };
-  if (NSThread.isMainThread) check(); else dispatch_sync(dispatch_get_main_queue(), check);
+    // Both add/remove enqueue their work. Drain each before injecting a fix;
+    // registration may also replay the provider's previous cached location.
+    dispatch_async(dispatch_get_main_queue(), ^{
+      probe.rawCount = 0; probe.displayCount = 0; probe.lastRaw = nil;
+      @try {
+        [[MWMLocationManager manager] onLocationUpdate:raw source:location::EAppleNative];
+        [[MWMLocationManager manager] onLocationUpdate:prediction source:location::EPredictor];
+        XCTAssertEqual(probe.displayCount, 2);
+        XCTAssertEqual(probe.rawCount, 1);
+        XCTAssertEqualWithAccuracy(probe.lastRaw.coordinate.latitude, raw.coordinate.latitude, 0.0000001);
+        XCTAssertFalse(GetFramework().IsDrapeEngineCreated());
+      } @finally { [MWMLocationManager removeObserver:probe]; }
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [[MWMLocationManager manager] onLocationUpdate:raw source:location::EAppleNative];
+        XCTAssertEqual(probe.rawCount, 1);
+        XCTAssertEqual(probe.displayCount, 2);
+        [finished fulfill];
+      });
+    });
+  });
+  [self waitForExpectationsWithTimeout:10 handler:nil];
 }
 - (void)testSharingDemandComposesWithExistingBackgroundConsumers {
   void (^check)(void) = ^{

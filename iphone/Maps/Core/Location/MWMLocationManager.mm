@@ -18,6 +18,7 @@ namespace
 {
 using Observer = id<MWMLocationObserver>;
 using Observers = NSHashTable<Observer>;
+bool g_friendsSharingActive = false;
 
 enum class GeoMode
 {
@@ -130,6 +131,8 @@ std::map<GeoMode, GeoModeSettings> const kGeoSettings{
 
 BOOL keepRunningInBackground()
 {
+  if (g_friendsSharingActive)
+    return YES;
   if (GpsTracker::Instance().IsEnabled())
     return YES;
 
@@ -280,6 +283,15 @@ void setShowLocationAlert(BOOL needShow) {
 + (BOOL)shouldKeepRunningInBackground
 {
   return keepRunningInBackground();
+}
+
++ (void)setFriendsSharingActive:(BOOL)active
+{
+  NSAssert(NSThread.isMainThread, @"Sharing demand must change on the main thread");
+  if (g_friendsSharingActive == static_cast<bool>(active))
+    return;
+  g_friendsSharingActive = active;
+  [self refreshBackgroundLocationPolicy];
 }
 
 + (void)refreshBackgroundLocationPolicy

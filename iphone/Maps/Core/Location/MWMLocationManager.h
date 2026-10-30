@@ -29,6 +29,8 @@ NS_SWIFT_NAME(LocationManager)
 + (void)applicationWillResignActive;
 + (BOOL)shouldKeepRunningInBackground;
 + (void)refreshBackgroundLocationPolicy;
+/// Main-thread demand from the account-owned, server-acknowledged sharing state.
++ (void)setFriendsSharingActive:(BOOL)active;
 
 + (void)enableLocationAlert;
 
