@@ -103,9 +103,13 @@ int main(int argc, char ** argv) {
     };
     requireRejectedRead(archive, archiveBytes.size() - 1);
     Require(readBytes(archive) == archiveBytes, "size rejection changed the raw archive");
-    for (bool truncated : {false, true}) {
+    requireRejectedRead(path + ".missing", archiveBytes.size());
+    Require(!std::filesystem::exists(path + ".missing"), "reading a missing archive created a file");
+    for (int invalid : {0, 1, 2}) {
       auto invalidBytes = archiveBytes;
-      if (truncated) invalidBytes.pop_back(); else invalidBytes[0] = 42;
+      if (invalid == 0) invalidBytes[0] = 42;
+      else if (invalid == 1) invalidBytes.pop_back();
+      else invalidBytes[4 + 8 * sizeof(double)] = static_cast<char>(255);
       auto const invalidPath = path + ".invalid";
       { std::ofstream output(invalidPath, std::ios::binary); output.write(invalidBytes.data(), invalidBytes.size()); }
       requireRejectedRead(invalidPath, archiveBytes.size());

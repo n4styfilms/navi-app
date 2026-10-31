@@ -38,6 +38,10 @@ public:
   /// @exceptions ReadException if read fails.
   void ForEach(std::function<bool(TItem const & item)> const & fn);
 
+  /// Read a completed raw archive without opening it for writing or repairing it.
+  /// Rejects unknown versions, partial records, invalid source tags and oversized files.
+  static std::vector<TItem> ReadSnapshot(std::string const & filePath, size_t maximumBytes = 64 * 1024 * 1024);
+
 private:
   DISALLOW_COPY_AND_MOVE(GpsTrackStorage);
 

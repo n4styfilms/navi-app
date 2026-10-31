@@ -7,6 +7,7 @@
 #include "base/logging.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 
 using namespace std;
@@ -162,6 +163,39 @@ GpsTrackStorage::GpsTrackStorage(string const & filePath) : m_filePath(filePath)
 
   if (!m_stream)
     createNewFile();
+}
+
+vector<GpsTrackStorage::TItem> GpsTrackStorage::ReadSnapshot(string const & filePath, size_t maximumBytes)
+{
+  fstream input(filePath, ios::in | ios::binary);
+  if (!input)
+    MYTHROW(ReadException, ("Cannot open raw track snapshot"));
+  input.seekg(0, ios::end);
+  auto const size = static_cast<streamoff>(input.tellg());
+  if (!input.good() || size < kHeaderSize || static_cast<uint64_t>(size) > maximumBytes ||
+      (size - kHeaderSize) % kPointSize != 0)
+    MYTHROW(ReadException, ("Invalid or oversized raw track snapshot"));
+  input.seekg(0, ios::beg);
+  uint32_t version = 0;
+  if (!ReadVersion(input, version) || version != kCurrentVersion)
+    MYTHROW(ReadException, ("Unsupported raw track snapshot version"));
+  size_t const count = GetItemCount(static_cast<size_t>(size));
+  vector<TItem> points;
+  points.reserve(count);
+  array<char, kPointSize> buffer;
+  for (size_t i = 0; i < count; ++i)
+  {
+    input.read(buffer.data(), buffer.size());
+    if (!input.good())
+      MYTHROW(ReadException, ("Truncated raw track snapshot"));
+    // Validate before casting: TLocationSource has no fixed underlying type.
+    if (MemRead<uint8_t>(buffer.data() + 8 * sizeof(double)) > static_cast<uint8_t>(location::EUser))
+      MYTHROW(ReadException, ("Invalid raw track source"));
+    TItem point;
+    Unpack(buffer.data(), point);
+    points.emplace_back(point);
+  }
+  return points;
 }
 
 void GpsTrackStorage::Append(vector<TItem> const & items)
