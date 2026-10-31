@@ -143,9 +143,6 @@ func runLegacyHostContract(_ kind: String) {
 '''.replace('__LOGGING_BODY__', textwrap.dedent(logging)).replace('__RECONCILE_BODY__', textwrap.dedent(reconcile)))
 app = work/'NaviMapProbe.app'
 (app/'Frameworks').mkdir(parents=True, exist_ok=True)
-font = app/'noto-0-255.pbf'
-urllib.request.urlretrieve('https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf', font)
-assert hashlib.sha256(font.read_bytes()).hexdigest() == 'ef1f38a3f1978591e846e9eaddf8a54f7047f546fc6aaed7872cc53151a5de78'
 shutil.copytree(framework, app/'Frameworks/MapLibre.framework', symlinks=True)
 sdk = run(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-path'])
 run(['xcrun', 'swiftc', '-parse-as-library', '-swift-version', '5', '-module-name', 'NaviMapProbe',

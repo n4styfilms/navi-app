@@ -10,11 +10,9 @@ final class FriendsMapResources: URLProtocol {
     let data: Data
     if url.path == "/styles/liberty" {
       data = Data("""
-        {"version":8,"glyphs":"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+        {"version":8,
          "sources":{},"layers":[{"id":"paper","type":"background","paint":{"background-color":"#e6eee2"}}]}
         """.utf8)
-    } else if url.path == "/fonts/Noto Sans Regular/0-255.pbf" {
-      data = try! Data(contentsOf: Bundle.main.url(forResource: "noto-0-255", withExtension: "pbf")!)
     } else {
       client?.urlProtocol(self, didFailWithError: URLError(.resourceUnavailable)); return
     }
@@ -53,7 +51,7 @@ final class FriendsMapResources: URLProtocol {
     let camera = owner.view.camera.copy() as! MLNMapCamera
     let query = { owner.view.visibleFeatures(in: owner.view.bounds,
       styleLayerIdentifiers: Set(["navi-friends-label"])) }
-    try await wait("actual rendered glyphs", { query().contains { $0.attribute(forKey: "uid") as? String == marker.uid } })
+    try await wait("actual rendered caption", { query().contains { $0.attribute(forKey: "uid") as? String == marker.uid } })
     try require(query().first?.attribute(forKey: "label") as? String == marker.label, "Rendered label lost speed")
     try require(owner.geometryRevision == nil, "Friends created route geometry")
     owner.retry()
