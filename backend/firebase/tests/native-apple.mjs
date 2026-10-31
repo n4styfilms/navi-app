@@ -27,10 +27,10 @@ try {
     'native_apple_peer_snapshots', 'native_apple_gated_publication',
     'native_apple_sharing_ack', 'native_apple_durable_offline_pause',
     'native_apple_online_logout', 'native_apple_offline_logout', 'native_apple_runtime', 'native_apple_sheet',
-    'native_apple_pending_profile_preserved'];
+    'native_apple_pending_profile_preserved', 'native_apple_map_binding'];
   for (const flag of flags) assert.ok(transcript.includes(flag + '=true'), transcript);
   assert.ok(transcript.includes('native_apple_location_bridge=true'), transcript);
-  assert.ok(transcript.includes('NAVI_APPLE_NATIVE_SUCCESS proofs=15'), transcript);
+  assert.ok(transcript.includes('NAVI_APPLE_NATIVE_SUCCESS proofs=16'), transcript);
   await writeFile(report, JSON.stringify({proofs: flags, passed: flags.length}, null, 2));
 } finally {
   await env.cleanup();

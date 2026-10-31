@@ -17,6 +17,14 @@ palette = root / 'iphone/Maps/UI/Vehicle/NaviPalette.swift'
 bridge = domain / 'FriendsLocationBridge.swift'
 if bridge.exists():
     files.append(bridge)
+projection = domain / 'FriendsMapProjection.swift'
+if projection.exists():
+    files.append(projection)
+files.extend(root / 'iphone/Maps/UI/NaviMap' / name for name in
+    ('NaviMapPolicy.swift', 'NaviEsriTransport.swift', 'NaviMapController.swift'))
+files.extend(root / 'testing/friends-apple' / name for name in
+    ('FriendsMapUnusedRoute.swift', 'FriendsMapBindingScenario.swift'))
+files.append(root / 'testing/map-apple/FriendsMapScenario.swift')
 if palette.exists():
     files.append(palette)
 files.extend([root / 'testing/friends-apple/FriendsNativeProbe.swift', root / 'testing/friends-apple/FriendsProbeApp.swift',

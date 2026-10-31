@@ -45,11 +45,11 @@ try:
     sys.stdout.buffer.write(transcript)
     container = subprocess.check_output(['xcrun', 'simctl', 'get_app_container', udid,
         'app.navi.friendstest', 'data'], text=True, timeout=15).strip()
-    for name in ['friends-ui-light.png', 'friends-ui-dark-large.png']:
+    for name in ['friends-ui-light.png', 'friends-ui-dark-large.png', 'friends-map-live.png', 'friends-map-stale.png']:
         screenshot = Path(container) / 'Documents' / name
         if screenshot.is_file():
             shutil.copyfile(screenshot, evidence / name)
-    if result.returncode != 0 or b'NAVI_APPLE_NATIVE_ERROR' in transcript or b'NAVI_APPLE_NATIVE_SUCCESS proofs=15' not in transcript:
+    if result.returncode != 0 or b'NAVI_APPLE_NATIVE_ERROR' in transcript or b'NAVI_APPLE_NATIVE_SUCCESS proofs=16' not in transcript:
         raise SystemExit('Simulator native friends fixture did not pass')
     passed = True
 except subprocess.TimeoutExpired as error:

@@ -187,8 +187,9 @@ enum ProbeError: Error { case failed(String) }
     try await FriendsSignOutScenario.run()
     try await FriendsRuntimeScenario.run()
     try await FriendsPendingWriteScenario.run()
+    try await FriendsMapBindingScenario.run()
     try await FriendsSheetScenario.run()
-    print("NAVI_APPLE_NATIVE_SUCCESS proofs=15")
+    print("NAVI_APPLE_NATIVE_SUCCESS proofs=16")
     for app in [aliceApp, bobApp, chrisApp] {
       try Auth.auth(app: app).signOut()
       app.delete { _ in }

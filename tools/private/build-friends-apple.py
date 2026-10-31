@@ -52,6 +52,18 @@ project.root_object.package_references << package
   target.frameworks_build_phase.files << build
 end
 project.save
+map_package = project.new(Xcodeproj::Project::Object::XCRemoteSwiftPackageReference)
+map_package.repositoryURL = 'https://github.com/maplibre/maplibre-gl-native-distribution'
+map_package.requirement = {'kind' => 'exactVersion', 'version' => '6.31.0'}
+project.root_object.package_references << map_package
+map_dependency = project.new(Xcodeproj::Project::Object::XCSwiftPackageProductDependency)
+map_dependency.package = map_package
+map_dependency.product_name = 'MapLibre'
+target.package_product_dependencies << map_dependency
+map_build = project.new(Xcodeproj::Project::Object::PBXBuildFile)
+map_build.product_ref = map_dependency
+target.frameworks_build_phase.files << map_build
+project.save
 ''', encoding='utf-8')
 subprocess.run(['ruby', str(script), str(out), str(root)], check=True, timeout=30)
 # First boot includes Apple data migration. Start it while the SDK is compiling,
