@@ -78,6 +78,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     owner.setBasemap(.street)
     runLegacyHostContract(ProcessInfo.processInfo.arguments.last ?? "--legacy-logging")
     NSLog("NAVI_MAP_PROBE_READY")
+    if ProcessInfo.processInfo.arguments.contains("--legacy-logging") || ProcessInfo.processInfo.arguments.contains("--legacy-reconcile") {
+      fflush(stdout); exit(0)
+    }
     probeReadyCheckpoint()
   }
   @objc dynamic func probeReadyCheckpoint() {}
@@ -138,7 +141,7 @@ func runLegacyHostContract(_ kind: String) {
   fixture.usesExternalMap = false
   if kind == "--legacy-reconcile" { probeLegacyReconcile() } else { probeLegacyLogging() }
   precondition(fixture.rendererReads > 0, "Legacy map no longer used its renderer")
-  NSLog("NAVI_LEGACY_CONTRACT_PASSED_%@", kind)
+  print("NAVI_LEGACY_CONTRACT_PASSED_" + kind); fflush(stdout)
 }
 '''.replace('__LOGGING_BODY__', textwrap.dedent(logging)).replace('__RECONCILE_BODY__', textwrap.dedent(reconcile)))
 app = work/'NaviMapProbe.app'
@@ -173,16 +176,10 @@ run(['xcrun','simctl','bootstatus',udid,'-b'], timeout=180)
 run(['xcrun','simctl','install',udid,str(app)])
 debug = []
 for case in ['--legacy-logging', '--legacy-reconcile']:
-    launch = run(['xcrun','simctl','launch','--wait-for-debugger',udid,'app.navi.mapprobe',case])
-    pid = re.search(r':\s*(\d+)\s*$', launch).group(1)
     try:
-        result = subprocess.run(['xcrun','lldb','--batch','-p',pid,
-                                 '-o','breakpoint set --selector probeReadyCheckpoint','-o','continue',
-                                 '--one-line-on-crash','thread backtrace all',
-                                 '--one-line-on-crash','image list',
-                                 '-o','thread backtrace all','-o','image list','-o','detach'],
-                                capture_output=True, text=True, timeout=35)
-        debug.append(case+'\n'+result.stdout+result.stderr)
+        result = subprocess.run(['xcrun','simctl','launch','--terminate-running-process','--console',udid,
+                                 'app.navi.mapprobe',case], capture_output=True, text=True, timeout=75)
+        debug.append(case+'\nexit='+str(result.returncode)+'\n'+result.stdout+result.stderr)
     except subprocess.TimeoutExpired as error:
         def decoded(value):
             return value.decode(errors='replace') if isinstance(value, bytes) else (value or '')
@@ -192,6 +189,8 @@ for case in ['--legacy-logging', '--legacy-reconcile']:
 subprocess.run(['xcrun','simctl','io',udid,'screenshot',str(out/'simulator.png')], capture_output=True)
 (out/'system.log').write_text(run(['xcrun','simctl','spawn',udid,'log','show','--last','2m','--style','compact',
                                   '--predicate','process == "NaviMapProbe"']))
+with (out/'system.log').open('a') as log:
+    log.write('\nDIRECT STARTUP CONTRACTS\n' + '\n'.join(debug))
 friends = subprocess.run(['xcrun','simctl','launch','--terminate-running-process','--console',udid,
                           'app.navi.mapprobe','--friends-map'], capture_output=True, text=True, timeout=50)
 with (out/'system.log').open('a') as log:
@@ -210,7 +209,7 @@ finally:
     if controls_log.is_file():
         with (out/'system.log').open('a') as log:
             log.write('\nCONTROLS\n' + controls_log.read_text(errors='replace'))
-print('Minimal pinned MapLibre simulator probe completed; inspect debugger.txt for actual startup evidence')
+print('Minimal pinned MapLibre simulator probe completed; debugger.txt retains direct startup console evidence')
 system = (out/'system.log').read_text()
-if system.count('NAVI_LEGACY_CONTRACT_PASSED_') < 2:
+if not all('NAVI_LEGACY_CONTRACT_PASSED_' + case in system for case in ['--legacy-logging', '--legacy-reconcile']):
     raise SystemExit('Legacy host contract failed; actual debugger evidence retained')
