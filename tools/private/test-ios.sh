@@ -30,6 +30,10 @@ if [[ "${TEST_PIPE_STATUS[1]}" != 0 ]]; then
   exit "${TEST_PIPE_STATUS[1]}"
 fi
 xcrun xcresulttool get test-results summary --path "$OUT/ios-tests.xcresult" > "$OUT/ios-test-summary.json"
+# Keep actual main-map / Friends screenshots produced by the hosted UIKit test.
+# The xcresult remains authoritative even if attachment export itself is unavailable.
+xcrun xcresulttool export attachments --path "$OUT/ios-tests.xcresult" --output-path "$OUT/ui-attachments" \
+  > "$OUT/ui-attachment-export.log" 2>&1 || echo 'UI attachments remain in the original xcresult bundle' >&2
 python3 - "$OUT/ios-test-summary.json" <<'PY'
 import json, sys
 summary = json.load(open(sys.argv[1]))

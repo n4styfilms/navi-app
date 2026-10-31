@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A71F0000000000000000002C /* NaviMainMapTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = A71F0000000000000000002B /* NaviMainMapTests.mm */; };
 		A71F00000000000000000028 /* NaviTrackRecordingTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000027 /* NaviTrackRecordingTests.mm */; };
 		A71F00000000000000000024 /* FriendsLocationBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000023 /* FriendsLocationBridge.swift */; };
 		A71F00000000000000000026 /* NaviFriendsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000025 /* NaviFriendsService.swift */; };
@@ -804,6 +805,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A71F0000000000000000002B /* NaviMainMapTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Core/NaviMainMapTests.mm; sourceTree = "<group>"; };
 		A71F00000000000000000027 /* NaviTrackRecordingTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Core/NaviTrackRecordingTests.mm; sourceTree = "<group>"; };
 		A71F00000000000000000023 /* FriendsLocationBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsLocationBridge.swift; sourceTree = "<group>"; };
 		A71F00000000000000000025 /* NaviFriendsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviFriendsService.swift; sourceTree = "<group>"; };
@@ -3362,6 +3364,7 @@
 			children = (
 				A71F0000000000000000001D /* NaviLocationSharingTests.mm */,
 				A71F00000000000000000027 /* NaviTrackRecordingTests.mm */,
+				A71F0000000000000000002B /* NaviMainMapTests.mm */,
 				A71800000000000000000004 /* NaviRouteBridgeTests.mm */,
 				ED810EC02D566E6F00ECDE2C /* UI */,
 				EDC4E3442C5D1BD3009286A2 /* Bookmarks */,
@@ -5058,6 +5061,7 @@
 			files = (
 				A71F0000000000000000001E /* NaviLocationSharingTests.mm in Sources */,
 				A71F00000000000000000028 /* NaviTrackRecordingTests.mm in Sources */,
+				A71F0000000000000000002C /* NaviMainMapTests.mm in Sources */,
 				A71800000000000000000006 /* NaviRouteBridgeTests.mm in Sources */,
 				A15DEE01A15DEE01A15DEE01 /* DeepLinkHandlerTests.swift in Sources */,
 				EDF838C12C00B9D6007E4E67 /* iCloudDirectoryMonitorTests.swift in Sources */,
