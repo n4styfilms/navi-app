@@ -69,6 +69,17 @@ final class FriendsMapResources: URLProtocol {
     owner.setFriends([])
     try await wait("revoked marker removed", { query().isEmpty })
     try require(owner.view.camera == camera, "Revocation moved camera")
-    print("NAVI_FRIENDS_MAP_SUCCESS rendered-label style-reload freshness removal camera-preserved")
+    let distant = NaviFriendMarker(uid: marker.uid, latitude: marker.latitude + 0.01, longitude: marker.longitude,
+      label: "Test friend", stale: false)
+    owner.setFriends([distant]); owner.setFollowing(true)
+    try require(!owner.focusFriend("unavailable") && owner.view.camera == camera,
+      "Missing friend changed the camera")
+    try require(owner.focusFriend(marker.uid), "Visible friend cannot be focused")
+    try await wait("explicit friend focus", { abs(owner.view.centerCoordinate.latitude - distant.latitude) < 0.000001 })
+    owner.setLocation(CLLocation(latitude: marker.latitude + 0.1, longitude: marker.longitude))
+    try await Task.sleep(nanoseconds: 800_000_000)
+    try require(abs(owner.view.centerCoordinate.latitude - distant.latitude) < 0.000001,
+      "Own GPS immediately stole the selected friend's camera")
+    print("NAVI_FRIENDS_MAP_SUCCESS rendered-label style-reload freshness removal camera-preserved explicit-focus")
   }
 }
