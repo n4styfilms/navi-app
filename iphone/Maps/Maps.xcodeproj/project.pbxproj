@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A71F0000000000000000002A /* FriendsMapProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000029 /* FriendsMapProjection.swift */; };
 		A71F0000000000000000002C /* NaviMainMapTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = A71F0000000000000000002B /* NaviMainMapTests.mm */; };
 		A71F00000000000000000028 /* NaviTrackRecordingTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000027 /* NaviTrackRecordingTests.mm */; };
 		A71F00000000000000000024 /* FriendsLocationBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000023 /* FriendsLocationBridge.swift */; };
@@ -805,6 +806,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A71F00000000000000000029 /* FriendsMapProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsMapProjection.swift; sourceTree = "<group>"; };
 		A71F0000000000000000002B /* NaviMainMapTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Core/NaviMainMapTests.mm; sourceTree = "<group>"; };
 		A71F00000000000000000027 /* NaviTrackRecordingTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Core/NaviTrackRecordingTests.mm; sourceTree = "<group>"; };
 		A71F00000000000000000023 /* FriendsLocationBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsLocationBridge.swift; sourceTree = "<group>"; };
@@ -1964,7 +1966,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A71F0000000000000000000E /* NaviFriends */ = {isa = PBXGroup; children = (A71F00000000000000000023 /* FriendsLocationBridge.swift */,A71F00000000000000000025 /* NaviFriendsService.swift */,A71F00000000000000000021 /* FriendsSheetController.swift */,A71F0000000000000000001B /* FriendsRuntime.swift */,A71F00000000000000000019 /* FriendsSignOutCoordinator.swift */,A71F00000000000000000017 /* FriendsSharingController.swift */,A71F00000000000000000015 /* FriendsObservation.swift */,A71F00000000000000000008 /* PresenceSample.swift */,A71F00000000000000000013 /* FriendsRepository.swift */,A71F00000000000000000010 /* FriendsGroupConfiguration.swift */,A71F0000000000000000000F /* FriendsAccountController.swift */,A71F00000000000000000009 /* PresencePolicy.swift */,A71F0000000000000000000A /* FriendsDataSession.swift */,); path = NaviFriends; sourceTree = "<group>"; };
+		A71F0000000000000000000E /* NaviFriends */ = {isa = PBXGroup; children = (A71F00000000000000000029 /* FriendsMapProjection.swift */,A71F00000000000000000023 /* FriendsLocationBridge.swift */,A71F00000000000000000025 /* NaviFriendsService.swift */,A71F00000000000000000021 /* FriendsSheetController.swift */,A71F0000000000000000001B /* FriendsRuntime.swift */,A71F00000000000000000019 /* FriendsSignOutCoordinator.swift */,A71F00000000000000000017 /* FriendsSharingController.swift */,A71F00000000000000000015 /* FriendsObservation.swift */,A71F00000000000000000008 /* PresenceSample.swift */,A71F00000000000000000013 /* FriendsRepository.swift */,A71F00000000000000000010 /* FriendsGroupConfiguration.swift */,A71F0000000000000000000F /* FriendsAccountController.swift */,A71F00000000000000000009 /* PresencePolicy.swift */,A71F0000000000000000000A /* FriendsDataSession.swift */,); path = NaviFriends; sourceTree = "<group>"; };
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -4570,6 +4572,7 @@
 				A71F00000000000000000020 /* NaviPalette.swift in Sources */,
 				A71F00000000000000000022 /* FriendsSheetController.swift in Sources */,
 				A71F00000000000000000024 /* FriendsLocationBridge.swift in Sources */,
+				A71F0000000000000000002A /* FriendsMapProjection.swift in Sources */,
 				A71F00000000000000000026 /* NaviFriendsService.swift in Sources */,
 				A71B00000000000000000002 /* NaviVehicleViewController.swift in Sources */,
 				ED914ABE2D351FF800973C45 /* UILabel+SetFontStyle.swift in Sources */,

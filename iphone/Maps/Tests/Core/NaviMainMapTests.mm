@@ -51,7 +51,8 @@ void AwaitNaviUI(NSDate * deadline, BOOL (^condition)(void), void (^completion)(
       XCTAssertTrue(ready, @"Main-map action did not open the actual group setup sheet");
       if (ready) [self captureWindow:app.window name:@"main-friends-unconfigured"];
       XCTAssertFalse(GetFramework().IsDrapeEngineCreated());
-      [root dismissViewControllerAnimated:NO completion:^{ [finished fulfill]; }];
+      if (root.presentedViewController) [root dismissViewControllerAnimated:NO completion:^{ [finished fulfill]; }];
+      else [finished fulfill];
     });
   });
   [self waitForExpectationsWithTimeout:12 handler:nil];

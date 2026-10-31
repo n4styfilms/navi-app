@@ -51,6 +51,8 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     key = (try? NaviMapKeyStore.read()) ?? ""
     map = NaviMapController(frame: view.bounds, configuration: configuration())
     let canvas = map.view
+    canvas.tintColor = NaviPalette.ink
+    canvas.attributionButton.tintColor = NaviPalette.ink
     canvas.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(canvas)
     NSLayoutConstraint.activate([
@@ -427,23 +429,7 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     pauseSharingButton.isEnabled = !pending
     pauseSharingButton.setTitle(pending ? NaviPalette.text("Pause ausstehend", "Pause pending")
       : NaviPalette.text("Standort pausieren", "Pause location"), for: .normal)
-    let now = runtime.serverNowMs
-    let markers = value.peers.compactMap { peer -> NaviFriendMarker? in
-      guard now > 0, peer.positionAllowed, peer.sharingEnabled, let point = peer.position, point.isValid else { return nil }
-      let name = peer.displayName.isEmpty ? NaviPalette.text("Freund", "Friend") : peer.displayName
-      let label: String
-      if let speed = peer.speedMetersPerSecond(at: now) {
-        label = name + " · " + String(format: "%.0f km/h", speed * 3.6)
-      } else if point.isFresh(at: now) { label = name }
-      else if now >= point.measuredAtMs {
-        let seconds = (now - point.measuredAtMs) / 1000
-        let age = seconds < 60 ? "\(seconds) s" : seconds < 3600 ? "\(seconds / 60) min" : "\(seconds / 3600) h"
-        label = name + " · " + NaviPalette.text("vor \(age)", "\(age) ago")
-      } else { label = name + " · " + NaviPalette.text("Zeit unklar", "Time unknown") }
-      return .init(uid: peer.uid, latitude: point.latitude, longitude: point.longitude,
-        label: label, stale: !point.isFresh(at: now))
-    }
-    map.setFriends(markers)
+    map.setFriends(FriendsMapProjection.markers(from: value.peers, at: runtime.serverNowMs))
   }
   private func showAccess() {
     let alert = UIAlertController(title: NaviPalette.text("Satellitenzugang", "Satellite access"),
