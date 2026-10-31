@@ -232,8 +232,9 @@ void GpsTrack::ProcessPoints()
     m_needClear = false;
   }
 
-  // Create collection only if callback appears
-  if (!m_collection && HasCallback())
+  // Recording progress and saved points also serve headless consumers.
+  // A drawing callback only controls notifications, never collection ownership.
+  if (!m_collection)
     InitCollection();
 
   // All origin points are written in the storage,
