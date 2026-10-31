@@ -4,6 +4,7 @@
 #include <atomic>
 #include <chrono>
 #include <filesystem>
+#include <future>
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -56,12 +57,49 @@ int main(int argc, char ** argv) {
       restored.Clear();
       Require(Wait([&] { return restored.GetSize() == 0; }), "headless clear failed");
     }
-    GpsTrackStorage storage(path);
-    size_t remaining = 0;
-    storage.ForEach([&](auto const &) { ++remaining; return true; });
-    Require(remaining == 0, "cleared points returned after reopen");
+    auto countStored = [](std::string const & file) {
+      GpsTrackStorage storage(file);
+      size_t count = 0;
+      storage.ForEach([&](auto const &) { ++count; return true; });
+      return count;
+    };
+    Require(countStored(path) == 0, "cleared points returned after reopen");
+    auto const archive = path + ".archive";
+    std::promise<bool> exported;
+    auto exportedResult = exported.get_future();
+    {
+      GpsTrack track(path);
+      track.AddPoints({first, second});
+      track.ExportSnapshot(archive, [&](bool success) { exported.set_value(success); });
+      // A following trip must not clear the previous trip's pending archive.
+      track.Clear();
+      auto nextTrip = second; nextTrip.m_timestamp += 10;
+      track.AddPoint(nextTrip);
+    } // Destruction must finish accepted points and snapshot callbacks.
+    Require(exportedResult.wait_for(std::chrono::seconds(0)) == std::future_status::ready && exportedResult.get(),
+      "queued archive was not completed during shutdown");
+    Require(countStored(archive) == 2 && countStored(path) == 1,
+      "next recording clear changed the previous raw archive");
+    {
+      GpsTrackStorage preserved(archive);
+      preserved.ForEach([&](location::GpsInfo const & point) {
+        Require(point.m_speed == 5 && point.m_horizontalAccuracy == 4 && point.m_source == location::EAppleNative,
+          "archive lost raw speed, accuracy or device source");
+        return true;
+      });
+    }
+    std::promise<bool> overwrite, alias;
+    auto overwriteResult = overwrite.get_future(), aliasResult = alias.get_future();
+    {
+      GpsTrack track(path);
+      track.ExportSnapshot(archive, [&](bool success) { overwrite.set_value(success); });
+      track.ExportSnapshot(path, [&](bool success) { alias.set_value(success); });
+    }
+    Require(!overwriteResult.get() && !aliasResult.get(), "raw archive export overwrote an existing recording");
+    Require(countStored(archive) == 2 && countStored(path) == 1, "failed export damaged existing points");
+    std::filesystem::remove(archive);
     std::filesystem::remove(path);
-    std::cout << "PASS real headless recorder progress, quality, reopen, callback attachment, detach and durable clear\n";
+    std::cout << "PASS real headless recorder progress, quality, reopen, callback attachment, detach, durable clear and ordered raw archives\n";
     return 0;
   } catch (std::exception const & error) {
     std::filesystem::remove(path);
