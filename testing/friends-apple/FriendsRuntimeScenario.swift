@@ -83,6 +83,12 @@ import CoreLocation
     let deviceLocation = CLLocation(coordinate: CLLocationCoordinate2D(latitude: fresh.latitude, longitude: fresh.longitude),
       altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5, course: 181, speed: 11,
       timestamp: Date(timeIntervalSince1970: Double(fresh.measuredAtDeviceMs) / 1000))
+    let unknownVelocity = CLLocation(coordinate: deviceLocation.coordinate, altitude: 0,
+      horizontalAccuracy: 5, verticalAccuracy: 5, course: -1, speed: -1, timestamp: deviceLocation.timestamp)
+    let copied = FriendsLocationBridge.copyFix(unknownVelocity)
+    try FriendsNativeProbe.check(copied?.metersPerSecond == nil && copied?.bearingDegrees == nil
+      && copied?.latitude == fresh.latitude && copied?.accuracyMeters == 5,
+      "CoreLocation unknown speed/course became an invented measurement")
     bridge.onRawLocationUpdate(deviceLocation)
     try await FriendsNativeProbe.waitFor("runtime peer marker values without route", {
       observed.first?.displayName == "Runtime source"
