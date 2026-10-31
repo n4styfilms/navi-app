@@ -8,6 +8,7 @@
 #include "base/logging.hpp"
 
 #include <algorithm>
+#include <filesystem>
 
 using namespace std;
 using namespace std::chrono;
@@ -57,6 +58,10 @@ GpsTrack::~GpsTrack()
   if (m_thread.joinable())
   {
     {
+      lock_guard<mutex> callbackLock(m_callbackGuard);
+      m_callback = nullptr;
+    }
+    {
       lock_guard<mutex> lg(m_threadGuard);
       m_threadExit = true;
       m_cv.notify_one();
@@ -105,6 +110,22 @@ void GpsTrack::Clear()
   ScheduleTask();
 }
 
+void GpsTrack::ExportSnapshot(std::string destination, std::function<void(bool)> completion)
+{
+  CHECK(completion != nullptr, ("Snapshot completion is required"));
+  {
+    lock_guard<mutex> lock(m_dataGuard);
+    Batch batch;
+    batch.m_points.swap(m_points);
+    batch.m_needClear = m_needClear;
+    m_needClear = false;
+    batch.m_exportPath = std::move(destination);
+    batch.m_exportCompletion = std::move(completion);
+    m_pendingBatches.emplace_back(std::move(batch));
+  }
+  ScheduleTask();
+}
+
 size_t GpsTrack::GetSize() const
 {
   lock_guard<mutex> lock(m_collectionGuard);
@@ -141,10 +162,11 @@ void GpsTrack::ScheduleTask()
       while (true)
       {
         m_cv.wait(ul, [this]() -> bool { return m_threadExit || m_threadWakeup; });
-        if (m_threadExit)
-          break;
+        bool const exiting = m_threadExit;
         m_threadWakeup = false;
         ProcessPoints();
+        if (exiting)
+          break;
       }
 
       m_storage.reset();
@@ -222,13 +244,15 @@ void GpsTrack::InitCollection()
 
 void GpsTrack::ProcessPoints()
 {
-  vector<location::GpsInfo> originPoints;
-  bool needClear;
+  vector<Batch> batches;
   // Steal data for processing
   {
     std::lock_guard lg(m_dataGuard);
-    originPoints.swap(m_points);
-    needClear = m_needClear;
+    batches.swap(m_pendingBatches);
+    Batch tail;
+    tail.m_points.swap(m_points);
+    tail.m_needClear = m_needClear;
+    batches.emplace_back(std::move(tail));
     m_needClear = false;
   }
 
@@ -237,22 +261,24 @@ void GpsTrack::ProcessPoints()
   if (!m_collection)
     InitCollection();
 
-  // All origin points are written in the storage,
-  // and filtered points are inserted in the runtime collection.
-
-  UpdateStorage(needClear, originPoints);
-
-  if (!m_collection)
-    return;
-
-  vector<location::GpsInfo> points;
-  m_filter->Process(originPoints, points);
-
-  pair<size_t, size_t> addedIds;
-  pair<size_t, size_t> evictedIds;
-  UpdateCollection(needClear, points, addedIds, evictedIds);
-
-  NotifyCallback(addedIds, evictedIds);
+  for (auto const & batch : batches)
+  {
+    // Each snapshot is a boundary: a following Clear must not erase its points.
+    UpdateStorage(batch.m_needClear, batch.m_points);
+    vector<location::GpsInfo> points;
+    m_filter->Process(batch.m_points, points);
+    pair<size_t, size_t> addedIds;
+    pair<size_t, size_t> evictedIds;
+    UpdateCollection(batch.m_needClear, points, addedIds, evictedIds);
+    NotifyCallback(addedIds, evictedIds);
+    if (batch.m_exportCompletion)
+    {
+      std::error_code error;
+      bool const copied = m_storage && std::filesystem::copy_file(m_filePath, batch.m_exportPath,
+        std::filesystem::copy_options::none, error);
+      batch.m_exportCompletion(copied && !error);
+    }
+  }
 }
 
 bool GpsTrack::HasCallback()

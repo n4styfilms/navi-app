@@ -46,6 +46,12 @@ public:
   /// @note Callback is called with 'toRemove' points, if some points were removed.
   void Clear();
 
+  /// Preserve flushed raw measurements before subsequent Clear/AddPoints commands.
+  /// Destination must be new; existing files and the live storage are never overwritten.
+  /// Completion runs on the worker and must not destroy the track. Destruction drains
+  /// accepted snapshots; callers commit archive metadata only after success.
+  void ExportSnapshot(std::string destination, std::function<void(bool)> completion);
+
   bool IsEmpty() const;
   size_t GetSize() const;
 
@@ -100,6 +106,14 @@ private:
   std::string const m_filePath;
 
   mutable std::mutex m_dataGuard;           // protects data for stealing
+  struct Batch
+  {
+    std::vector<location::GpsInfo> m_points;
+    bool m_needClear = false;
+    std::string m_exportPath;
+    std::function<void(bool)> m_exportCompletion;
+  };
+  std::vector<Batch> m_pendingBatches;
   std::vector<location::GpsInfo> m_points;  // accumulated points for adding
   bool m_needClear;                         // need clear file
 
