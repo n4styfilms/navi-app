@@ -2,6 +2,15 @@ import UIKit
 import CoreLocation
 import MapLibre
 
+/// Copied presentation values; the renderer has no account or database access.
+struct NaviFriendMarker: Equatable {
+  let uid: String
+  let latitude: Double
+  let longitude: Double
+  let label: String
+  let stale: Bool
+}
+
 /// MapLibre owns drawing only. The app's existing location manager and router supply copied values.
 final class NaviMapController: NSObject, MLNMapViewDelegate {
   let view: MLNMapView
@@ -22,15 +31,18 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
   private var routeSource: MLNShapeSource?
   private var targetSource: MLNShapeSource?
   private var positionSource: MLNShapeSource?
+  private var friendsSource: MLNShapeSource?
+  private var friends: [NaviFriendMarker] = []
+  private var friendCaptions: [String: String] = [:]
   private var styleName: String?
   private static let blank = "{\"version\":8,\"name\":\"navi-setup\",\"sources\":{},\"layers\":[]}"
 
-  init(frame: CGRect, configuration: NaviEsriConfiguration) {
+  init(frame: CGRect, configuration: NaviEsriConfiguration, testProtocolClasses: [AnyClass] = []) {
     precondition(Thread.isMainThread)
     self.configuration = configuration
     let policy = NaviMapLoadState()
     state = policy
-    let loader = NaviEsriTransport(configuration: configuration, state: policy)
+    let loader = NaviEsriTransport(configuration: configuration, state: policy, testProtocolClasses: testProtocolClasses)
     transport = loader
     NaviEsriURLProtocol.install(loader)
     let network = URLSessionConfiguration.ephemeral
@@ -80,6 +92,8 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
     routeSource = nil
     targetSource = nil
     positionSource = nil
+    friendsSource = nil
+    friendCaptions.removeAll()
     onState?(state.snapshot)
     guard configuration.canLoad(mode) else {
       view.styleJSON = Self.blank
@@ -175,6 +189,22 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
       style.addLayer(dot)
     }
     renderPoints()
+    let peers = MLNShapeSource(identifier: "navi-friends", shape: nil, options: nil)
+    style.addSource(peers); friendsSource = peers
+    let dots = MLNCircleStyleLayer(identifier: "navi-friends-dot", source: peers)
+    dots.circleRadius = NSExpression(forConstantValue: 7)
+    dots.circleColor = NSExpression(forConstantValue: UIColor(red: 0.32, green: 0.44, blue: 0.30, alpha: 1))
+    dots.circleStrokeWidth = NSExpression(forConstantValue: 3)
+    dots.circleStrokeColor = NSExpression(forConstantValue: UIColor(white: 0.98, alpha: 1))
+    style.addLayer(dots)
+    let labels = MLNSymbolStyleLayer(identifier: "navi-friends-label", source: peers)
+    labels.iconImageName = NSExpression(forKeyPath: "caption")
+    labels.iconAnchor = NSExpression(forConstantValue: "bottom")
+    labels.iconOffset = NSExpression(forConstantValue: NSValue(cgVector: CGVector(dx: 0, dy: -12)))
+    labels.iconRotationAlignment = NSExpression(forConstantValue: "viewport")
+    labels.iconPitchAlignment = NSExpression(forConstantValue: "viewport")
+    style.addLayer(labels)
+    renderFriends()
     onState?(state.snapshot)
   }
   func mapView(_ mapView: MLNMapView, regionWillChangeAnimated animated: Bool) {
@@ -246,6 +276,53 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
     positionSource?.shape = point(location?.coordinate)
     targetSource?.shape = point(target)
   }
+  func setFriends(_ values: [NaviFriendMarker]) {
+    precondition(Thread.isMainThread)
+    guard !closed else { return }
+    var seen = Set<String>()
+    let valid = values.filter {
+      !$0.uid.isEmpty && CLLocationCoordinate2DIsValid(CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude))
+        && seen.insert($0.uid).inserted
+    }
+    guard valid != friends else { return }
+    friends = valid
+    renderFriends()
+  }
+  private func renderFriends() {
+    guard let source = friendsSource, let style = view.style else { return }
+    let current = Set(friends.map { $0.uid })
+    for uid in Array(friendCaptions.keys) where !current.contains(uid) {
+      style.removeImage(forName: "navi-peer-" + uid)
+      friendCaptions.removeValue(forKey: uid)
+    }
+    let features = friends.map { marker -> MLNPointFeature in
+      let imageName = "navi-peer-" + marker.uid
+      let signature = marker.label + (marker.stale ? "/stale" : "/current")
+      if friendCaptions[marker.uid] != signature {
+        style.setImage(Self.caption(marker.label, stale: marker.stale), forName: imageName)
+        friendCaptions[marker.uid] = signature
+      }
+      let feature = MLNPointFeature()
+      feature.coordinate = CLLocationCoordinate2D(latitude: marker.latitude, longitude: marker.longitude)
+      feature.attributes = ["uid": marker.uid, "label": marker.label, "stale": marker.stale, "caption": imageName]
+      return feature
+    }
+    source.shape = MLNShapeCollectionFeature(shapes: features)
+  }
+  private static func caption(_ text: String, stale: Bool) -> UIImage {
+    // Local UIKit text supports names on either basemap without extra glyph requests.
+    let label = UILabel()
+    label.font = .systemFont(ofSize: 14, weight: .medium)
+    label.text = text; label.numberOfLines = 1; label.lineBreakMode = .byTruncatingTail
+    label.textAlignment = .center
+    label.textColor = UIColor(white: stale ? 0.40 : 0.16, alpha: 1)
+    let size = CGSize(width: min(260, max(64, ceil(label.intrinsicContentSize.width) + 24)), height: 36)
+    return UIGraphicsImageRenderer(size: size).image { _ in
+      UIColor(red: 0.98, green: 0.976, blue: 0.96, alpha: 1).setFill()
+      UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 18).fill()
+      label.drawText(in: CGRect(x: 12, y: 0, width: size.width - 24, height: size.height))
+    }
+  }
   func close() {
     precondition(Thread.isMainThread)
     guard !closed else { return }
@@ -258,6 +335,7 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
     routeSource = nil
     targetSource = nil
     positionSource = nil
+    friendsSource = nil; friends.removeAll(); friendCaptions.removeAll()
     geometry.removeAll()
     routeShape = nil
     onState = nil
