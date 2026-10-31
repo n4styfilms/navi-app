@@ -3,6 +3,7 @@ project(map)
 include(${CMAKE_SOURCE_DIR}/cmake/NaviValidation.cmake)
 navi_require_finite_math(${CMAKE_CURRENT_SOURCE_DIR}/navi_route_snapshot.cpp)
 navi_require_finite_math(${CMAKE_CURRENT_SOURCE_DIR}/navi_route_capture.cpp)
+navi_require_finite_math(${CMAKE_CURRENT_SOURCE_DIR}/navi_trip_analysis.cpp)
 
 set(SRC
   api_mark_point.cpp
@@ -44,6 +45,8 @@ set(SRC
   mwm_url.cpp
   mwm_url.hpp
   navi_route_snapshot.cpp
+  navi_trip_analysis.cpp
+  navi_trip_analysis.hpp
   navi_route_snapshot.hpp
   navi_route_capture.cpp
   navi_route_capture.hpp
