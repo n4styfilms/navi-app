@@ -16,9 +16,21 @@ if device['state'] != 'Booted':
     subprocess.run(['xcrun', 'simctl', 'boot', udid], check=True, timeout=60)
 subprocess.run(['xcrun', 'simctl', 'bootstatus', udid, '-b'], check=True, timeout=180)
 app = out / 'DerivedData/Build/Products/Debug-iphonesimulator/FriendsNativeProbe.app'
-subprocess.run(['xcrun', 'simctl', 'install', udid, str(app)], check=True, timeout=60)
 evidence = out.parent / 'friends-evidence'
 evidence.mkdir(exist_ok=True)
+install_started = time.time()
+try:
+    installed = subprocess.run(['xcrun', 'simctl', 'install', udid, str(app)],
+        capture_output=True, timeout=180)
+    (evidence / 'native-install.log').write_bytes(installed.stdout + installed.stderr)
+    (evidence / 'native-install.json').write_text(json.dumps({'returncode': installed.returncode,
+        'elapsed_seconds': time.time() - install_started}, indent=2))
+    installed.check_returncode()
+except subprocess.TimeoutExpired as error:
+    (evidence / 'native-install.log').write_bytes((error.stdout or b'') + (error.stderr or b''))
+    (evidence / 'native-install.json').write_text(json.dumps({'timed_out': True,
+        'elapsed_seconds': time.time() - install_started}, indent=2))
+    raise
 shutil.copyfile(out / 'simulator.json', evidence / 'native-simulator.json')
 started = time.time()
 passed = False
