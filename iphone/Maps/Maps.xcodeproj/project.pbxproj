@@ -804,7 +804,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A71F00000000000000000027 /* NaviTrackRecordingTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NaviTrackRecordingTests.mm; sourceTree = "<group>"; };
+		A71F00000000000000000027 /* NaviTrackRecordingTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Core/NaviTrackRecordingTests.mm; sourceTree = "<group>"; };
 		A71F00000000000000000023 /* FriendsLocationBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsLocationBridge.swift; sourceTree = "<group>"; };
 		A71F00000000000000000025 /* NaviFriendsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviFriendsService.swift; sourceTree = "<group>"; };
 		A71F0000000000000000001B /* FriendsRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsRuntime.swift; sourceTree = "<group>"; };
