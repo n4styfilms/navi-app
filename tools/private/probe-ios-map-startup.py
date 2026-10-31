@@ -11,11 +11,10 @@ import sys
 import textwrap
 import urllib.request
 import zipfile
+from select_ios_simulator import select
 
 out = Path(sys.argv[1]).resolve()
 out.mkdir(parents=True, exist_ok=True)
-subprocess.run([sys.executable, str(Path(__file__).with_name('probe-ios-controls.py')),
-                str(out / 'controls')], check=True, timeout=360)
 work = out/'work'
 work.mkdir(exist_ok=True)
 repo = Path(__file__).resolve().parents[2]
@@ -157,6 +156,8 @@ run(['xcrun', 'swiftc', '-parse-as-library', '-swift-version', '5', '-module-nam
        ['NaviMapPolicy.swift','NaviEsriTransport.swift','NaviMapController.swift']),
      str(repo/'testing/map-apple/FriendsMapScenario.swift'),
      '-o', str(app/'NaviMapProbe')])
+subprocess.run([sys.executable, str(Path(__file__).with_name('probe-ios-controls.py')),
+                str(out / 'controls')], check=True, timeout=420)
 info = {'CFBundleIdentifier':'app.navi.mapprobe', 'CFBundleName':'NaviMapProbe',
         'CFBundleExecutable':'NaviMapProbe', 'CFBundlePackageType':'APPL',
         'CFBundleVersion':'1', 'CFBundleShortVersionString':'1.0', 'MinimumOSVersion':'15.6',
@@ -167,10 +168,8 @@ info = {'CFBundleIdentifier':'app.navi.mapprobe', 'CFBundleName':'NaviMapProbe',
 run(['codesign', '--force', '--sign', '-', str(app/'Frameworks/MapLibre.framework')])
 run(['codesign', '--force', '--sign', '-', str(app)])
 inventory = json.loads(run(['xcrun','simctl','list','devices','available','--json']))
-candidates = [(runtime, device) for runtime, devices in inventory['devices'].items()
-              if '.iOS-' in runtime for device in devices if 'iPhone' in device['name']]
-assert candidates
-runtime, device = sorted(candidates, key=lambda item:(item[0], item[1]['name']), reverse=True)[0]
+device = select(inventory)
+runtime = device['runtime']
 udid = device['udid']
 (out/'simulator.json').write_text(json.dumps({'runtime':runtime, 'device':device}, indent=2))
 if device['state'] != 'Booted':

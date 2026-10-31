@@ -4,6 +4,7 @@ from pathlib import Path
 import plistlib
 import subprocess
 import sys
+from select_ios_simulator import select
 
 
 def main():
@@ -58,14 +59,12 @@ final class Controls: UIViewController, UITableViewDataSource, UITableViewDelega
         'UILaunchScreen': {}}))
     subprocess.run(['codesign', '--force', '--sign', '-', str(app)], check=True, timeout=30)
     inventory = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '--json']))
-    devices = [(runtime, device) for runtime, devices in inventory['devices'].items()
-               if '.iOS-' in runtime for device in devices if 'iPhone' in device['name']]
-    _, device = sorted(devices, key=lambda item: (item[0], item[1]['name']), reverse=True)[0]
+    device = select(inventory)
     udid = device['udid']
     if device['state'] != 'Booted':
         subprocess.run(['xcrun', 'simctl', 'boot', udid], check=True, timeout=60)
     subprocess.run(['xcrun', 'simctl', 'bootstatus', udid, '-b'], check=True, timeout=180)
-    subprocess.run(['xcrun', 'simctl', 'install', udid, str(app)], check=True, timeout=60)
+    subprocess.run(['xcrun', 'simctl', 'install', udid, str(app)], check=True, timeout=180)
     try:
         result = subprocess.run(['xcrun', 'simctl', 'launch', '--console', udid, 'app.navi.controlsprobe'],
                                 capture_output=True, timeout=15)
