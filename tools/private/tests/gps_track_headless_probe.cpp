@@ -5,6 +5,8 @@
 #include <chrono>
 #include <filesystem>
 #include <future>
+#include <fstream>
+#include <iterator>
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -80,13 +82,35 @@ int main(int argc, char ** argv) {
       "queued archive was not completed during shutdown");
     Require(countStored(archive) == 2 && countStored(path) == 1,
       "next recording clear changed the previous raw archive");
+    auto readBytes = [](std::string const & file) {
+      std::ifstream input(file, std::ios::binary);
+      return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+    };
+    auto const archiveBytes = readBytes(archive);
     {
-      GpsTrackStorage preserved(archive);
-      preserved.ForEach([&](location::GpsInfo const & point) {
+      auto const preserved = GpsTrackStorage::ReadSnapshot(archive, archiveBytes.size());
+      Require(preserved.size() == 2, "read-only archive lost points");
+      for (auto const & point : preserved) {
         Require(point.m_speed == 5 && point.m_horizontalAccuracy == 4 && point.m_source == location::EAppleNative,
           "archive lost raw speed, accuracy or device source");
-        return true;
-      });
+      }
+    }
+    auto requireRejectedRead = [&](std::string const & file, size_t limit) {
+      bool rejected = false;
+      try { (void)GpsTrackStorage::ReadSnapshot(file, limit); }
+      catch (GpsTrackStorage::ReadException const &) { rejected = true; }
+      Require(rejected, "invalid or oversized raw archive was accepted");
+    };
+    requireRejectedRead(archive, archiveBytes.size() - 1);
+    Require(readBytes(archive) == archiveBytes, "size rejection changed the raw archive");
+    for (bool truncated : {false, true}) {
+      auto invalidBytes = archiveBytes;
+      if (truncated) invalidBytes.pop_back(); else invalidBytes[0] = 42;
+      auto const invalidPath = path + ".invalid";
+      { std::ofstream output(invalidPath, std::ios::binary); output.write(invalidBytes.data(), invalidBytes.size()); }
+      requireRejectedRead(invalidPath, archiveBytes.size());
+      Require(readBytes(invalidPath) == invalidBytes, "invalid archive was rewritten while reading");
+      std::filesystem::remove(invalidPath);
     }
     std::promise<bool> overwrite, alias;
     auto overwriteResult = overwrite.get_future(), aliasResult = alias.get_future();
