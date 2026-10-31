@@ -37,6 +37,9 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
   private var goButton: UIButton!
   private var stopButton: UIButton!
   private var optionsButton: UIButton!
+  private let friendsService = NaviFriendsService.shared
+  private var friendsButton: UIButton!
+  private var pauseSharingButton: UIButton!
 
   init() { super.init(nibName: nil, bundle: nil) }
   required init?(coder: NSCoder) { fatalError("Use init()") }
@@ -71,6 +74,7 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     navigationController?.setNavigationBarHidden(true, animated: animated)
     guard !attached else { return }
     attached = true
+    friendsService.setMapVisible(true)
     reloadProfile()
     Search.add(self)
     LocationManager.add(observer: self)
@@ -86,6 +90,7 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     UIApplication.shared.isIdleTimerDisabled = false
   }
   private func detachUI() {
+    friendsService.setMapVisible(false)
     timer?.invalidate(); timer = nil
     searchWork?.cancel(); searchWork = nil
     if attached { Search.remove(self); LocationManager.remove(observer: self); attached = false }
@@ -186,11 +191,28 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     modeButton = NaviPalette.button(NaviPalette.text("Satellit", "Satellite")) { [weak self] in self?.switchMap() }
     dock.addArrangedSubview(modeButton)
     dock.addArrangedSubview(UIView())
+    friendsButton = NaviPalette.button("") { [weak self] in self?.showFriends() }
+    friendsButton.configuration?.image = UIImage(systemName: "person.2")
+    friendsButton.configuration?.imagePadding = 6
+    friendsButton.accessibilityIdentifier = "navi-friends"
+    friendsButton.accessibilityLabel = NaviPalette.text("Freunde", "Friends")
+    dock.addArrangedSubview(friendsButton)
     let position = NaviPalette.button("◎") { [weak self] in
       LocationManager.start(); self?.map.setFollowing(true)
     }
     position.accessibilityLabel = NaviPalette.text("Meinen Standort zentrieren", "Centre on my location")
     dock.addArrangedSubview(position); panel.addArrangedSubview(dock)
+    pauseSharingButton = NaviPalette.button(NaviPalette.text("Standort pausieren", "Pause location")) { [weak self] in
+      guard let self, let runtime = self.friendsService.runtime else { return }
+      Task { @MainActor [weak self] in
+        do { try await runtime.setSharing(false) }
+        catch { self?.showMessage(NaviPalette.text("Freigabe prüfen. Öffne deine Freunde für den aktuellen Status.",
+          "Check sharing. Open Friends for the current status.")) }
+      }
+    }
+    pauseSharingButton.accessibilityIdentifier = "navi-friends-pause"
+    pauseSharingButton.isHidden = true
+    panel.addArrangedSubview(pauseSharingButton)
     panel.addArrangedSubview(speed)
     panel.addArrangedSubview(guidance); panel.addArrangedSubview(street)
     lanes.backgroundColor = UIColor(red: 0.16, green: 0.17, blue: 0.16, alpha: 1)
@@ -232,6 +254,7 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
   }
   private func refresh() {
     guard isViewLoaded, map != nil else { return }
+    refreshFriends()
     let snapshot = NaviRouteBridge.snapshot(withKnownGeometryRevision: map.geometryRevision)
     map.render(snapshot)
     let location = freshLocation()
@@ -371,10 +394,48 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
   private func showSettings() {
     let sheet = UIAlertController(title: NaviPalette.text("Deine Einstellungen", "Your settings"), message: nil, preferredStyle: .actionSheet)
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Mein Fahrzeug", "My vehicle"), style: .default) { [weak self] _ in self?.showVehicle() })
+    sheet.addAction(UIAlertAction(title: NaviPalette.text("Freunde", "Friends"), style: .default) { [weak self] _ in self?.showFriends() })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Offline-Karten", "Offline maps"), style: .default) { [weak self] _ in self?.openMapsDownloader(.downloaded) })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Satellitenzugang", "Satellite access"), style: .default) { [weak self] _ in self?.showAccess() })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Schließen", "Close"), style: .cancel))
     presentSheet(sheet)
+  }
+  private func showFriends() {
+    guard let runtime = friendsService.runtime else {
+      showMessage(NaviPalette.text("Freunde konnten nicht geöffnet werden.", "Friends could not be opened.")); return
+    }
+    let navigation = UINavigationController(rootViewController: FriendsSheetController(runtime: runtime))
+    navigation.view.tintColor = NaviPalette.ink
+    present(navigation, animated: true)
+  }
+  private func refreshFriends() {
+    guard let runtime = friendsService.runtime else { map.setFriends([]); return }
+    let value = runtime.snapshot
+    friendsButton.setTitle(value.peers.isEmpty ? "" : String(value.peers.count), for: .normal)
+    friendsButton.accessibilityValue = String(value.peers.count)
+    let active = value.sharingState == .sharing || value.sharingState == .enabling || value.sharingState == .reconnecting
+    let pending = value.sharingState == .revocationPending
+    pauseSharingButton.isHidden = !active && !pending
+    pauseSharingButton.isEnabled = !pending
+    pauseSharingButton.setTitle(pending ? NaviPalette.text("Pause ausstehend", "Pause pending")
+      : NaviPalette.text("Standort pausieren", "Pause location"), for: .normal)
+    let now = runtime.serverNowMs
+    let markers = value.peers.compactMap { peer -> NaviFriendMarker? in
+      guard now > 0, peer.positionAllowed, peer.sharingEnabled, let point = peer.position, point.isValid else { return nil }
+      let name = peer.displayName.isEmpty ? NaviPalette.text("Freund", "Friend") : peer.displayName
+      let label: String
+      if let speed = peer.speedMetersPerSecond(at: now) {
+        label = name + " · " + String(format: "%.0f km/h", speed * 3.6)
+      } else if point.isFresh(at: now) { label = name }
+      else if now >= point.measuredAtMs {
+        let seconds = (now - point.measuredAtMs) / 1000
+        let age = seconds < 60 ? "\(seconds) s" : seconds < 3600 ? "\(seconds / 60) min" : "\(seconds / 3600) h"
+        label = name + " · " + NaviPalette.text("vor \(age)", "\(age) ago")
+      } else { label = name + " · " + NaviPalette.text("Zeit unklar", "Time unknown") }
+      return .init(uid: peer.uid, latitude: point.latitude, longitude: point.longitude,
+        label: label, stale: !point.isFresh(at: now))
+    }
+    map.setFriends(markers)
   }
   private func showAccess() {
     let alert = UIAlertController(title: NaviPalette.text("Satellitenzugang", "Satellite access"),
