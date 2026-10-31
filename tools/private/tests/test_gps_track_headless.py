@@ -29,7 +29,7 @@ class HeadlessTrackTests(unittest.TestCase):
         sources = [
             'map/gps_track.cpp', 'map/gps_track_storage.cpp', 'map/gps_track_collection.cpp',
             'map/gps_track_filter.cpp', 'map/track_statistics.cpp', 'map/elevation_info.cpp',
-            'geometry/mercator.cpp', 'geometry/distance_on_sphere.cpp',
+            'geometry/mercator.cpp', 'geometry/distance_on_sphere.cpp', 'geometry/point_with_altitude.cpp',
             'base/base.cpp', 'base/exception.cpp', 'base/logging.cpp', 'base/thread.cpp',
             'base/timer.cpp', 'base/src_point.cpp', 'base/internal/message.cpp',
         ]

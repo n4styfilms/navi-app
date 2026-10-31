@@ -54,6 +54,7 @@ import FirebaseDatabase
   private var signingOut = false
   private var accountState: FriendsAccountController.State = .signedOut
   private var sharingState: FriendsSharingController.State = .off
+  private var acknowledgedLocationDemand = false
   private var peers: [FriendsRepository.Peer] = []
   private var ownName = ""
   private var requests: [String] = []
@@ -94,7 +95,10 @@ import FirebaseDatabase
       peers: ready ? peers : [], requests: ready ? requests : [], grants: ready ? grants : [:],
       signingOut: signingOut, pendingRevocations: !pendingOwners.isEmpty, lastError: lastFailure?.localizedDescription)
   }
-  var locationDemand: Bool { ready && sharingState == .sharing && serverNowMs > 0 }
+  var locationDemand: Bool {
+    ready && acknowledgedLocationDemand && serverNowMs > 0
+      && (sharingState == .sharing || sharingState == .reconnecting)
+  }
   var serverNowMs: Int64 {
     guard anchorServerMs > 0 else { return 0 }
     let elapsed = (ProcessInfo.processInfo.systemUptime - anchorUptime) * 1000
@@ -200,6 +204,9 @@ import FirebaseDatabase
       now: { [weak self] in self?.serverNowMs ?? 0 }, changed: { [weak self] state in
         guard let self, !self.closed, self.session === opened else { return }
         self.sharingState = state
+        // Keep the existing background wake source across temporary network loss.
+        // Initial enable/reopen still needs its own server ACK; pause/error clears it.
+        if state != .reconnecting { self.acknowledgedLocationDemand = state == .sharing }
         self.sharingStartedUptime = state == .sharing ? ProcessInfo.processInfo.systemUptime : 0
         self.sharingStartedDeviceMs = state == .sharing ? Int64(Date().timeIntervalSince1970 * 1000) : 0
         if state == .paused, self.pendingOwners.contains(opened.owner) {
@@ -240,7 +247,7 @@ import FirebaseDatabase
     logout?.close(); logout = nil
     sharing?.close(); sharing = nil; repository = nil
     clearViewData()
-    sharingState = .off; signingOut = false
+    sharingState = .off; acknowledgedLocationDemand = false; signingOut = false
     sharingStartedUptime = 0; sharingStartedDeviceMs = 0; lastDeviceFixMs = 0; sequence = 0
   }
 
