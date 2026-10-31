@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseCore
 import FirebaseAuth
+import FirebaseDatabase
 import CoreLocation
 
 /// Application model boundary: actual Auth/DB clients, no navigation or map dependency.
@@ -42,7 +43,10 @@ import CoreLocation
     defer {
       for app in [sourceApp, receiverApp, strangerApp] { try? Auth.auth(app: app).signOut(); app.delete { _ in } }
     }
-    let source = try FriendsRuntime(identityApp: sourceApp, preferences: preferences, transport: FriendsNativeProbe.local)
+    var sourceDatabase: Database?
+    let source = try FriendsRuntime(identityApp: sourceApp, preferences: preferences, transport: { auth, database in
+      try FriendsNativeProbe.local(auth, database); sourceDatabase = database
+    })
     let receiver = try FriendsRuntime(identityApp: receiverApp, preferences: preferences, transport: FriendsNativeProbe.local)
     defer { source.close(); receiver.close() }
     var providerDemands: [Bool] = []
@@ -112,7 +116,21 @@ import CoreLocation
     try await Task.sleep(nanoseconds: 200_000_000)
     try FriendsNativeProbe.check(observed.isEmpty && receiver.snapshot.requests.isEmpty,
       "New runtime account received old account's friend data")
-    try await source.setSharing(false)
+    // A temporary network loss must not remove the background wake source after
+    // consent was acknowledged. Publishing remains blocked until a new ACK.
+    guard let sourceDatabase else { throw ProbeError.failed("Runtime data transport missing") }
+    source.setMapVisible(false)
+    sourceDatabase.goOffline()
+    defer { sourceDatabase.goOnline() }
+    try await FriendsNativeProbe.waitFor("runtime disconnected", { source.snapshot.sharingState == .reconnecting })
+    try FriendsNativeProbe.check(source.locationDemand && providerDemands == [false, true],
+      "Temporary network loss dropped the acknowledged background provider")
+    let pause = Task { try await source.setSharing(false) }
+    try await FriendsNativeProbe.waitFor("runtime offline pause", { source.snapshot.sharingState == .revocationPending })
+    try FriendsNativeProbe.check(!source.locationDemand && providerDemands == [false, true, false],
+      "Offline pause retained background demand")
+    sourceDatabase.goOnline()
+    try await pause.value
     try FriendsNativeProbe.check(!source.locationDemand, "Paused runtime retained location demand")
     try FriendsNativeProbe.check(providerDemands == [false, true, false], "Bridge retained provider demand on pause")
     print("native_apple_location_bridge=true")
