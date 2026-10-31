@@ -404,7 +404,15 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     guard let runtime = friendsService.runtime else {
       showMessage(NaviPalette.text("Freunde konnten nicht geöffnet werden.", "Friends could not be opened.")); return
     }
-    let navigation = UINavigationController(rootViewController: FriendsSheetController(runtime: runtime))
+    let sheet = FriendsSheetController(runtime: runtime)
+    let navigation = UINavigationController(rootViewController: sheet)
+    sheet.onShowPeer = { [weak self, weak navigation] uid in
+      navigation?.dismiss(animated: true) { [weak self] in
+        guard let self else { return }
+        // Recheck current rights after dismissal before using a cached coordinate.
+        self.refreshFriends(); self.map.focusFriend(uid)
+      }
+    }
     navigation.view.tintColor = NaviPalette.ink
     present(navigation, animated: true)
   }

@@ -97,6 +97,7 @@ final class FriendsSheetController: UIViewController {
   private var displayedName: String?
   private var shareButton: UIButton?
   private var rows: [String: FriendsPeerRow] = [:]
+  var onShowPeer: ((String) -> Void)?
   private var busyPeers = Set<String>()
   private var lastRequests: [String]?
 
@@ -190,8 +191,10 @@ final class FriendsSheetController: UIViewController {
     }
     for peer in value.peers {
       if rows[peer.uid] == nil {
-        let row = FriendsPeerRow(uid: peer.uid, onGrant: { [weak self] grant in self?.changeGrant(peer.uid, grant) },
-          onRemove: { [weak self] in self?.remove(peer.uid) })
+        let uid = peer.uid
+        let show: (() -> Void)? = onShowPeer == nil ? nil : { [weak self] in self?.onShowPeer?(uid) }
+        let row = FriendsPeerRow(uid: uid, onGrant: { [weak self] grant in self?.changeGrant(uid, grant) },
+          onRemove: { [weak self] in self?.remove(uid) }, onShow: show)
         rows[peer.uid] = row; friendList.addArrangedSubview(row)
       }
       rows[peer.uid]?.update(peer, grant: value.grants[peer.uid] ?? .init(position: false, speed: false, trips: false),
@@ -378,7 +381,9 @@ private final class FriendsPeerRow: UIStackView {
   private let detail = NaviPalette.label(size: 15), speed = NaviPalette.label(size: 21, weight: .semibold)
   private let position = UISwitch(), velocity = UISwitch(), trips = UISwitch()
   private let onGrant: (FriendsRepository.Grant) -> Void
-  init(uid: String, onGrant: @escaping (FriendsRepository.Grant) -> Void, onRemove: @escaping () -> Void) {
+  private var showOnMap: UIButton?
+  init(uid: String, onGrant: @escaping (FriendsRepository.Grant) -> Void, onRemove: @escaping () -> Void,
+       onShow: (() -> Void)? = nil) {
     self.uid = uid; self.onGrant = onGrant
     super.init(frame: .zero)
     axis = .vertical; spacing = 12; isLayoutMarginsRelativeArrangement = true
@@ -386,6 +391,10 @@ private final class FriendsPeerRow: UIStackView {
     backgroundColor = NaviPalette.field; layer.cornerRadius = 22
     name.accessibilityIdentifier = "friends.peer.\(uid).name"; speed.accessibilityIdentifier = "friends.peer.\(uid).speed"
     addArrangedSubview(name); addArrangedSubview(detail); addArrangedSubview(speed)
+    if let onShow {
+      let button = FriendsUI.button(NaviPalette.text("Auf Karte zeigen", "Show on map"), id: "friends.peer.\(uid).map") { _ in onShow() }
+      showOnMap = button; addArrangedSubview(button)
+    }
     addArrangedSubview(NaviPalette.label(NaviPalette.text("Du teilst mit diesem Freund", "You share with this friend"), size: 15))
     for (control, title, key) in [(position, NaviPalette.text("Standort", "Location"), "position"),
       (velocity, NaviPalette.text("Geschwindigkeit", "Speed"), "speed"), (trips, NaviPalette.text("Fahrten", "Trips"), "trips")] {
@@ -402,6 +411,7 @@ private final class FriendsPeerRow: UIStackView {
     onGrant(.init(position: position.isOn, speed: velocity.isOn, trips: trips.isOn))
   }
   func update(_ peer: FriendsRepository.Peer, grant: FriendsRepository.Grant, now: Int64, busy: Bool) {
+    showOnMap?.isEnabled = peer.positionAllowed && peer.sharingEnabled && peer.position?.isValid == true
     name.text = peer.displayName.isEmpty ? NaviPalette.text("Freund · ", "Friend · ") + String(uid.suffix(6)) : peer.displayName
     if let point = peer.position, now >= point.measuredAtMs {
       let seconds = (now - point.measuredAtMs) / 1000

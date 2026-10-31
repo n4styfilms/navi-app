@@ -288,6 +288,13 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
     friends = valid
     renderFriends()
   }
+  @discardableResult func focusFriend(_ uid: String) -> Bool {
+    precondition(Thread.isMainThread)
+    guard !closed, let marker = friends.first(where: { $0.uid == uid }) else { return false }
+    following = false
+    view.setCenter(CLLocationCoordinate2D(latitude: marker.latitude, longitude: marker.longitude), zoomLevel: 15, animated: true)
+    return true
+  }
   private func renderFriends() {
     guard let source = friendsSource, let style = view.style else { return }
     let current = Set(friends.map { $0.uid })
