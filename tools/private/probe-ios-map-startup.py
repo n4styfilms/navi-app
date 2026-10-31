@@ -54,6 +54,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     let root = UIViewController()
     window.rootViewController = root
     self.window = window
+    if ProcessInfo.processInfo.arguments.contains("--friends-map") {
+      window.makeKeyAndVisible()
+      Task { @MainActor in
+        do { try await FriendsMapScenario.run(in: root); fflush(stdout); exit(0) }
+        catch { print("NAVI_FRIENDS_MAP_ERROR \\(error)"); fflush(stdout); exit(1) }
+      }
+      return
+    }
     NSLog("NAVI_MAP_PROBE_BEFORE_INIT")
     let owner = NaviMapController(frame: .zero, configuration: NaviEsriConfiguration(key: "", language: "de"))
     self.owner = owner
@@ -136,6 +144,9 @@ func runLegacyHostContract(_ kind: String) {
 '''.replace('__LOGGING_BODY__', textwrap.dedent(logging)).replace('__RECONCILE_BODY__', textwrap.dedent(reconcile)))
 app = work/'NaviMapProbe.app'
 (app/'Frameworks').mkdir(parents=True, exist_ok=True)
+font = app/'noto-0-255.pbf'
+urllib.request.urlretrieve('https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf', font)
+assert hashlib.sha256(font.read_bytes()).hexdigest() == 'ef1f38a3f1978591e846e9eaddf8a54f7047f546fc6aaed7872cc53151a5de78'
 shutil.copytree(framework, app/'Frameworks/MapLibre.framework', symlinks=True)
 sdk = run(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-path'])
 run(['xcrun', 'swiftc', '-parse-as-library', '-swift-version', '5', '-module-name', 'NaviMapProbe',
@@ -144,6 +155,7 @@ run(['xcrun', 'swiftc', '-parse-as-library', '-swift-version', '5', '-module-nam
      '-Xlinker', '@executable_path/Frameworks', str(source), str(route_types), str(contract),
      *(str(repo/'iphone/Maps/UI/NaviMap'/name) for name in
        ['NaviMapPolicy.swift','NaviEsriTransport.swift','NaviMapController.swift']),
+     str(repo/'testing/map-apple/FriendsMapScenario.swift'),
      '-o', str(app/'NaviMapProbe')])
 info = {'CFBundleIdentifier':'app.navi.mapprobe', 'CFBundleName':'NaviMapProbe',
         'CFBundleExecutable':'NaviMapProbe', 'CFBundlePackageType':'APPL',
@@ -186,6 +198,16 @@ for case in ['--legacy-logging', '--legacy-reconcile']:
 subprocess.run(['xcrun','simctl','io',udid,'screenshot',str(out/'simulator.png')], capture_output=True)
 (out/'system.log').write_text(run(['xcrun','simctl','spawn',udid,'log','show','--last','2m','--style','compact',
                                   '--predicate','process == "NaviMapProbe"']))
+friends = subprocess.run(['xcrun','simctl','launch','--terminate-running-process','--console',udid,
+                          'app.navi.mapprobe','--friends-map'], capture_output=True, text=True, timeout=50)
+with (out/'system.log').open('a') as log:
+    log.write('\n' + friends.stdout + friends.stderr)
+container = Path(run(['xcrun','simctl','get_app_container',udid,'app.navi.mapprobe','data']))
+capture = container/'Documents/friends-map.png'
+if capture.is_file():
+    shutil.copyfile(capture, out/'simulator.png')
+if friends.returncode != 0 or 'NAVI_FRIENDS_MAP_SUCCESS' not in friends.stdout:
+    raise SystemExit('Actual friends renderer contract failed: ' + friends.stdout + friends.stderr)
 print('Minimal pinned MapLibre simulator probe completed; inspect debugger.txt for actual startup evidence')
 system = (out/'system.log').read_text()
 if system.count('NAVI_LEGACY_CONTRACT_PASSED_') < 2:
