@@ -153,8 +153,6 @@ run(['xcrun', 'swiftc', '-parse-as-library', '-swift-version', '5', '-module-nam
        ['NaviMapPolicy.swift','NaviEsriTransport.swift','NaviMapController.swift']),
      str(repo/'testing/map-apple/FriendsMapScenario.swift'),
      '-o', str(app/'NaviMapProbe')])
-subprocess.run([sys.executable, str(Path(__file__).with_name('probe-ios-controls.py')),
-                str(out / 'controls')], check=True, timeout=420)
 info = {'CFBundleIdentifier':'app.navi.mapprobe', 'CFBundleName':'NaviMapProbe',
         'CFBundleExecutable':'NaviMapProbe', 'CFBundlePackageType':'APPL',
         'CFBundleVersion':'1', 'CFBundleShortVersionString':'1.0', 'MinimumOSVersion':'15.6',
@@ -204,6 +202,14 @@ if capture.is_file():
     shutil.copyfile(capture, out/'simulator.png')
 if friends.returncode != 0 or 'NAVI_FRIENDS_MAP_SUCCESS' not in friends.stdout:
     raise SystemExit('Actual friends renderer contract failed: ' + friends.stdout + friends.stderr)
+try:
+    subprocess.run([sys.executable, str(Path(__file__).with_name('probe-ios-controls.py')),
+                    str(out / 'controls')], check=True, timeout=420)
+finally:
+    controls_log = out/'controls-probe.txt'
+    if controls_log.is_file():
+        with (out/'system.log').open('a') as log:
+            log.write('\nCONTROLS\n' + controls_log.read_text(errors='replace'))
 print('Minimal pinned MapLibre simulator probe completed; inspect debugger.txt for actual startup evidence')
 system = (out/'system.log').read_text()
 if system.count('NAVI_LEGACY_CONTRACT_PASSED_') < 2:

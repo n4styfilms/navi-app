@@ -40,7 +40,8 @@ final class Controls: UIViewController, UITableViewDataSource, UITableViewDelega
 ''' + body + '''
     precondition(table.isDescendant(of: view))
     view.layoutIfNeeded()
-    NSLog("NAVI_CONTROLS_READY")
+    print("NAVI_CONTROLS_READY"); fflush(stdout)
+    DispatchQueue.main.async { exit(0) }
   }
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 0 }
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell { UITableViewCell() }
@@ -67,7 +68,7 @@ final class Controls: UIViewController, UITableViewDataSource, UITableViewDelega
     subprocess.run(['xcrun', 'simctl', 'install', udid, str(app)], check=True, timeout=180)
     try:
         result = subprocess.run(['xcrun', 'simctl', 'launch', '--console', udid, 'app.navi.controlsprobe'],
-                                capture_output=True, timeout=15)
+                                capture_output=True, timeout=60)
         logs = result.stdout + result.stderr
     except subprocess.TimeoutExpired as error:
         logs = (error.stdout or b'') + (error.stderr or b'')
@@ -79,6 +80,10 @@ final class Controls: UIViewController, UITableViewDataSource, UITableViewDelega
             pass  # Cleanup must not erase the actual launch output.
     (out.parent / 'controls-probe.txt').write_bytes(logs)
     if b'NAVI_CONTROLS_READY' not in logs:
+        diagnostics = subprocess.run(['xcrun', 'simctl', 'spawn', udid, 'log', 'show', '--last', '2m',
+            '--style', 'compact', '--predicate', 'process == "Controls"'], capture_output=True, timeout=30)
+        logs += diagnostics.stdout + diagnostics.stderr
+        (out.parent / 'controls-probe.txt').write_bytes(logs)
         print(logs.decode(errors='replace')[-100000:], flush=True)
         raise SystemExit('Production search-results layout failed before readiness; see controls-probe.txt')
     print('PASS actual UIKit production search-results layout')
