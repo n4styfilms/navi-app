@@ -13,7 +13,7 @@ def main():
     controller = (repo / 'iphone/Maps/UI/NaviMap/NaviViewController.swift').read_text()
     body = controller.split('    table.dataSource = self;', 1)[1].split('    panelScroll.translates', 1)[0]
     body = '    table.dataSource = self;' + body
-    palette = (repo / 'iphone/Maps/UI/Vehicle/NaviVehicleViewController.swift').read_text().split('/// A draft', 1)[0]
+    palette = (repo / 'iphone/Maps/UI/Vehicle/NaviPalette.swift').read_text()
     source = out / 'Controls.swift'
     source.write_text(palette + '''
 @main final class App: UIResponder, UIApplicationDelegate {
