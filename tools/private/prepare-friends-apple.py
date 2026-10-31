@@ -14,6 +14,9 @@ domain = root / 'iphone/Maps/UI/NaviFriends'
 files = [domain / name for name in ('PresenceSample.swift', 'PresencePolicy.swift', 'FriendsDataSession.swift',
     'FriendsGroupConfiguration.swift', 'FriendsAccountController.swift', 'FriendsRepository.swift', 'FriendsObservation.swift', 'FriendsSharingController.swift', 'FriendsSignOutCoordinator.swift', 'FriendsRuntime.swift', 'FriendsSheetController.swift') if (domain / name).exists()]
 palette = root / 'iphone/Maps/UI/Vehicle/NaviPalette.swift'
+bridge = domain / 'FriendsLocationBridge.swift'
+if bridge.exists():
+    files.append(bridge)
 if palette.exists():
     files.append(palette)
 files.extend([root / 'testing/friends-apple/FriendsNativeProbe.swift', root / 'testing/friends-apple/FriendsProbeApp.swift',

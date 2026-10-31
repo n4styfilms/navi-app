@@ -29,6 +29,7 @@ try {
     'native_apple_online_logout', 'native_apple_offline_logout', 'native_apple_runtime', 'native_apple_sheet',
     'native_apple_pending_profile_preserved'];
   for (const flag of flags) assert.ok(transcript.includes(flag + '=true'), transcript);
+  assert.ok(transcript.includes('native_apple_location_bridge=true'), transcript);
   assert.ok(transcript.includes('NAVI_APPLE_NATIVE_SUCCESS proofs=15'), transcript);
   await writeFile(report, JSON.stringify({proofs: flags, passed: flags.length}, null, 2));
 } finally {

@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseCore
 import FirebaseAuth
+import CoreLocation
 
 /// Application model boundary: actual Auth/DB clients, no navigation or map dependency.
 @MainActor enum FriendsRuntimeScenario {
@@ -44,6 +45,10 @@ import FirebaseAuth
     let source = try FriendsRuntime(identityApp: sourceApp, preferences: preferences, transport: FriendsNativeProbe.local)
     let receiver = try FriendsRuntime(identityApp: receiverApp, preferences: preferences, transport: FriendsNativeProbe.local)
     defer { source.close(); receiver.close() }
+    var providerDemands: [Bool] = []
+    let bridge = FriendsLocationBridge(runtime: source, setDemand: { providerDemands.append($0) })
+    defer { bridge.close() }
+    try FriendsNativeProbe.check(providerDemands == [false], "Bridge requested GPS before acknowledged sharing")
     var observed: [FriendsRepository.Peer] = []
     let observation = receiver.observe { observed = $0.peers }
     defer { observation.close() }
@@ -62,6 +67,7 @@ import FirebaseAuth
     print("native_apple_runtime_stage=sharing")
     try await source.setSharing(true)
     try FriendsNativeProbe.check(source.locationDemand, "Acknowledged sharing did not demand the existing provider")
+    try FriendsNativeProbe.check(providerDemands == [false, true], "Bridge did not attach exactly once after ACK")
     let old = FriendsRuntime.Fix(measuredAtDeviceMs: beforeACK, latitude: 43.7295, longitude: 7.4208,
       accuracyMeters: 4, metersPerSecond: 10, bearingDegrees: 180)
     let replayed = try await source.acceptLocation(old)
@@ -74,8 +80,10 @@ import FirebaseAuth
     try await Task.sleep(nanoseconds: 2_000_000)
     let fresh = FriendsRuntime.Fix(measuredAtDeviceMs: Int64(Date().timeIntervalSince1970 * 1000),
       latitude: 43.7296, longitude: 7.4209, accuracyMeters: 5, metersPerSecond: 11, bearingDegrees: 181)
-    let sent = try await source.acceptLocation(fresh)
-    try FriendsNativeProbe.check(sent, "Runtime failed to publish a new GPS fix")
+    let deviceLocation = CLLocation(coordinate: CLLocationCoordinate2D(latitude: fresh.latitude, longitude: fresh.longitude),
+      altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5, course: 181, speed: 11,
+      timestamp: Date(timeIntervalSince1970: Double(fresh.measuredAtDeviceMs) / 1000))
+    bridge.onRawLocationUpdate(deviceLocation)
     try await FriendsNativeProbe.waitFor("runtime peer marker values without route", {
       observed.first?.displayName == "Runtime source"
         && observed.first?.speedMetersPerSecond(at: receiver.serverNowMs) == 11
@@ -100,6 +108,8 @@ import FirebaseAuth
       "New runtime account received old account's friend data")
     try await source.setSharing(false)
     try FriendsNativeProbe.check(!source.locationDemand, "Paused runtime retained location demand")
+    try FriendsNativeProbe.check(providerDemands == [false, true, false], "Bridge retained provider demand on pause")
+    print("native_apple_location_bridge=true")
     print("native_apple_runtime=true")
   }
 }
