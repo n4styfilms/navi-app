@@ -75,4 +75,24 @@
   <string name="navi_vehicle_unreadable">This saved profile cannot be read. It is preserved. Delete it to create a new profile.</string>
   <string name="navi_vehicle_read_failed">Could not read the vehicle. Please reopen this screen.</string>
   <string name="navi_vehicle_write_failed">Could not save this change. Please try again.</string>
+  <string name="navi_trips_title">My trips</string>
+  <string name="navi_trips_record">Record a trip</string>
+  <string name="navi_trips_stop">Stop recording</string>
+  <string name="navi_trips_saving">Saving…</string>
+  <string name="navi_trips_recording">Recording in progress.</string>
+  <string name="navi_trips_empty">No saved trips yet.</string>
+  <string name="navi_trips_driver">Driver</string>
+  <string name="navi_trips_passenger">Passenger</string>
+  <string name="navi_trips_location">Allow precise location, then tap Record again.</string>
+  <string name="navi_trips_read_failed">Could not read saved trips.</string>
+  <string name="navi_trips_start_failed">Could not start recording.</string>
+  <string name="navi_trips_save_failed">Could not save the change. You can try again.</string>
+  <string name="navi_trips_no_points">No GPS points recorded.</string>
+  <string name="navi_trips_unknown">unknown</string>
+  <string name="navi_trip_row">%1$s · %2$s · %3$s</string>
+  <string name="navi_trip_detail">Recorded distance %1$s\nTop speed %2$s\n%3$d GPS gaps · %4$d excluded points</string>
+  <string name="navi_trip_set_driver">Mark as driver</string>
+  <string name="navi_trip_set_passenger">Mark as passenger</string>
+  <string name="navi_trip_delete">Delete</string>
+  <string name="navi_trip_delete_confirm">Delete this trip?</string>
 </resources>

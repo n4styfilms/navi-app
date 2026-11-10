@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 import app.organicmaps.MwmActivity;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.navi.NaviActivity;
 import app.organicmaps.sdk.location.LocationHelper;
 import app.organicmaps.sdk.location.LocationListener;
 import app.organicmaps.sdk.location.TrackRecorder;
@@ -36,6 +37,9 @@ public class TrackRecordingService extends Service implements LocationListener
 {
   public static final String TRACK_REC_CHANNEL_ID = "TRACK RECORDING";
   public static final String STOP_TRACK_RECORDING = "STOP_TRACK_RECORDING";
+  public static final String STOP_NAVI_TRIP = "app.organicmaps.action.STOP_NAVI_TRIP";
+  private static final String EXTRA_NAVI_TRIP = "navi_trip";
+  private static boolean naviTripServiceActive;
   public static final int TRACK_REC_NOTIFICATION_ID = 54321;
   private NotificationCompat.Builder mNotificationBuilder;
   private static final String TAG = TrackRecordingService.class.getSimpleName();
@@ -43,6 +47,7 @@ public class TrackRecordingService extends Service implements LocationListener
   private NotificationCompat.Builder mWarningBuilder;
   private PendingIntent mPendingIntent;
   private PendingIntent mExitPendingIntent;
+  private boolean mNaviTrip;
 
   @Nullable
   @Override
@@ -58,6 +63,14 @@ public class TrackRecordingService extends Service implements LocationListener
       TrackRecorder.nativeStartTrackRecording();
     MwmApplication.from(context).getLocationHelper().restartWithNewMode();
     ContextCompat.startForegroundService(context, new Intent(context, TrackRecordingService.class));
+  }
+
+  @RequiresPermission(value = ACCESS_FINE_LOCATION)
+  public static void startNaviTripService(@NonNull Context context)
+  {
+    if (naviTripServiceActive) return;
+    ContextCompat.startForegroundService(context,
+        new Intent(context, TrackRecordingService.class).putExtra(EXTRA_NAVI_TRIP, true));
   }
 
   public static void createNotificationChannel(@NonNull Context context)
@@ -78,7 +91,7 @@ public class TrackRecordingService extends Service implements LocationListener
       return mPendingIntent;
 
     final int FLAG_IMMUTABLE = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ? 0 : PendingIntent.FLAG_IMMUTABLE;
-    final Intent contentIntent = new Intent(context, MwmActivity.class);
+    final Intent contentIntent = new Intent(context, mNaviTrip ? NaviActivity.class : MwmActivity.class);
     mPendingIntent =
         PendingIntent.getActivity(context, 0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE);
     return mPendingIntent;
@@ -90,8 +103,8 @@ public class TrackRecordingService extends Service implements LocationListener
       return mExitPendingIntent;
 
     final int FLAG_IMMUTABLE = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ? 0 : PendingIntent.FLAG_IMMUTABLE;
-    final Intent exitIntent = new Intent(context, MwmActivity.class);
-    exitIntent.setAction(STOP_TRACK_RECORDING);
+    final Intent exitIntent = new Intent(context, mNaviTrip ? NaviActivity.class : MwmActivity.class);
+    exitIntent.setAction(mNaviTrip ? STOP_NAVI_TRIP : STOP_TRACK_RECORDING);
     mExitPendingIntent =
         PendingIntent.getActivity(context, 1, exitIntent, PendingIntent.FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE);
     return mExitPendingIntent;
@@ -129,17 +142,27 @@ public class TrackRecordingService extends Service implements LocationListener
   @Override
   public void onDestroy()
   {
+    naviTripServiceActive = false;
     mNotificationBuilder = null;
     mWarningBuilder = null;
-    if (TrackRecorder.nativeIsTrackRecordingEnabled())
+    if (!mNaviTrip && TrackRecorder.nativeIsTrackRecordingEnabled())
       TrackRecorder.nativeStopTrackRecording();
     MwmApplication.from(this).getLocationHelper().removeListener(this);
     // The notification is cancelled automatically by the system.
   }
 
   @Override
-  public int onStartCommand(@NonNull Intent intent, int flags, int startId)
+  public int onStartCommand(@Nullable Intent intent, int flags, int startId)
   {
+    boolean naviTrip = intent != null && intent.getBooleanExtra(EXTRA_NAVI_TRIP, false);
+    if (mNaviTrip != naviTrip)
+    {
+      mNaviTrip = naviTrip;
+      mNotificationBuilder = null;
+      mWarningBuilder = null;
+      mPendingIntent = null;
+      mExitPendingIntent = null;
+    }
     if (!MwmApplication.from(this).getOrganicMaps().arePlatformAndCoreInitialized())
     {
       Logger.w(TAG, "Application is not initialized");
@@ -172,6 +195,7 @@ public class TrackRecordingService extends Service implements LocationListener
         type = ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
       ServiceCompat.startForeground(this, TrackRecordingService.TRACK_REC_NOTIFICATION_ID,
                                     getNotificationBuilder(this).build(), type);
+      naviTripServiceActive = mNaviTrip;
     }
     catch (Exception e)
     {
@@ -182,6 +206,12 @@ public class TrackRecordingService extends Service implements LocationListener
       }
       else
         Logger.e(TAG, "Failed to promote the service to foreground", e);
+      if (mNaviTrip)
+      {
+        TrackRecorder.nativeStopTrackRecording();
+        stopSelf();
+        return START_NOT_STICKY;
+      }
     }
 
     final LocationHelper locationHelper = MwmApplication.from(this).getLocationHelper();

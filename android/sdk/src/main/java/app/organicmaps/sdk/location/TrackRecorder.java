@@ -1,6 +1,7 @@
 package app.organicmaps.sdk.location;
 
 import androidx.annotation.Keep;
+import androidx.annotation.Nullable;
 
 public class TrackRecorder
 {
@@ -18,6 +19,10 @@ public class TrackRecorder
   public static native boolean nativeStartNaviTrip(String identifier, boolean passenger, long startedAtMs);
 
   public static native void nativeStopNaviTrip(long endedAtMs, TripArchiveListener listener);
+  @Nullable public static native String nativeNaviTripState();
+  @Nullable public static native String nativeNaviTripStatistics(String identifier);
+  public static native boolean nativeSetNaviTripPassenger(String identifier, boolean passenger);
+  public static native boolean nativeDeleteNaviTrip(String identifier);
 
   public static native void nativeStartTrackRecording();
 

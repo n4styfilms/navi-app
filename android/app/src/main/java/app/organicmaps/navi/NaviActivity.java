@@ -15,6 +15,7 @@ import android.os.SystemClock;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.InputType;
+import android.text.format.DateUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,7 @@ import app.organicmaps.R;
 import app.organicmaps.base.BaseMwmFragmentActivity;
 import app.organicmaps.downloader.DownloaderActivity;
 import app.organicmaps.fuel.*;
+import app.organicmaps.location.TrackRecordingService;
 import app.organicmaps.navi.map.*;
 import app.organicmaps.navi.friends.FriendsRuntime;
 import app.organicmaps.navi.friends.FriendsSheet;
@@ -51,17 +53,23 @@ import app.organicmaps.sdk.search.SearchResult;
 import app.organicmaps.sdk.settings.RoadType;
 import app.organicmaps.sdk.util.LocationUtils;
 import app.organicmaps.sdk.util.Config;
+import app.organicmaps.sdk.util.concurrency.ThreadPool;
 import app.organicmaps.util.Utils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import org.maplibre.android.MapLibre;
 import org.maplibre.android.geometry.LatLng;
 import org.maplibre.android.maps.MapView;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
 /** New main map. Core, search, provider and foreground navigation service remain shared. */
 public final class NaviActivity extends BaseMwmFragmentActivity
@@ -93,6 +101,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   private Button friendsButton;
   private FriendsSheet friendsSheet;
   private boolean pendingFriendSharing;
+  private boolean savingTrip;
   private final Runnable tick = new Runnable() {
     @Override public void run() {
       if (!foreground || map == null) return;
@@ -515,9 +524,160 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   {
     LinearLayout content = sheetContent(R.string.navi_profile_description);
     addAction(content, R.string.navi_vehicle_title, this::showVehicle);
+    addAction(content, R.string.navi_trips_title, this::showTrips);
     addAction(content, R.string.navi_map_access, this::showMapAccess);
     addAction(content, R.string.navi_offline_maps, () -> { sheet.dismiss(); startActivity(new Intent(this, DownloaderActivity.class)); });
     showSheet(content);
+  }
+
+  @Nullable private static JSONObject tripJson(@Nullable String payload)
+  {
+    if (payload == null) return null;
+    try { return new JSONObject(payload); }
+    catch (JSONException error) { return null; }
+  }
+
+  private void showTrips()
+  {
+    LinearLayout content = sheetContent(R.string.navi_trips_title);
+    JSONObject state = tripJson(TrackRecorder.nativeNaviTripState());
+    if (state == null)
+    {
+      TextView error = text(16, false);
+      error.setText(R.string.navi_trips_read_failed);
+      content.addView(error);
+    }
+    else
+    {
+      JSONObject pending = state.optJSONObject("pending");
+      boolean recording = pending != null && pending.optLong("endedAtMs") == 0
+          && TrackRecorder.nativeIsTrackRecordingEnabled();
+      Button action = button(savingTrip ? R.string.navi_trips_saving : recording ? R.string.navi_trips_stop
+          : pending != null ? R.string.navi_vehicle_save : R.string.navi_trips_record, true);
+      action.setEnabled(!savingTrip);
+      action.setOnClickListener(view -> { if (pending == null) chooseTripRole(); else stopTrip(); });
+      content.addView(action);
+      JSONArray trips = state.optJSONArray("trips");
+      if (trips == null || trips.length() == 0)
+      {
+        TextView empty = text(16, false);
+        empty.setText(recording ? R.string.navi_trips_recording : R.string.navi_trips_empty);
+        content.addView(empty);
+      }
+      else
+      {
+        for (int index = 0; index < trips.length(); index++)
+        {
+          JSONObject trip = trips.optJSONObject(index);
+          if (trip == null) continue;
+          String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+              .format(new Date(trip.optLong("startedAtMs")));
+          String role = getString(trip.optBoolean("passenger") ? R.string.navi_trips_passenger : R.string.navi_trips_driver);
+          long seconds = (trip.optLong("endedAtMs") - trip.optLong("startedAtMs")) / 1000;
+          Button row = button(R.string.navi_trips_title, false);
+          row.setText(getString(R.string.navi_trip_row, date, role, DateUtils.formatElapsedTime(seconds)));
+          row.setOnClickListener(view -> showTripDetails(trip));
+          content.addView(row);
+        }
+      }
+    }
+    ScrollView scroll = new ScrollView(this);
+    scroll.addView(content);
+    showSheet(scroll);
+  }
+
+  private void chooseTripRole()
+  {
+    if (!LocationUtils.checkFineLocationPermission(this))
+    {
+      requestLocation();
+      toast(R.string.navi_trips_location);
+      return;
+    }
+    CharSequence[] roles = {getString(R.string.navi_trips_driver), getString(R.string.navi_trips_passenger)};
+    new AlertDialog.Builder(this).setTitle(R.string.navi_trips_record).setItems(roles, (dialog, which) -> {
+      boolean started = TrackRecorder.nativeStartNaviTrip(UUID.randomUUID().toString(), which == 1, System.currentTimeMillis());
+      if (!started) toast(R.string.navi_trips_start_failed);
+      else startTripService();
+      showTrips();
+    }).setNegativeButton(R.string.navi_vehicle_cancel, null).show();
+  }
+
+  private void startTripService()
+  {
+    if (!LocationUtils.checkFineLocationPermission(this)) return;
+    try { TrackRecordingService.startNaviTripService(this); }
+    catch (RuntimeException error)
+    {
+      TrackRecorder.nativeStopTrackRecording();
+      toast(R.string.navi_trips_start_failed);
+    }
+  }
+
+  private void stopTrip()
+  {
+    if (savingTrip) return;
+    savingTrip = true;
+    showTrips();
+    TrackRecorder.nativeStopNaviTrip(System.currentTimeMillis(), result -> main.post(() -> {
+      if (isDestroyed() || isFinishing()) return;
+      savingTrip = false;
+      if (result == TrackRecorder.TRIP_ARCHIVE_FAILED) toast(R.string.navi_trips_save_failed);
+      if (result == TrackRecorder.TRIP_ARCHIVE_EMPTY) toast(R.string.navi_trips_no_points);
+      if (sheet != null && sheet.isShowing() && foreground) showTrips();
+    }));
+    if (!TrackRecorder.nativeIsTrackRecordingEnabled()) TrackRecordingService.stopService(this);
+  }
+
+  private void showTripDetails(JSONObject trip)
+  {
+    String id = trip.optString("id");
+    BottomSheetDialog owner = sheet;
+    ThreadPool.getWorker().execute(() -> {
+      JSONObject stats = tripJson(TrackRecorder.nativeNaviTripStatistics(id));
+      main.post(() -> {
+        if (isDestroyed() || !foreground || sheet != owner || !owner.isShowing()) return;
+        if (stats == null) { toast(R.string.navi_trips_read_failed); return; }
+        String unknown = getString(R.string.navi_trips_unknown);
+        String distance = stats.optInt("rawCount") > stats.optInt("rejectedCount")
+            ? String.format(Locale.getDefault(), "%.1f km", stats.optDouble("distanceMeters") / 1000) : unknown;
+        String speed = stats.has("maximumSpeedMetersPerSecond")
+            ? String.format(Locale.getDefault(), "%.0f km/h", stats.optDouble("maximumSpeedMetersPerSecond") * 3.6) : unknown;
+        boolean passenger = trip.optBoolean("passenger");
+        new AlertDialog.Builder(this).setTitle(passenger ? R.string.navi_trips_passenger : R.string.navi_trips_driver)
+            .setMessage(getString(R.string.navi_trip_detail, distance, speed, stats.optInt("gapCount"), stats.optInt("rejectedCount")))
+            .setPositiveButton(passenger ? R.string.navi_trip_set_driver : R.string.navi_trip_set_passenger, (dialog, which) -> {
+              if (!TrackRecorder.nativeSetNaviTripPassenger(id, !passenger)) toast(R.string.navi_trips_save_failed);
+              showTrips();
+            })
+            .setNeutralButton(R.string.navi_trip_delete, (dialog, which) -> new AlertDialog.Builder(this)
+                .setTitle(R.string.navi_trip_delete_confirm)
+                .setNegativeButton(R.string.navi_vehicle_cancel, null)
+                .setPositiveButton(R.string.navi_trip_delete, (confirmation, ignored) -> {
+                  if (!TrackRecorder.nativeDeleteNaviTrip(id)) toast(R.string.navi_trips_save_failed);
+                  showTrips();
+                }).show())
+            .setNegativeButton(R.string.navi_close, null).show();
+      });
+    });
+  }
+
+  @Override protected void onNewIntent(Intent intent)
+  {
+    super.onNewIntent(intent);
+    if (TrackRecordingService.STOP_NAVI_TRIP.equals(intent.getAction()))
+    {
+      setIntent(intent);
+      if (foreground) stopTripFromNotification();
+    }
+  }
+
+  private boolean stopTripFromNotification()
+  {
+    if (!TrackRecordingService.STOP_NAVI_TRIP.equals(getIntent().getAction())) return false;
+    getIntent().setAction(null);
+    stopTrip();
+    return true;
   }
   private void showVehicle()
   {
@@ -664,6 +824,12 @@ public final class NaviActivity extends BaseMwmFragmentActivity
     mapView.onResume();
     if (LocationUtils.checkLocationPermission(this)) locations.resumeLocationInForeground();
     else locations.stop();
+    if (!stopTripFromNotification() && TrackRecorder.nativeIsTrackRecordingEnabled())
+    {
+      JSONObject state = tripJson(TrackRecorder.nativeNaviTripState());
+      JSONObject pending = state == null ? null : state.optJSONObject("pending");
+      if (pending != null && pending.optLong("endedAtMs") == 0) startTripService();
+    }
     loadVehicle();
     main.post(tick);
   }

@@ -68,4 +68,24 @@
   <string name="navi_vehicle_unreadable">Dieses gespeicherte Profil ist nicht lesbar. Es bleibt erhalten. Lösche es, um ein neues Profil anzulegen.</string>
   <string name="navi_vehicle_read_failed">Fahrzeug konnte nicht geladen werden. Öffne diese Ansicht bitte erneut.</string>
   <string name="navi_vehicle_write_failed">Änderung konnte nicht gespeichert werden. Bitte erneut versuchen.</string>
+  <string name="navi_trips_title">Meine Fahrten</string>
+  <string name="navi_trips_record">Fahrt aufnehmen</string>
+  <string name="navi_trips_stop">Aufnahme stoppen</string>
+  <string name="navi_trips_saving">Speichert …</string>
+  <string name="navi_trips_recording">Aufnahme läuft.</string>
+  <string name="navi_trips_empty">Noch keine gespeicherten Fahrten.</string>
+  <string name="navi_trips_driver">Fahrer</string>
+  <string name="navi_trips_passenger">Mitfahrer</string>
+  <string name="navi_trips_location">Erlaube den genauen Standort und tippe erneut auf Aufnehmen.</string>
+  <string name="navi_trips_read_failed">Fahrten konnten nicht gelesen werden.</string>
+  <string name="navi_trips_start_failed">Aufnahme konnte nicht gestartet werden.</string>
+  <string name="navi_trips_save_failed">Änderung konnte nicht gespeichert werden. Du kannst es erneut versuchen.</string>
+  <string name="navi_trips_no_points">Keine GPS-Punkte gespeichert.</string>
+  <string name="navi_trips_unknown">unbekannt</string>
+  <string name="navi_trip_row">%1$s · %2$s · %3$s</string>
+  <string name="navi_trip_detail">Erfasste Strecke %1$s\nHöchsttempo %2$s\n%3$d GPS-Lücken · %4$d verworfene Punkte</string>
+  <string name="navi_trip_set_driver">Als Fahrer markieren</string>
+  <string name="navi_trip_set_passenger">Als Mitfahrer markieren</string>
+  <string name="navi_trip_delete">Löschen</string>
+  <string name="navi_trip_delete_confirm">Diese Fahrt löschen?</string>
 </resources>
