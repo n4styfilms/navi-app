@@ -25,4 +25,6 @@ Diese Anleitung gehört zur signierten Android-Testversion Freunde 02 (2026.10.2
 
 Stand 25.10.2026 nennt Firebase für Spark 100 gleichzeitige Datenbankverbindungen, 1 GB gespeicherte Daten und 10 GB Downloads pro Monat; Spark benötigt keine Zahlungsmethode. Das ist ein begrenztes kostenloses Kontingent. Der konkrete monatliche Verbrauch dieser App mit fünf Personen ist noch nicht gemessen. Quelle: [Firebase-Preise](https://firebase.google.com/pricing), [Datenbanklimits](https://firebase.google.com/docs/database/usage/limits).
 
-Noch offen: echte Prüfung mit eurem Projekt und zwei Geräten, Hintergrundbetrieb auf echten Handys, Fahrtenaufzeichnung/-analyse und entsprechende iOS-Integration. Die Auswahl eines Fahrtenrechts allein implementiert noch keine Historie. Satellitenzugang ist davon unabhängig und benötigt weiterhin den eigenen Esri-Zugang.
+„Meine Fahrten“ zeichnet im neuen App-Quellstand auf Android und iOS lokal auf. Die Regeln für eine spätere Fahrtenfreigabe erlauben ausschließlich vereinfachte Strecken und Zusammenfassungen. Die Apps bieten das Teilen und Anzeigen dieser freigegebenen Fahrten noch nicht an.
+
+Offen sind ein Test mit eurem eigenen Projekt auf zwei Geräten und die Prüfung des Hintergrundbetriebs auf echten Handys. Für die Satellitenkarte braucht ihr separat euren eigenen Esri-Zugang.

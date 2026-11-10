@@ -124,9 +124,9 @@
         ".indexOn": [
           "endedAtMs"
         ],
-        ".read": "((auth != null && auth.uid === $owner) || (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('trips').val() === true)) && query.orderByChild === \"endedAtMs\" && query.startAt >= now - 2592000000",
+        ".read": "(((auth != null && auth.uid === $owner) || (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('trips').val() === true)) && query.orderByChild === \"endedAtMs\" && query.startAt >= now - 2592000000) || ((auth != null && auth.uid === $owner) && query.orderByChild === \"endedAtMs\" && query.startAt >= 0 && query.endAt <= now - 2592000000 && query.limitToFirst > 0 && query.limitToFirst <= 100)",
         "$tripId": {
-          ".validate": "newData.hasChildren([\"startedAtMs\", \"endedAtMs\", \"distanceMeters\", \"durationSeconds\"]) && $tripId.matches(/^[a-zA-Z0-9_-]{1,64}$/) && newData.child('endedAtMs').val() >= newData.child('startedAtMs').val() && newData.child('endedAtMs').val() >= now - 2592000000",
+          ".validate": "((!newData.hasChild('deleted') && newData.hasChildren([\"startedAtMs\", \"endedAtMs\", \"distanceMeters\", \"durationSeconds\"]) && $tripId.matches(/^[a-zA-Z0-9_-]{1,64}$/) && newData.child('endedAtMs').val() >= newData.child('startedAtMs').val() && newData.child('endedAtMs').val() >= now - 2592000000) || (newData.child('deleted').val() === true && !newData.hasChild('startedAtMs') && !newData.hasChild('endedAtMs') && !newData.hasChild('distanceMeters') && !newData.hasChild('durationSeconds')))",
           "startedAtMs": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 60000"
           },
@@ -143,40 +143,33 @@
             ".validate": false
           },
           ".read": "((auth != null && auth.uid === $owner) || (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('trips').val() === true)) && (data.child('endedAtMs').isNumber() && data.child('endedAtMs').val() >= now - 2592000000 && data.child('endedAtMs').val() <= now + 60000)",
-          ".write": "auth != null && auth.uid === $owner"
+          ".write": "(auth != null && auth.uid === $owner) && newData.exists() && (data.child('deleted').val() !== true || newData.child('deleted').val() === true) && (newData.child('deleted').val() !== true || (data.exists() && !newData.parent().parent().parent().child('tripSegments').child($owner).child($tripId).exists()))",
+          "deleted": {
+            ".validate": "newData.val() === true"
+          }
         }
       }
     },
-    "tripChunks": {
+    "tripSegments": {
       "$owner": {
         "$tripId": {
-          ".read": "((auth != null && auth.uid === $owner) || (auth != null && (root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true) && root.child('grants').child($owner).child(auth.uid).child('trips').val() === true)) && root.child('tripIndex').child($owner).child($tripId).child('endedAtMs').isNumber() && root.child('tripIndex').child($owner).child($tripId).child('endedAtMs').val() >= now - 2592000000 && root.child('tripIndex').child($owner).child($tripId).child('endedAtMs').val() <= now + 60000",
+          ".read": "((auth != null && auth.uid === $owner) || (auth != null && root.child('friendConsent').child($owner).child(auth.uid).val() === true && root.child('friendConsent').child(auth.uid).child($owner).val() === true && root.child('grants').child($owner).child(auth.uid).child('trips').val() === true)) && root.child('tripIndex').child($owner).child($tripId).child('endedAtMs').isNumber() && root.child('tripIndex').child($owner).child($tripId).child('endedAtMs').val() >= now - 2592000000 && root.child('tripIndex').child($owner).child($tripId).child('endedAtMs').val() <= now + 60000",
+          ".write": "(auth != null && auth.uid === $owner) && !newData.exists() && newData.parent().parent().parent().child('tripIndex').child($owner).child($tripId).child('deleted').val() === true",
           "$chunk": {
-            ".validate": "newData.hasChildren([\"createdAtMs\", \"points\"]) && $chunk.matches(/^(0|[1-9][0-9]{0,2})$/)",
-            "createdAtMs": {
-              ".validate": "newData.isNumber() && newData.val() === now"
+            ".write": "(auth != null && auth.uid === $owner) && (!newData.exists() || (newData.parent().parent().parent().parent().child('tripIndex').child($owner).child($tripId).child('endedAtMs').isNumber() && newData.parent().parent().parent().parent().child('tripIndex').child($owner).child($tripId).child('endedAtMs').val() >= now - 2592000000 && newData.parent().parent().parent().parent().child('tripIndex').child($owner).child($tripId).child('endedAtMs').val() <= now + 60000))",
+            ".validate": "newData.hasChildren(['segment', 'vertices']) && $chunk.matches(/^(0|[1-9][0-9]?)$/)",
+            "segment": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 99"
             },
-            "points": {
-              ".validate": "newData.hasChildren()",
-              "$point": {
-                ".validate": "newData.hasChildren([\"latitude\", \"longitude\", \"accuracyMeters\", \"measuredAtMs\"]) && $point.matches(/^(0|[1-9][0-9]?)$/) && newData.child('measuredAtMs').val() >= root.child('tripIndex').child($owner).child($tripId).child('startedAtMs').val() && newData.child('measuredAtMs').val() <= root.child('tripIndex').child($owner).child($tripId).child('endedAtMs').val()",
-                "latitude": {
-                  ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+            "vertices": {
+              ".validate": "newData.hasChildren(['0', '1'])",
+              "$vertex": {
+                ".validate": "newData.hasChildren(['latE5', 'lonE5']) && $vertex.matches(/^(0|[1-9][0-9]?)$/)",
+                "latE5": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -9000000 && newData.val() <= 9000000"
                 },
-                "longitude": {
-                  ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
-                },
-                "accuracyMeters": {
-                  ".validate": "newData.isNumber() && newData.val() >= 0"
-                },
-                "measuredAtMs": {
-                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 60000"
-                },
-                "metersPerSecond": {
-                  ".validate": "newData.isNumber() && newData.val() >= 0"
-                },
-                "bearingDegrees": {
-                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 360"
+                "lonE5": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -18000000 && newData.val() <= 18000000"
                 },
                 "$other": {
                   ".validate": false
@@ -185,8 +178,7 @@
             },
             "$other": {
               ".validate": false
-            },
-            ".write": "(auth != null && auth.uid === $owner) && (!newData.exists() || root.child('tripIndex').child($owner).child($tripId).exists())"
+            }
           }
         }
       }

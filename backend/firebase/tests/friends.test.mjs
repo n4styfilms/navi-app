@@ -2,7 +2,8 @@ import {after, before, beforeEach, test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {initializeTestEnvironment, assertFails, assertSucceeds} from '@firebase/rules-unit-testing';
-import {ref, set, get, update, remove, onValue, serverTimestamp, query, orderByChild, startAt} from 'firebase/database';
+import {ref, set, get, update, remove, onValue, serverTimestamp, query, orderByChild, startAt, endAt,
+  limitToFirst, goOffline, goOnline} from 'firebase/database';
 
 const DAY = 86_400_000;
 let env;
@@ -23,6 +24,12 @@ const control = (extra = {}) => ({generation: 1, enabled: true, ...extra});
 const grant = (extra = {}) => ({position: true, speed: false, trips: false, ...extra});
 const trip = (extra = {}) => ({startedAtMs: Date.now() - 60_000, endedAtMs: Date.now() - 1000,
   distanceMeters: 300, durationSeconds: 59, ...extra});
+const tripChunk = {segment: 0, vertices: {
+  0: {latE5: 4372950, lonE5: 742080}, 1: {latE5: 4372960, lonE5: 742090}
+}};
+const legacyRawTrip = {createdAtMs: Date.now(), points: {
+  0: {latitude: 43.7295, longitude: 7.4208, accuracyMeters: 5, measuredAtMs: Date.now() - 20_000}
+}};
 async function seed({consent = true, rights = grant(), oldTrip = false, staleSpeed = false} = {}) {
   await env.withSecurityRulesDisabled(async (context) => {
     await set(ref(context.database()), {
@@ -34,9 +41,8 @@ async function seed({consent = true, rights = grant(), oldTrip = false, staleSpe
         speed: speed({sequence: staleSpeed ? 0 : 1})}},
       tripIndex: {alice: {ride: trip(oldTrip ? {startedAtMs: Date.now() - 32 * DAY,
         endedAtMs: Date.now() - 31 * DAY} : {})}},
-      tripChunks: {alice: {ride: {0: {createdAtMs: Date.now(), points: {
-        0: {latitude: 43.7295, longitude: 7.4208, accuracyMeters: 5, measuredAtMs: Date.now() - 20_000}
-      }}}}}
+      tripSegments: {alice: {ride: {0: tripChunk}}},
+      tripChunks: {alice: {ride: {0: legacyRawTrip}}}
     });
   });
 }
@@ -63,7 +69,7 @@ test('root, user catalog and entire live record reads deny', async () => {
 });
 test('position permission does not grant speed, trips or raw points', async () => {
   await seed();
-  for (const path of ['live/alice/speed', 'tripIndex/alice/ride', 'tripChunks/alice/ride/0'])
+  for (const path of ['live/alice/speed', 'tripIndex/alice/ride', 'tripSegments/alice/ride/0', 'tripChunks/alice/ride/0'])
     await assertFails(get(ref(db('bob'), path)));
 });
 test('speed requires both position and speed permission, and matching sequence', async () => {
@@ -152,18 +158,43 @@ test('display name belongs to owner and is visible to confirmed friends only', a
 });
 test('trip permission gives active index and chunks; revocation denies both', async () => {
   await seed({rights: grant({trips: true})});
-  for (const path of ['tripIndex/alice/ride', 'tripChunks/alice/ride/0'])
+  for (const path of ['tripIndex/alice/ride', 'tripSegments/alice/ride/0'])
     await assertSucceeds(get(ref(db('bob'), path)));
+  await assertFails(get(ref(db('bob'), 'tripChunks/alice/ride/0')));
   await update(ref(db('alice'), 'grants/alice/bob'), {trips: false});
-  for (const path of ['tripIndex/alice/ride', 'tripChunks/alice/ride/0'])
+  for (const path of ['tripIndex/alice/ride', 'tripSegments/alice/ride/0'])
     await assertFails(get(ref(db('bob'), path)));
+});
+test('revoking trip access cancels an existing geometry subscription', {timeout: 6000}, async () => {
+  await seed({rights: grant({trips: true})});
+  let unsubscribe;
+  const canceled = new Promise((resolve, reject) => {
+    let seen = false;
+    unsubscribe = onValue(ref(db('bob'), 'tripSegments/alice/ride'), (snapshot) => {
+      if (seen || !snapshot.child('0/vertices/0').exists()) return;
+      seen = true;
+      update(ref(db('alice'), 'grants/alice/bob'), {trips: false}).catch(reject);
+    }, (error) => {
+      if (seen) resolve(error);
+      else reject(new Error('Authorized listener never delivered geometry'));
+    });
+  });
+  try { assert.match((await canceled).code, /PERMISSION_DENIED/i); }
+  finally { unsubscribe?.(); }
 });
 test('expired trips and orphan chunks are unreadable even if cleanup has not run', async () => {
   await seed({rights: grant({trips: true}), oldTrip: true});
-  for (const uid of ['alice', 'bob']) for (const path of ['tripIndex/alice/ride', 'tripChunks/alice/ride/0'])
+  for (const uid of ['alice', 'bob']) for (const path of ['tripIndex/alice/ride', 'tripSegments/alice/ride/0'])
     await assertFails(get(ref(db(uid), path)));
+  const expired = (uid) => query(ref(db(uid), 'tripIndex/alice'), orderByChild('endedAtMs'), startAt(0.5),
+    endAt(Date.now() - 30 * DAY - 60_000.5), limitToFirst(25));
+  assert.equal((await assertSucceeds(get(expired('alice')))).child('ride').exists(), true);
+  await assertFails(get(expired('bob')));
+  await assertSucceeds(update(ref(db('alice')), {'tripIndex/alice/ride': {deleted: true}, 'tripSegments/alice/ride': null}));
+  assert.equal((await assertSucceeds(get(expired('alice')))).exists(), false);
+  await seed({rights: grant({trips: true}), oldTrip: true});
   await env.withSecurityRulesDisabled((context) => remove(ref(context.database(), 'tripIndex/alice/ride')));
-  await assertFails(get(ref(db('bob'), 'tripChunks/alice/ride/0')));
+  await assertFails(get(ref(db('bob'), 'tripSegments/alice/ride/0')));
 });
 test('trip lists require a server-enforced recent-time query', async () => {
   await seed({rights: grant({trips: true})});
@@ -177,19 +208,46 @@ test('trip lists require a server-enforced recent-time query', async () => {
   assert.equal(snapshot.size, 1);
   assert.equal(snapshot.child('ride').exists(), true);
 });
-test('owner writes bounded trip chunks; stranger and extra or oversized points deny', async () => {
+test('owner publishes bounded geometry atomically; raw, unrelated and oversized writes deny', async () => {
   const owner = db('alice');
-  await assertSucceeds(set(ref(owner, 'tripIndex/alice/ride'), trip()));
-  const chunk = {createdAtMs: serverTimestamp(), points: {
-    0: {latitude: 43.7295, longitude: 7.4208, accuracyMeters: 5, measuredAtMs: Date.now() - 20_000}
-  }};
-  await assertSucceeds(set(ref(owner, 'tripChunks/alice/ride/0'), chunk));
-  await assertFails(set(ref(db('eve'), 'tripChunks/alice/ride/0'), chunk));
-  await assertFails(set(ref(owner, 'tripChunks/alice/ride/1'), {...chunk, points: {...chunk.points, 100: chunk.points[0]}}));
-  await assertFails(set(ref(owner, 'tripChunks/alice/ride/1'), {...chunk, points: {0: {...chunk.points[0], latitude: -91}}}));
+  await assertFails(set(ref(owner, 'tripSegments/alice/ride/0'), tripChunk));
+  await assertSucceeds(update(ref(owner), {'tripIndex/alice/ride': trip(), 'tripSegments/alice/ride/0': tripChunk}));
+  await assertFails(set(ref(owner, 'tripChunks/alice/ride/0'), legacyRawTrip));
+  await assertFails(set(ref(db('eve'), 'tripSegments/alice/ride/0'), tripChunk));
+  await assertFails(set(ref(owner, 'tripSegments/alice/ride/1'), legacyRawTrip));
+  await assertFails(set(ref(owner, 'tripSegments/alice/ride/1'), {...tripChunk, vertices: {...tripChunk.vertices, 100: tripChunk.vertices[0]}}));
+  for (const invalid of [{latE5: -9_100_000}, {latE5: 1.5}, {accuracyMeters: 4}]) {
+    await assertFails(set(ref(owner, 'tripSegments/alice/ride/1'), {...tripChunk,
+      vertices: {...tripChunk.vertices, 0: {...tripChunk.vertices[0], ...invalid}}}));
+  }
   await assertFails(set(ref(owner, 'tripIndex/alice/other'), trip({distanceMeters: -1})));
-  await assertSucceeds(remove(ref(owner, 'tripChunks/alice/ride/0')));
-  await assertSucceeds(remove(ref(owner, 'tripIndex/alice/ride')));
+});
+
+test('a queued offline trip update cannot resurrect a deleted trip', {timeout: 15_000}, async () => {
+  await seed({rights: grant({trips: true})});
+  const owner = db('alice');
+  const oldDevice = db('alice');
+  const reader = db('bob');
+  const summary = 'tripIndex/alice/ride';
+  const geometry = 'tripSegments/alice/ride';
+  await assertSucceeds(get(ref(oldDevice, summary)));
+  goOffline(oldDevice);
+  const replay = assertFails(update(ref(oldDevice), {[summary]: trip(), [geometry + '/0']: tripChunk}));
+  try {
+    await assertFails(remove(ref(owner, summary)));
+    await assertFails(set(ref(owner, summary), {deleted: true}));
+    await assertFails(update(ref(owner), {[summary]: {deleted: true, endedAtMs: Date.now()}, [geometry]: null}));
+    await assertSucceeds(update(ref(owner), {[summary]: {deleted: true}, [geometry]: null}));
+    await assertFails(get(ref(reader, summary)));
+    await assertFails(get(ref(reader, geometry)));
+    const recent = query(ref(reader, 'tripIndex/alice'), orderByChild('endedAtMs'), startAt(Date.now() - DAY + 0.5));
+    assert.equal((await assertSucceeds(get(recent))).exists(), false);
+    await assertFails(update(ref(owner), {[summary]: null}));
+  } finally {
+    goOnline(oldDevice);
+  }
+  await replay;
+  await assertFails(get(ref(reader, summary)));
 });
 
 test('global pause hides live position and speed without revoking separately shared trips', async () => {
