@@ -47,6 +47,8 @@ set(SRC
   navi_route_snapshot.cpp
   navi_trip_analysis.cpp
   navi_trip_analysis.hpp
+  navi_trip_store.cpp
+  navi_trip_store.hpp
   navi_route_snapshot.hpp
   navi_route_capture.cpp
   navi_route_capture.hpp
