@@ -24,6 +24,9 @@ class HeadlessTrackTests(unittest.TestCase):
             'base/base.cpp', 'base/exception.cpp', 'base/logging.cpp', 'base/thread.cpp',
             'base/timer.cpp', 'base/src_point.cpp', 'base/internal/message.cpp',
         ]
+        sources.append('map/navi_trip_analysis.cpp')
+        if (root / 'libs/map/navi_trip_store.cpp').is_file():
+            sources.append('map/navi_trip_store.cpp')
         with tempfile.TemporaryDirectory(prefix='navi-headless-core-') as directory:
             binary = Path(directory) / 'headless-track'
             command = [compiler, '-std=c++23', '-DDEBUG', '-O0', '-pthread', '-ffunction-sections', '-fdata-sections',

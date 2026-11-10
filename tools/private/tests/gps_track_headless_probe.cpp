@@ -1,4 +1,5 @@
 #include "map/gps_track.hpp"
+#include "map/navi_trip_store.hpp"
 #include "map/gps_track_storage.hpp"
 #include "map/track_statistics.hpp"
 #include <atomic>
@@ -125,9 +126,75 @@ int main(int argc, char ** argv) {
     }
     Require(!overwriteResult.get() && !aliasResult.get(), "raw archive export overwrote an existing recording");
     Require(countStored(archive) == 2 && countStored(path) == 1, "failed export damaged existing points");
+    auto const tripRoot = std::filesystem::path(path + ".trips");
+    std::string const id = "3fc70845-6c24-40af-ae36-dbd9dd80ba2b";
+    std::string const emptyId = "3fc70845-6c24-40af-ae36-dbd9dd80ba2c";
+    auto expectTripError = [](auto && action) {
+      bool rejected = false;
+      try { action(); } catch (std::exception const &) { rejected = true; }
+      Require(rejected, "invalid trip operation was accepted");
+    };
+    {
+      navi::TripStore store(tripRoot);
+      expectTripError([&] { store.Begin("../other", navi::TripRole::Driver, 1000000); });
+      store.Begin(id, navi::TripRole::Driver, 1000000);
+      Require(store.List().empty(), "in-progress recording appeared in history");
+      expectTripError([&] { store.Begin(emptyId, navi::TripRole::Passenger, 1000100); });
+      expectTripError([&] { store.PrepareArchive(); });
+    }
+    {
+      navi::TripStore reopened(tripRoot);
+      auto const pending = reopened.Pending();
+      Require(pending && pending->id == id && pending->startedAtMs == 1000000 &&
+        pending->endedAtMs == 0 && pending->role == navi::TripRole::Driver, "pending trip did not survive reopening");
+      reopened.Stop(1005000);
+      reopened.Stop(1006000); // Retry keeps the original end time.
+      auto destination = reopened.PrepareArchive();
+      { std::ofstream interrupted(destination); interrupted << "partial"; }
+      expectTripError([&] { reopened.PublishArchive(); });
+      Require(reopened.Pending().has_value() && reopened.List().empty(), "failed export discarded the pending trip");
+      destination = reopened.PrepareArchive();
+      std::promise<bool> ready;
+      {
+        GpsTrack track(path);
+        track.Clear();
+        track.AddPoints({first, second});
+        track.ExportSnapshot(destination.string(), [&](bool success) { ready.set_value(success); });
+      }
+      Require(ready.get_future().get() && reopened.PublishArchive(), "stopped trip archive was not published");
+      Require(!reopened.Pending(), "successful publication left a pending trip");
+    }
+    {
+      navi::TripStore history(tripRoot);
+      auto const entries = history.List();
+      Require(entries.size() == 1 && entries[0].id == id && entries[0].endedAtMs == 1005000,
+        "stable trip metadata or original stop time was lost");
+      auto const analysis = history.Load(id);
+      Require(analysis.rawCount == 2 && analysis.distanceMeters > 50 &&
+        analysis.maximumSpeedMetersPerSecond == 5, "archived GPS quality was not analysed");
+      history.SetRole(id, navi::TripRole::Passenger);
+      Require(navi::TripStore(tripRoot).List().front().role == navi::TripRole::Passenger,
+        "role correction did not survive reopening");
+      expectTripError([&] { history.Delete("../"); });
+      expectTripError([&] { history.Begin(id, navi::TripRole::Driver, 1008000); });
+      history.Begin(emptyId, navi::TripRole::Passenger, 1008000);
+      history.Stop(1009000);
+      auto const emptyDestination = history.PrepareArchive();
+      std::promise<bool> ready;
+      {
+        GpsTrack track(path);
+        track.Clear();
+        track.ExportSnapshot(emptyDestination.string(), [&](bool success) { ready.set_value(success); });
+      }
+      Require(ready.get_future().get() && !history.PublishArchive(), "a recording without GPS points entered history");
+      Require(!history.Pending() && history.List().size() == 1, "discarding an empty trip touched another trip");
+      history.Delete(id);
+      Require(navi::TripStore(tripRoot).List().empty(), "deleted trip reappeared after reopening");
+    }
     std::filesystem::remove(archive);
     std::filesystem::remove(path);
     std::cout << "PASS real headless recorder progress, quality, reopen, callback attachment, detach, durable clear and ordered raw archives\n";
+    std::cout << "PASS private trip history, interrupted archive retry, role correction and durable delete\n";
     return 0;
   } catch (std::exception const & error) {
     std::filesystem::remove(path);
