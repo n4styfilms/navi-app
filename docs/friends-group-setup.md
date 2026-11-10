@@ -23,7 +23,9 @@ Diese Anleitung gehört zur signierten Android-Testversion Freunde 02 (2026.10.2
 7. Den eigenen Freundecode kopieren und privat austauschen. Eine Person sendet eine Anfrage, die andere nimmt sie an. Anschließend unter dem jeweiligen Freund ausdrücklich Standort, Geschwindigkeit und später Fahrten auswählen. Eine bestätigte Anfrage allein erteilt keine Leserechte.
 8. **Standort teilen** aktiviert die Freigabe und den sichtbaren Android-Dienst. **Pausieren** stoppt lokale Veröffentlichungen. Ohne Netz bleibt die Serverbestätigung ausstehend; ein bereits sichtbarer alter Standort kann bis zum Widerruf auf dem Server lesbar bleiben. Die andere App zeigt Messalter und keine gültige Geschwindigkeit für veraltete Daten.
 
-Stand 25.10.2026 nennt Firebase für Spark 100 gleichzeitige Datenbankverbindungen, 1 GB gespeicherte Daten und 10 GB Downloads pro Monat; Spark benötigt keine Zahlungsmethode. Das ist ein begrenztes kostenloses Kontingent. Der konkrete monatliche Verbrauch dieser App mit fünf Personen ist noch nicht gemessen. Quelle: [Firebase-Preise](https://firebase.google.com/pricing), [Datenbanklimits](https://firebase.google.com/docs/database/usage/limits).
+Stand 25.10.2026 nennt Firebase für Spark 100 gleichzeitige Datenbankverbindungen, 1 GB gespeicherte Daten und 10 GB Downloads pro Monat. Spark benötigt keine Zahlungsmethode. [Firebase-Preise](https://firebase.google.com/pricing), [Datenbanklimits](https://firebase.google.com/docs/database/usage/limits).
+
+Im lokalen Test mit fünf Konten und vier Empfängern pro Freigabe kamen bei Bewegung 17.512 Byte JSON-Nutzdaten für 15 Standortupdates an. Im Stillstand waren es 11.648 Byte für zehn Updates bei längeren Abständen. Die Messung umfasst die dekodierten Werte. Protokolldaten, erneute Verbindungen und der tatsächliche Monatsverbrauch hängen vom späteren Betrieb ab.
 
 „Meine Fahrten“ zeichnet im neuen App-Quellstand auf Android und iOS lokal auf. Die Regeln für eine spätere Fahrtenfreigabe erlauben ausschließlich vereinfachte Strecken und Zusammenfassungen. Die Apps bieten das Teilen und Anzeigen dieser freigegebenen Fahrten noch nicht an.
 
