@@ -8,6 +8,9 @@
 @class ElevationProfileData;
 
 typedef NS_ENUM(NSUInteger, MWMZoomMode) { MWMZoomModeIn = 0, MWMZoomModeOut };
+typedef NS_ENUM(NSInteger, NaviTripArchiveStatus) {
+  NaviTripArchiveStatusFailed = 0, NaviTripArchiveStatusEmpty = 1, NaviTripArchiveStatusSaved = 2
+};
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -60,6 +63,16 @@ NS_SWIFT_NAME(FrameworkHelper)
 + (void)updateAfterDeleteBookmark;
 + (int)currentZoomLevel;
 + (void)setCarScreenMode:(BOOL)enabled;
++ (BOOL)startNaviTripWithIdentifier:(NSString *)identifier passenger:(BOOL)passenger startedAtMs:(int64_t)startedAtMs
+    NS_SWIFT_NAME(startNaviTrip(id:passenger:startedAtMs:));
++ (void)stopNaviTripAtMs:(int64_t)endedAtMs completion:(void (^)(NaviTripArchiveStatus status))completion
+    NS_SWIFT_NAME(stopNaviTrip(endedAtMs:completion:));
++ (nullable NSDictionary<NSString *, id> *)naviTripState;
++ (nullable NSDictionary<NSString *, id> *)naviTripStatisticsForIdentifier:(NSString *)identifier
+    NS_SWIFT_NAME(naviTripStatistics(id:));
++ (BOOL)setNaviTripPassenger:(BOOL)passenger identifier:(NSString *)identifier
+    NS_SWIFT_NAME(setNaviTripPassenger(_:id:));
++ (BOOL)deleteNaviTripWithIdentifier:(NSString *)identifier NS_SWIFT_NAME(deleteNaviTrip(id:));
 
 @end
 

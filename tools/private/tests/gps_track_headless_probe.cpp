@@ -153,15 +153,17 @@ int main(int argc, char ** argv) {
       { std::ofstream interrupted(destination); interrupted << "partial"; }
       expectTripError([&] { reopened.PublishArchive(); });
       Require(reopened.Pending().has_value() && reopened.List().empty(), "failed export discarded the pending trip");
-      destination = reopened.PrepareArchive();
-      std::promise<bool> ready;
+      std::promise<navi::TripArchiveResult> ready;
       {
         GpsTrack track(path);
         track.Clear();
-        track.AddPoints({first, second});
-        track.ExportSnapshot(destination.string(), [&](bool success) { ready.set_value(success); });
+        auto old = first;
+        old.m_timestamp -= 60;
+        track.AddPoints({old, first, second});
+        reopened.Archive(track, [&](auto result) { ready.set_value(result); });
       }
-      Require(ready.get_future().get() && reopened.PublishArchive(), "stopped trip archive was not published");
+      Require(ready.get_future().get() == navi::TripArchiveResult::Saved, "stopped trip archive was not published");
+      Require(countStored(path) == 0, "saved trip left a duplicate in the active GPS file");
       Require(!reopened.Pending(), "successful publication left a pending trip");
     }
     {
@@ -179,14 +181,13 @@ int main(int argc, char ** argv) {
       expectTripError([&] { history.Begin(id, navi::TripRole::Driver, 1008000); });
       history.Begin(emptyId, navi::TripRole::Passenger, 1008000);
       history.Stop(1009000);
-      auto const emptyDestination = history.PrepareArchive();
-      std::promise<bool> ready;
+      std::promise<navi::TripArchiveResult> ready;
       {
         GpsTrack track(path);
         track.Clear();
-        track.ExportSnapshot(emptyDestination.string(), [&](bool success) { ready.set_value(success); });
+        history.Archive(track, [&](auto result) { ready.set_value(result); });
       }
-      Require(ready.get_future().get() && !history.PublishArchive(), "a recording without GPS points entered history");
+      Require(ready.get_future().get() == navi::TripArchiveResult::Empty, "a recording without GPS points entered history");
       Require(!history.Pending() && history.List().size() == 1, "discarding an empty trip touched another trip");
       history.Delete(id);
       Require(navi::TripStore(tripRoot).List().empty(), "deleted trip reappeared after reopening");

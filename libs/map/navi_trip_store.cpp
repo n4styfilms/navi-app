@@ -1,8 +1,10 @@
 #include "map/navi_trip_store.hpp"
 
+#include "map/gps_track.hpp"
 #include "map/gps_track_storage.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <stdexcept>
 #include <string_view>
@@ -81,6 +83,18 @@ void WriteMetadata(fs::path const & directory, TripMetadata const & trip)
     throw std::runtime_error("Cannot write trip metadata");
   fs::rename(temporary, directory / kMetadata);
 }
+
+std::vector<location::GpsInfo> ReadTripPoints(fs::path const & directory, TripMetadata const & trip)
+{
+  auto points = GpsTrackStorage::ReadSnapshot((directory / kArchive).string());
+  double const start = static_cast<double>(trip.startedAtMs) / 1000;
+  double const end = static_cast<double>(trip.endedAtMs) / 1000;
+  std::erase_if(points, [start, end](location::GpsInfo const & point)
+  {
+    return std::isfinite(point.m_timestamp) && (point.m_timestamp < start || point.m_timestamp > end);
+  });
+  return points;
+}
 }  // namespace
 
 TripStore::TripStore(fs::path root) : m_root(std::move(root)) {}
@@ -145,13 +159,37 @@ bool TripStore::PublishArchive()
   auto const destination = TripDirectory(trip.id);
   if (fs::exists(destination))
     throw std::runtime_error("Trip already exists");
-  if (GpsTrackStorage::ReadSnapshot((pending / kArchive).string()).empty())
+  if (ReadTripPoints(pending, trip).empty())
   {
     fs::remove_all(pending);
     return false;
   }
   fs::rename(pending, destination);
   return true;
+}
+
+void TripStore::Archive(GpsTrack & track, std::function<void(TripArchiveResult)> completion)
+{
+  if (!completion)
+    throw std::runtime_error("Trip archive completion is required");
+  auto const destination = PrepareArchive();
+  track.ConsumeSnapshot(destination.string(), [store = *this, completion = std::move(completion)](bool copied) mutable
+  {
+    TripArchiveResult result = TripArchiveResult::Failed;
+    if (copied)
+    {
+      try
+      {
+        result = store.PublishArchive() ? TripArchiveResult::Saved : TripArchiveResult::Empty;
+      }
+      catch (std::exception const &)
+      {
+        // A failed publication leaves the stopped trip available for retry.
+      }
+    }
+    completion(result);
+    return result != TripArchiveResult::Failed;
+  });
 }
 
 std::vector<TripMetadata> TripStore::List() const
@@ -180,7 +218,11 @@ std::vector<TripMetadata> TripStore::List() const
 
 TripAnalysis TripStore::Load(std::string const & id) const
 {
-  return AnalyseTrip(GpsTrackStorage::ReadSnapshot((TripDirectory(id) / kArchive).string()));
+  auto const directory = TripDirectory(id);
+  auto const trip = ReadMetadata(directory);
+  if (trip.id != id || trip.endedAtMs == 0)
+    throw std::runtime_error("Invalid archived trip identity");
+  return AnalyseTrip(ReadTripPoints(directory, trip));
 }
 
 void TripStore::SetRole(std::string const & id, TripRole role)

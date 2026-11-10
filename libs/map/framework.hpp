@@ -5,6 +5,7 @@
 #include "map/features_fetcher.hpp"
 #include "map/isolines_manager.hpp"
 #include "map/mwm_url.hpp"
+#include "map/navi_trip_store.hpp"
 #include "map/place_page_info.hpp"
 #include "map/position_provider.hpp"
 #include "map/power_management/power_manager.hpp"
@@ -536,6 +537,9 @@ public:
 
   using TrackRecordingUpdateHandler = platform::SafeCallback<void(TrackStatistics const & trackStatistics)>;
   void StartTrackRecording();
+  navi::TripStore GetNaviTripStore() const;
+  void StartNaviTrip(navi::TripStore & store, std::string const & id, navi::TripRole role, int64_t startedAtMs);
+  void StopNaviTrip(navi::TripStore & store, int64_t endedAtMs, std::function<void(navi::TripArchiveResult)> completion);
   void SetTrackRecordingUpdateHandler(TrackRecordingUpdateHandler && trackRecordingDidUpdate);
   void StopTrackRecording();
   void SaveTrackRecordingWithName(std::string const & name);

@@ -9,6 +9,7 @@
 #include "base/assert.hpp"
 #include "base/file_name_utils.hpp"
 
+#include <stdexcept>
 #include <string>
 
 #include "defines.hpp"
@@ -106,6 +107,25 @@ void GpsTracker::OnLocationUpdated(location::GpsInfo const & info)
   if (!m_enabled)
     return;
   m_track.AddPoint(info);
+}
+
+void GpsTracker::ArchiveStoppedTrip(navi::TripStore & store, std::function<void(navi::TripArchiveResult)> completion)
+{
+  if (!completion || IsEnabled() || m_archivingTrip.exchange(true))
+    throw std::runtime_error("Trip recorder is unavailable for archiving");
+  try
+  {
+    store.Archive(m_track, [this, completion = std::move(completion)](navi::TripArchiveResult result)
+    {
+      m_archivingTrip = false;
+      completion(result);
+    });
+  }
+  catch (...)
+  {
+    m_archivingTrip = false;
+    throw;
+  }
 }
 
 void GpsTracker::ForEachTrackPoint(GpsTrackCallback const & callback) const

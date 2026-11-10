@@ -1,6 +1,7 @@
 #pragma once
 
 #include "map/gps_track.hpp"
+#include "map/navi_trip_store.hpp"
 
 #include <atomic>
 #include <functional>
@@ -36,6 +37,9 @@ public:
   void Disconnect();
 
   void OnLocationUpdated(location::GpsInfo const & info);
+  /// Keeps the raw recorder available until the stopped trip is saved or can be retried.
+  void ArchiveStoppedTrip(navi::TripStore & store, std::function<void(navi::TripArchiveResult)> completion);
+  bool IsArchivingTrip() const { return m_archivingTrip; }
 
   using GpsTrackCallback = std::function<bool(location::GpsInfo const &, size_t)>;
   void ForEachTrackPoint(GpsTrackCallback const & callback) const;
@@ -44,5 +48,6 @@ private:
   GpsTracker();
 
   std::atomic<bool> m_enabled;
+  std::atomic<bool> m_archivingTrip{false};
   GpsTrack m_track;
 };

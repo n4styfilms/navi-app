@@ -5,6 +5,7 @@
 #include "app/organicmaps/sdk/core/jni_helper.hpp"
 
 #include <chrono>
+#include <exception>
 
 extern "C"
 {
@@ -36,6 +37,42 @@ JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativeSto
                                                                                                 jclass clazz)
 {
   frm()->StopTrackRecording();
+}
+
+JNIEXPORT jboolean JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativeStartNaviTrip(
+    JNIEnv * env, jclass, jstring identifier, jboolean passenger, jlong startedAtMs)
+{
+  try
+  {
+    auto & framework = *frm();
+    auto store = framework.GetNaviTripStore();
+    auto const role = passenger ? navi::TripRole::Passenger : navi::TripRole::Driver;
+    framework.StartNaviTrip(store, jni::ToNativeString(env, identifier), role, startedAtMs);
+    return JNI_TRUE;
+  }
+  catch (std::exception const &)
+  {
+    return JNI_FALSE;
+  }
+}
+
+JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativeStopNaviTrip(
+    JNIEnv * env, jclass, jlong endedAtMs, jobject listener)
+{
+  auto const method = jni::GetMethodID(env, listener, "onTripArchived", "(I)V");
+  try
+  {
+    auto & framework = *frm();
+    auto store = framework.GetNaviTripStore();
+    framework.StopNaviTrip(store, endedAtMs, [target = jni::make_global_ref(listener), method](navi::TripArchiveResult result)
+    {
+      jni::GetEnv()->CallVoidMethod(*target, method, static_cast<jint>(result));
+    });
+  }
+  catch (std::exception const &)
+  {
+    env->CallVoidMethod(listener, method, static_cast<jint>(navi::TripArchiveResult::Failed));
+  }
 }
 
 JNIEXPORT void JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_nativeSaveTrackRecordingWithName(JNIEnv * env,

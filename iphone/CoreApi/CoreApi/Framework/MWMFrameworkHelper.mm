@@ -11,6 +11,14 @@
 #include "platform/network_policy_ios.h"
 
 #include <cmath>
+#include <exception>
+
+namespace {
+NSDictionary<NSString *, id> * NaviTripMetadata(navi::TripMetadata const & trip) {
+  return @{@"id": @(trip.id.c_str()), @"passenger": @(trip.role == navi::TripRole::Passenger),
+           @"startedAtMs": @(trip.startedAtMs), @"endedAtMs": @(trip.endedAtMs)};
+}
+}
 
 @implementation MWMFrameworkHelper
 
@@ -240,6 +248,82 @@
 
 + (void)stopTrackRecording {
   GetFramework().StopTrackRecording();
+}
+
++ (BOOL)startNaviTripWithIdentifier:(NSString *)identifier passenger:(BOOL)passenger startedAtMs:(int64_t)startedAtMs {
+  try {
+    auto & framework = GetFramework();
+    auto store = framework.GetNaviTripStore();
+    auto const role = passenger ? navi::TripRole::Passenger : navi::TripRole::Driver;
+    framework.StartNaviTrip(store, identifier.UTF8String, role, startedAtMs);
+    return YES;
+  } catch (std::exception const &) {
+    return NO;
+  }
+}
+
++ (void)stopNaviTripAtMs:(int64_t)endedAtMs completion:(void (^)(NaviTripArchiveStatus status))completion {
+  try {
+    auto & framework = GetFramework();
+    auto store = framework.GetNaviTripStore();
+    framework.StopNaviTrip(store, endedAtMs, [completion](navi::TripArchiveResult result) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        completion(static_cast<NaviTripArchiveStatus>(result));
+      });
+    });
+  } catch (std::exception const &) {
+    dispatch_async(dispatch_get_main_queue(), ^{ completion(NaviTripArchiveStatusFailed); });
+  }
+}
+
++ (NSDictionary<NSString *, id> *)naviTripState {
+  try {
+    auto & framework = GetFramework();
+    auto store = framework.GetNaviTripStore();
+    auto const pending = store.Pending();
+    NSMutableArray<NSDictionary<NSString *, id> *> * trips = [NSMutableArray array];
+    for (auto const & trip : store.List())
+      [trips addObject:NaviTripMetadata(trip)];
+    NSMutableDictionary<NSString *, id> * result = [@{@"trips": trips} mutableCopy];
+    if (pending)
+      result[@"pending"] = NaviTripMetadata(*pending);
+    return result;
+  } catch (std::exception const &) {
+    return nil;
+  }
+}
+
++ (NSDictionary<NSString *, id> *)naviTripStatisticsForIdentifier:(NSString *)identifier {
+  try {
+    auto const analysis = GetFramework().GetNaviTripStore().Load(identifier.UTF8String);
+    NSMutableDictionary<NSString *, id> * result = [@{@"distanceMeters": @(analysis.distanceMeters),
+      @"coveredSeconds": @(analysis.coveredSeconds), @"gapCount": @(analysis.gapCount),
+      @"rejectedCount": @(analysis.rejected.size()), @"rawCount": @(analysis.rawCount)} mutableCopy];
+    if (analysis.maximumSpeedMetersPerSecond)
+      result[@"maximumSpeedMetersPerSecond"] = @(*analysis.maximumSpeedMetersPerSecond);
+    return result;
+  } catch (std::exception const &) {
+    return nil;
+  }
+}
+
++ (BOOL)setNaviTripPassenger:(BOOL)passenger identifier:(NSString *)identifier {
+  try {
+    auto const role = passenger ? navi::TripRole::Passenger : navi::TripRole::Driver;
+    GetFramework().GetNaviTripStore().SetRole(identifier.UTF8String, role);
+    return YES;
+  } catch (std::exception const &) {
+    return NO;
+  }
+}
+
++ (BOOL)deleteNaviTripWithIdentifier:(NSString *)identifier {
+  try {
+    GetFramework().GetNaviTripStore().Delete(identifier.UTF8String);
+    return YES;
+  } catch (std::exception const &) {
+    return NO;
+  }
 }
 
 + (void)saveTrackRecordingWithName:(nonnull NSString *)name {

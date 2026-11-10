@@ -397,6 +397,11 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     let sheet = UIAlertController(title: NaviPalette.text("Deine Einstellungen", "Your settings"), message: nil, preferredStyle: .actionSheet)
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Mein Fahrzeug", "My vehicle"), style: .default) { [weak self] _ in self?.showVehicle() })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Freunde", "Friends"), style: .default) { [weak self] _ in self?.showFriends() })
+    sheet.addAction(UIAlertAction(title: NaviPalette.text("Meine Fahrten", "My trips"), style: .default) { [weak self] _ in
+      let navigation = UINavigationController(rootViewController: NaviTripsViewController(style: .insetGrouped))
+      navigation.view.tintColor = NaviPalette.ink
+      self?.present(navigation, animated: true)
+    })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Offline-Karten", "Offline maps"), style: .default) { [weak self] _ in self?.openMapsDownloader(.downloaded) })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Satellitenzugang", "Satellite access"), style: .default) { [weak self] _ in self?.showAccess() })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Schließen", "Close"), style: .cancel))

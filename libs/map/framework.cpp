@@ -100,6 +100,7 @@
 #include "defines.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 using namespace location;
 using namespace routing;
@@ -1747,6 +1748,32 @@ void Framework::StartTrackRecording()
     m_drapeEngine->ClearGpsTrackPoints();
     tracker.Connect(bind(&Framework::OnUpdateGpsTrackPointsCallback, this, _1, _2, _3));
   }
+}
+
+navi::TripStore Framework::GetNaviTripStore() const
+{
+  return navi::TripStore(std::filesystem::path(GetPlatform().SettingsDir()) / "navi-trips");
+}
+
+void Framework::StartNaviTrip(navi::TripStore & store, std::string const & id, navi::TripRole role, int64_t startedAtMs)
+{
+  auto & tracker = GpsTracker::Instance();
+  if (tracker.IsEnabled() || tracker.IsArchivingTrip())
+    throw std::runtime_error("A recording is already in progress");
+  store.Begin(id, role, startedAtMs);
+  StartTrackRecording();
+}
+
+void Framework::StopNaviTrip(navi::TripStore & store, int64_t endedAtMs,
+                            std::function<void(navi::TripArchiveResult)> completion)
+{
+  auto const trip = store.Pending();
+  auto & tracker = GpsTracker::Instance();
+  if (!trip || tracker.IsArchivingTrip() || !completion)
+    throw std::runtime_error("No private recording is ready to archive");
+  StopTrackRecording();
+  store.Stop(std::max(endedAtMs, trip->startedAtMs));
+  tracker.ArchiveStoppedTrip(store, std::move(completion));
 }
 
 void Framework::SetTrackRecordingUpdateHandler(TrackRecordingUpdateHandler && trackRecordingDidUpdate)

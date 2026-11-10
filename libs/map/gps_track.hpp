@@ -51,6 +51,9 @@ public:
   /// Completion runs on the worker and must not destroy the track. Destruction drains
   /// accepted snapshots; callers commit archive metadata only after success.
   void ExportSnapshot(std::string destination, std::function<void(bool)> completion);
+  /// Commit the copy on the worker. Returning true clears the source at this
+  /// same queue boundary, after a successful copy, before later samples.
+  void ConsumeSnapshot(std::string destination, std::function<bool(bool)> commit);
 
   bool IsEmpty() const;
   size_t GetSize() const;
@@ -111,7 +114,7 @@ private:
     std::vector<location::GpsInfo> m_points;
     bool m_needClear = false;
     std::string m_exportPath;
-    std::function<void(bool)> m_exportCompletion;
+    std::function<bool(bool)> m_exportCommit;
   };
   std::vector<Batch> m_pendingBatches;
   std::vector<location::GpsInfo> m_points;  // accumulated points for adding

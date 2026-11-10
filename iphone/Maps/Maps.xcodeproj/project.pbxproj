@@ -26,6 +26,7 @@
 		A71F0000000000000000000C /* PresencePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F00000000000000000009 /* PresencePolicy.swift */; };
 		A71F0000000000000000000D /* FriendsDataSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F0000000000000000000A /* FriendsDataSession.swift */; };
 		A71E00000000000000000008 /* NaviViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000007 /* NaviViewController.swift */; };
+		A71F0000000000000000002E /* NaviTripsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71F0000000000000000002D /* NaviTripsViewController.swift */; };
 		A71E00000000000000000006 /* NaviMapKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000005 /* NaviMapKeyStore.swift */; };
 		A71E00000000000000000004 /* NaviMapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000003 /* NaviMapController.swift */; };
 		A71E00000000000000000002 /* NaviEsriTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71E00000000000000000001 /* NaviEsriTransport.swift */; };
@@ -822,6 +823,7 @@
 		A71F00000000000000000009 /* PresencePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresencePolicy.swift; sourceTree = "<group>"; };
 		A71F0000000000000000000A /* FriendsDataSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsDataSession.swift; sourceTree = "<group>"; };
 		A71E00000000000000000007 /* NaviViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviViewController.swift; sourceTree = "<group>"; };
+		A71F0000000000000000002D /* NaviTripsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviTripsViewController.swift; sourceTree = "<group>"; };
 		A71E00000000000000000005 /* NaviMapKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviMapKeyStore.swift; sourceTree = "<group>"; };
 		A71E00000000000000000003 /* NaviMapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviMapController.swift; sourceTree = "<group>"; };
 		A71E00000000000000000001 /* NaviEsriTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaviEsriTransport.swift; sourceTree = "<group>"; };
@@ -4171,7 +4173,7 @@
 			sourceTree = "<group>";
 		};
 		A71B00000000000000000003 /* Vehicle */ = {isa = PBXGroup; children = (A71F0000000000000000001F /* NaviPalette.swift */,A71B00000000000000000001 /* NaviVehicleViewController.swift */,); path = Vehicle; sourceTree = "<group>"; };
-		A71C00000000000000000003 /* NaviMap */ = {isa = PBXGroup; children = (A71E00000000000000000007 /* NaviViewController.swift */,A71E00000000000000000005 /* NaviMapKeyStore.swift */,A71E00000000000000000003 /* NaviMapController.swift */,A71E00000000000000000001 /* NaviEsriTransport.swift */,A71C00000000000000000001 /* NaviMapPolicy.swift */,); path = NaviMap; sourceTree = "<group>"; };
+		A71C00000000000000000003 /* NaviMap */ = {isa = PBXGroup; children = (A71E00000000000000000007 /* NaviViewController.swift */,A71F0000000000000000002D /* NaviTripsViewController.swift */,A71E00000000000000000005 /* NaviMapKeyStore.swift */,A71E00000000000000000003 /* NaviMapController.swift */,A71E00000000000000000001 /* NaviEsriTransport.swift */,A71C00000000000000000001 /* NaviMapPolicy.swift */,); path = NaviMap; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -4558,6 +4560,7 @@
 				A71E00000000000000000004 /* NaviMapController.swift in Sources */,
 				A71E00000000000000000006 /* NaviMapKeyStore.swift in Sources */,
 				A71E00000000000000000008 /* NaviViewController.swift in Sources */,
+				A71F0000000000000000002E /* NaviTripsViewController.swift in Sources */,
 				A71C00000000000000000002 /* NaviMapPolicy.swift in Sources */,
 				A71F0000000000000000000B /* PresenceSample.swift in Sources */,
 				A71F0000000000000000001C /* FriendsRuntime.swift in Sources */,

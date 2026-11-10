@@ -113,6 +113,16 @@ void GpsTrack::Clear()
 void GpsTrack::ExportSnapshot(std::string destination, std::function<void(bool)> completion)
 {
   CHECK(completion != nullptr, ("Snapshot completion is required"));
+  ConsumeSnapshot(std::move(destination), [completion = std::move(completion)](bool copied)
+  {
+    completion(copied);
+    return false;
+  });
+}
+
+void GpsTrack::ConsumeSnapshot(std::string destination, std::function<bool(bool)> commit)
+{
+  CHECK(commit != nullptr, ("Snapshot commit is required"));
   {
     lock_guard<mutex> lock(m_dataGuard);
     Batch batch;
@@ -120,7 +130,7 @@ void GpsTrack::ExportSnapshot(std::string destination, std::function<void(bool)>
     batch.m_needClear = m_needClear;
     m_needClear = false;
     batch.m_exportPath = std::move(destination);
-    batch.m_exportCompletion = std::move(completion);
+    batch.m_exportCommit = std::move(commit);
     m_pendingBatches.emplace_back(std::move(batch));
   }
   ScheduleTask();
@@ -271,12 +281,18 @@ void GpsTrack::ProcessPoints()
     pair<size_t, size_t> evictedIds;
     UpdateCollection(batch.m_needClear, points, addedIds, evictedIds);
     NotifyCallback(addedIds, evictedIds);
-    if (batch.m_exportCompletion)
+    if (batch.m_exportCommit)
     {
       std::error_code error;
       bool const copied = m_storage && std::filesystem::copy_file(m_filePath, batch.m_exportPath,
         std::filesystem::copy_options::none, error);
-      batch.m_exportCompletion(copied && !error);
+      bool const committed = batch.m_exportCommit(copied && !error);
+      if (committed && copied && !error)
+      {
+        UpdateStorage(true, {});
+        UpdateCollection(true, {}, addedIds, evictedIds);
+        NotifyCallback(addedIds, evictedIds);
+      }
     }
   }
 }

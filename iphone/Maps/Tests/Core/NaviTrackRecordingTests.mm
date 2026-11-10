@@ -1,6 +1,8 @@
 #import <XCTest/XCTest.h>
 #import <CoreApi/Framework.h>
+#import <CoreApi/MWMFrameworkHelper.h>
 #include "map/gps_track.hpp"
+#include "map/gps_tracker.hpp"
 #include "map/track_statistics.hpp"
 #include <chrono>
 #include <thread>
@@ -17,6 +19,44 @@ bool WaitForTrackSize(GpsTrack const & track, size_t size) {
 @interface NaviTrackRecordingTests : XCTestCase
 @end
 @implementation NaviTrackRecordingTests
+- (void)testPrivateTripBridgeArchivesAndDeletesOneRecording {
+  XCTestExpectation * finished = [self expectationWithDescription:@"Native private trip archive"];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    XCTAssertFalse(GetFramework().IsDrapeEngineCreated());
+    NSString * identifier = NSUUID.UUID.UUIDString.lowercaseString;
+    int64_t const startedAtMs = static_cast<int64_t>(NSDate.date.timeIntervalSince1970 * 1000);
+    BOOL const started = [MWMFrameworkHelper startNaviTripWithIdentifier:identifier passenger:NO startedAtMs:startedAtMs];
+    XCTAssertTrue(started);
+    if (!started) { [finished fulfill]; return; }
+    auto & tracker = GpsTracker::Instance();
+    location::GpsInfo first;
+    first.m_timestamp = (startedAtMs + 1000) / 1000.0;
+    first.m_latitude = 43.7295; first.m_longitude = 7.4208;
+    first.m_speed = 5; first.m_horizontalAccuracy = 4; first.m_source = location::EAppleNative;
+    auto second = first; second.m_timestamp += 1; second.m_longitude += 0.001;
+    tracker.OnLocationUpdated(first);
+    tracker.OnLocationUpdated(second);
+    [MWMFrameworkHelper stopNaviTripAtMs:startedAtMs + 3000 completion:^(NaviTripArchiveStatus status) {
+      XCTAssertTrue(NSThread.isMainThread);
+      XCTAssertEqual(status, NaviTripArchiveStatusSaved);
+      XCTAssertFalse(GpsTracker::Instance().IsEnabled());
+      NSDictionary * stats = [MWMFrameworkHelper naviTripStatisticsForIdentifier:identifier];
+      XCTAssertEqualObjects(stats[@"rawCount"], @2);
+      XCTAssertEqualObjects(stats[@"maximumSpeedMetersPerSecond"], @5);
+      XCTAssertGreaterThan([stats[@"distanceMeters"] doubleValue], 50);
+      XCTAssertTrue([MWMFrameworkHelper setNaviTripPassenger:YES identifier:identifier]);
+      NSArray * trips = [MWMFrameworkHelper naviTripState][@"trips"];
+      NSDictionary * saved = [trips filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"id == %@", identifier]].firstObject;
+      XCTAssertEqualObjects(saved[@"passenger"], @YES);
+      XCTAssertTrue([MWMFrameworkHelper deleteNaviTripWithIdentifier:identifier]);
+      XCTAssertNil([MWMFrameworkHelper naviTripStatisticsForIdentifier:identifier]);
+      XCTAssertFalse(GetFramework().IsDrapeEngineCreated());
+      [finished fulfill];
+    }];
+  });
+  [self waitForExpectationsWithTimeout:12 handler:nil];
+}
+
 - (void)testHeadlessRecordingRestoresProgressAndMeasurementQuality {
   XCTestExpectation * finished = [self expectationWithDescription:@"Actual recorder worker without drawing callback"];
   NSString * path = [NSTemporaryDirectory() stringByAppendingPathComponent:

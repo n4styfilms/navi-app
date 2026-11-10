@@ -4,13 +4,17 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <string>
 #include <vector>
 
+class GpsTrack;
+
 namespace navi
 {
 enum class TripRole { Driver, Passenger };
+enum class TripArchiveResult { Failed = 0, Empty = 1, Saved = 2 };
 
 struct TripMetadata
 {
@@ -34,6 +38,9 @@ public:
   std::filesystem::path PrepareArchive();
   /// Call after a successful recorder export. Returns false for an empty trip.
   bool PublishArchive();
+  /// Schedules one stopped recording for archival. Completion runs on the
+  /// recorder worker. The caller must wait before starting a new recording.
+  void Archive(GpsTrack & track, std::function<void(TripArchiveResult)> completion);
 
   std::vector<TripMetadata> List() const;
   TripAnalysis Load(std::string const & id) const;
