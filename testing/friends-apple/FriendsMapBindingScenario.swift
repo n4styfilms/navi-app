@@ -68,6 +68,6 @@ import FirebaseAuth
     try FriendsNativeProbe.check(owner.view.camera == camera && owner.geometryRevision == nil,
       "SDK friend changes moved camera or created route geometry")
     try await source.setSharing(false)
-    print("native_apple_map_binding=true")
+    FriendsNativeProbe.prove("native_apple_map_binding")
   }
 }

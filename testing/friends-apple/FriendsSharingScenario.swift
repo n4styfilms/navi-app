@@ -33,7 +33,7 @@ import FirebaseDatabase
       "Server did not receive fresh location")
     let speed = try await data.database().reference(withPath: "live/\(alice.uid)/speed").getData()
     try FriendsNativeProbe.check(!speed.hasChild("metersPerSecond"), "Unknown speed was manufactured")
-    print("native_apple_sharing_ack=true")
+    FriendsNativeProbe.prove("native_apple_sharing_ack")
 
     try data.database().goOffline()
     try await FriendsNativeProbe.waitFor("sharing offline", { controller.state == .reconnecting })
@@ -56,6 +56,6 @@ import FirebaseDatabase
     let control = try await data.database().reference(withPath: "liveControl/\(alice.uid)").getData()
     try FriendsNativeProbe.check(control.childSnapshot(forPath: "enabled").value as? Bool == false
       && !control.hasChild("publishedSequence"), "Pending pause did not replace server lease")
-    print("native_apple_durable_offline_pause=true")
+    FriendsNativeProbe.prove("native_apple_durable_offline_pause")
   }
 }

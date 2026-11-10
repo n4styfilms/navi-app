@@ -5,6 +5,8 @@ import subprocess
 import sys
 import shutil
 import time
+import uuid
+from apple_proof_result import MAX_RESULT_BYTES, validate_result
 from select_ios_simulator import select
 
 out = Path(sys.argv[1]).resolve()
@@ -18,6 +20,10 @@ subprocess.run(['xcrun', 'simctl', 'bootstatus', udid, '-b'], check=True, timeou
 app = out / 'DerivedData/Build/Products/Debug-iphonesimulator/FriendsNativeProbe.app'
 evidence = out.parent / 'friends-evidence'
 evidence.mkdir(exist_ok=True)
+source = (evidence / 'source-commit.txt').read_text(encoding='utf-8').strip()
+root = Path(__file__).resolve().parents[2]
+specification = json.loads((root / 'backend/firebase/tests/native-apple-proofs.json').read_text(encoding='utf-8'))
+nonce = uuid.uuid4().hex
 install_started = time.time()
 try:
     installed = subprocess.run(['xcrun', 'simctl', 'install', udid, str(app)],
@@ -36,21 +42,32 @@ started = time.time()
 passed = False
 try:
     result = subprocess.run(['xcrun', 'simctl', 'launch', '--terminate-running-process', '--console', udid,
-                             'app.navi.friendstest'], capture_output=True, timeout=75)
+                             'app.navi.friendstest', '--navi-proof-nonce=' + nonce], capture_output=True, timeout=75)
     transcript = result.stdout + result.stderr
     (out / 'simulator-runtime.log').write_bytes(transcript)
     (evidence / 'native-launch-console.log').write_bytes(transcript)
     (evidence / 'native-launch.json').write_text(json.dumps({'returncode': result.returncode,
         'elapsed_seconds': time.time() - started}, indent=2))
-    sys.stdout.buffer.write(transcript)
+    sys.stdout.buffer.write(transcript + b'\n')
+    sys.stdout.buffer.flush()
     container = subprocess.check_output(['xcrun', 'simctl', 'get_app_container', udid,
         'app.navi.friendstest', 'data'], text=True, timeout=15).strip()
     for name in ['friends-ui-light.png', 'friends-ui-dark-large.png', 'friends-map-live.png', 'friends-map-stale.png']:
         screenshot = Path(container) / 'Documents' / name
         if screenshot.is_file():
             shutil.copyfile(screenshot, evidence / name)
-    if result.returncode != 0 or b'NAVI_APPLE_NATIVE_ERROR' in transcript or b'NAVI_APPLE_NATIVE_SUCCESS proofs=16' not in transcript:
+    try:
+        with (Path(container) / 'Documents/native-proof-result.json').open('rb') as manifest:
+            payload = manifest.read(MAX_RESULT_BYTES + 1)
+        (evidence / 'native-proof-result.json').write_bytes(payload)
+        proofs = validate_result(payload, nonce, source, specification)
+    except (OSError, ValueError) as error:
+        raise SystemExit(f'Invalid native friends proof result: {error}') from error
+    if result.returncode != 0 or b'NAVI_APPLE_NATIVE_ERROR' in transcript:
         raise SystemExit('Simulator native friends fixture did not pass')
+    for flag in proofs:
+        print(f'{flag}=true')
+    print(f'NAVI_APPLE_NATIVE_SUCCESS proofs={len(specification["cases"])}', flush=True)
     passed = True
 except subprocess.TimeoutExpired as error:
     (evidence / 'native-launch-console.log').write_bytes((error.stdout or b'') + (error.stderr or b''))

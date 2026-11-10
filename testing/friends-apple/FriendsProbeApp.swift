@@ -16,7 +16,31 @@ import UIKit
     window.makeKeyAndVisible()
     Task { @MainActor in
       do {
-        try await FriendsNativeProbe.run()
+        let prefix = "--navi-proof-nonce="
+        guard let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix(prefix) }),
+              let source = Bundle.main.object(forInfoDictionaryKey: "NaviSourceCommit") as? String else {
+          throw ProbeError.failed("Missing proof launch identity")
+        }
+        let nonce = String(argument.dropFirst(prefix.count))
+        let documents = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask,
+          appropriateFor: nil, create: true)
+        let result = documents.appendingPathComponent("native-proof-result.json")
+        if FileManager.default.fileExists(atPath: result.path) {
+          try FileManager.default.removeItem(at: result)
+        }
+        func writeResult(status: String, error: String? = nil) throws {
+          var record: [String: Any] = ["nonce": nonce, "source": source, "status": status,
+                                      "proofs": FriendsNativeProbe.proofs]
+          record["error"] = error
+          try JSONSerialization.data(withJSONObject: record).write(to: result, options: .atomic)
+        }
+        do {
+          try await FriendsNativeProbe.run()
+        } catch {
+          try writeResult(status: "failed", error: String(describing: error))
+          throw error
+        }
+        try writeResult(status: "passed")
         exit(0)
       } catch {
         print("NAVI_APPLE_NATIVE_ERROR \(error)")

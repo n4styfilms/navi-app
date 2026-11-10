@@ -146,6 +146,6 @@ import FirebaseAuth
       scroll.scrollRectToVisible(label.convert(label.bounds, to: scroll).insetBy(dx: 0, dy: -60), animated: false)
     }
     try capture(window, name: "friends-ui-dark-large.png")
-    print("native_apple_sheet=true")
+    FriendsNativeProbe.prove("native_apple_sheet")
   }
 }

@@ -7,6 +7,7 @@ import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
 assert.equal(process.env.GCLOUD_PROJECT, 'demo-navi-friends');
 const [binary, report] = process.argv.slice(2);
 assert.ok(binary && report, 'Expected compiled native Apple probe and output report');
+const {cases, extra} = JSON.parse(await readFile(new URL('native-apple-proofs.json', import.meta.url), 'utf8'));
 const env = await initializeTestEnvironment({projectId: 'demo-navi-friends', database: {
   host: '127.0.0.1', port: 9000, rules: await readFile(new URL('../database.rules.json', import.meta.url), 'utf8')
 }});
@@ -22,16 +23,10 @@ try {
   clearTimeout(timer);
   await writeFile(report + '.log', transcript);
   assert.equal(code, 0, transcript);
-  const flags = ['native_apple_auth_cloned', 'native_apple_listener_revoked', 'native_apple_fresh_session_denied_old_peer',
-    'native_apple_late_session_completion_closed', 'native_apple_failed_open_cleanup', 'native_apple_friend_actions',
-    'native_apple_peer_snapshots', 'native_apple_gated_publication',
-    'native_apple_sharing_ack', 'native_apple_durable_offline_pause',
-    'native_apple_online_logout', 'native_apple_offline_logout', 'native_apple_runtime', 'native_apple_sheet',
-    'native_apple_pending_profile_preserved', 'native_apple_map_binding'];
-  for (const flag of flags) assert.ok(transcript.includes(flag + '=true'), transcript);
-  assert.ok(transcript.includes('native_apple_location_bridge=true'), transcript);
-  assert.ok(transcript.includes('NAVI_APPLE_NATIVE_SUCCESS proofs=16'), transcript);
-  await writeFile(report, JSON.stringify({proofs: flags, passed: flags.length}, null, 2));
+  const lines = new Set(transcript.split(/\r?\n/));
+  for (const flag of [...cases, ...extra]) assert.ok(lines.has(flag + '=true'), transcript);
+  assert.ok(lines.has('NAVI_APPLE_NATIVE_SUCCESS proofs=' + cases.length), transcript);
+  await writeFile(report, JSON.stringify({proofs: cases, passed: cases.length}, null, 2));
 } finally {
   await env.cleanup();
 }

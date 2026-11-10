@@ -58,7 +58,7 @@ import FirebaseDatabase
     try await FriendsNativeProbe.waitFor("resume requires a new point", {
       peers.first?.awaitingFreshSample == true && peers.first?.position == nil
     })
-    print("native_apple_peer_snapshots=true")
+    FriendsNativeProbe.prove("native_apple_peer_snapshots")
     policy.pause()
     do {
       try await aliceRepo.publish(policy: policy, upload: secondUpload, lease: 5)
@@ -68,6 +68,6 @@ import FirebaseDatabase
     try FriendsNativeProbe.check(!control.hasChild("publishedSequence"), "Invalidated write advanced server cursor")
     chrisData.close()
     try FriendsNativeProbe.check(peers.isEmpty, "Session close did not synchronously clear current peers")
-    print("native_apple_gated_publication=true")
+    FriendsNativeProbe.prove("native_apple_gated_publication")
   }
 }

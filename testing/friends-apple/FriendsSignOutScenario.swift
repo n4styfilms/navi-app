@@ -41,7 +41,7 @@ import FirebaseDatabase
     let disabled = try await control.getData()
     try FriendsNativeProbe.check(disabled.childSnapshot(forPath: "enabled").value as? Bool == false,
       "Online logout left server sharing enabled")
-    print("native_apple_online_logout=true")
+    FriendsNativeProbe.prove("native_apple_online_logout")
 
     try await auth.signIn(withEmail: user.email!, password: "synthetic-local-password-123")
     try await FriendsNativeProbe.waitFor("offline logout account ready", { current != nil })
@@ -82,6 +82,6 @@ import FirebaseDatabase
     let finallyDisabled = try await control.getData()
     try FriendsNativeProbe.check(finallyDisabled.childSnapshot(forPath: "enabled").value as? Bool == false
       && !finallyDisabled.hasChild("publishedSequence"), "Re-login failed to finish pending server revocation")
-    print("native_apple_offline_logout=true")
+    FriendsNativeProbe.prove("native_apple_offline_logout")
   }
 }

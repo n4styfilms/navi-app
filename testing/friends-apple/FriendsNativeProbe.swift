@@ -6,6 +6,13 @@ import FirebaseDatabase
 enum ProbeError: Error { case failed(String) }
 
 @MainActor enum FriendsNativeProbe {
+  private(set) static var proofs: [String] = []
+
+  static func prove(_ flag: String) {
+    proofs.append(flag)
+    print(flag + "=true")
+  }
+
   static func check(_ condition: Bool, _ message: String) throws {
     if !condition { throw ProbeError.failed(message) }
   }
@@ -77,7 +84,7 @@ enum ProbeError: Error { case failed(String) }
       "receivedAtMs": ServerValue.timestamp()]
     try await a.updateChildValues(["live/\(alice.uid)/position": position,
                                   "liveControl/\(alice.uid)/publishedSequence": 1])
-    print("native_apple_auth_cloned=true")
+    prove("native_apple_auth_cloned")
 
     var values = 0
     var cancelled = false
@@ -91,7 +98,7 @@ enum ProbeError: Error { case failed(String) }
     try await Task.sleep(nanoseconds: 200_000_000)
     try check(values == countAtRevocation, "Values delivered after server revocation")
     observation.close()
-    print("native_apple_listener_revoked=true")
+    prove("native_apple_listener_revoked")
 
     var cleared = false
     _ = bobData.onClose { cleared = true }
@@ -107,7 +114,7 @@ enum ProbeError: Error { case failed(String) }
     try await waitFor("fresh account denied old peer", { denied })
     try check(oldPeerValues == 0, "Fresh account inherited another account's cached peer")
     deniedObservation.close()
-    print("native_apple_fresh_session_denied_old_peer=true")
+    prove("native_apple_fresh_session_denied_old_peer")
 
     var delayed: FriendsDataSession?
     var release = false
@@ -127,7 +134,7 @@ enum ProbeError: Error { case failed(String) }
     try check(readyCount == 0 && Auth.auth(app: bobApp).currentUser == nil,
               "Late session became ready after account logout")
     controller.close()
-    print("native_apple_late_session_completion_closed=true")
+    prove("native_apple_late_session_completion_closed")
 
     let beforeFailure = Set(FirebaseApp.allApps?.keys.map { $0 } ?? [])
     do {
@@ -142,7 +149,7 @@ enum ProbeError: Error { case failed(String) }
       Set(FirebaseApp.allApps?.keys.map { $0 } ?? []).subtracting(beforeFailure).isEmpty
     })
     try check(Auth.auth(app: aliceApp).currentUser?.uid == alice.uid, "Failed session changed primary identity")
-    print("native_apple_failed_open_cleanup=true")
+    prove("native_apple_failed_open_cleanup")
 
     let aliceRepo = try FriendsRepository(session: aliceData)
     let chrisRepo = try FriendsRepository(session: chrisData)
@@ -180,7 +187,7 @@ enum ProbeError: Error { case failed(String) }
         throw ProbeError.failed("Invalid peer accepted")
       } catch FriendsRepository.RepositoryError.invalidPeer { }
     }
-    print("native_apple_friend_actions=true")
+    prove("native_apple_friend_actions")
     try await FriendsSnapshotScenario.run(alice: alice, chris: chris, aliceData: aliceData, chrisData: chrisData,
       aliceRepo: aliceRepo, chrisRepo: chrisRepo)
     try await FriendsSharingScenario.run(alice: alice, data: aliceData)
@@ -189,7 +196,6 @@ enum ProbeError: Error { case failed(String) }
     try await FriendsPendingWriteScenario.run()
     try await FriendsMapBindingScenario.run()
     try await FriendsSheetScenario.run()
-    print("NAVI_APPLE_NATIVE_SUCCESS proofs=16")
     for app in [aliceApp, bobApp, chrisApp] {
       try Auth.auth(app: app).signOut()
       app.delete { _ in }

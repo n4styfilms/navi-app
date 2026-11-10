@@ -39,6 +39,6 @@ import FirebaseDatabase
     try FriendsNativeProbe.check(saved.childSnapshot(forPath: "displayName").value as? String == "Queued profile",
       "Location enable lost an unrelated queued profile on the server")
     try await sharing.setEnabled(false)
-    print("native_apple_pending_profile_preserved=true")
+    FriendsNativeProbe.prove("native_apple_pending_profile_preserved")
   }
 }

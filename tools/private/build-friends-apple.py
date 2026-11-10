@@ -9,11 +9,13 @@ from select_ios_simulator import select
 
 out = Path(sys.argv[1]).resolve()
 root = Path(__file__).resolve().parents[2]
+source = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
 subprocess.run(['gem', 'install', '--user-install', 'xcodeproj', '--no-document'], check=True, timeout=180)
 (out / 'Info.plist').write_bytes(plistlib.dumps({
     'CFBundleIdentifier': 'app.navi.friendstest', 'CFBundleExecutable': 'FriendsNativeProbe',
     'CFBundleName': 'Friends Native Test', 'CFBundlePackageType': 'APPL', 'CFBundleVersion': '1',
     'CFBundleShortVersionString': '1.0', 'MinimumOSVersion': '15.6', 'UILaunchScreen': {},
+    'NaviSourceCommit': source,
     'NSAppTransportSecurity': {'NSAllowsLocalNetworking': True,
         'NSExceptionDomains': {'127.0.0.1': {'NSExceptionAllowsInsecureHTTPLoads': True}}}
 }))

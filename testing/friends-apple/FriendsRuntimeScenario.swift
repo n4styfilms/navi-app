@@ -133,7 +133,7 @@ import CoreLocation
     try await pause.value
     try FriendsNativeProbe.check(!source.locationDemand, "Paused runtime retained location demand")
     try FriendsNativeProbe.check(providerDemands == [false, true, false], "Bridge retained provider demand on pause")
-    print("native_apple_location_bridge=true")
-    print("native_apple_runtime=true")
+    FriendsNativeProbe.prove("native_apple_location_bridge")
+    FriendsNativeProbe.prove("native_apple_runtime")
   }
 }
