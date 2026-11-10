@@ -1752,7 +1752,12 @@ void Framework::StartTrackRecording()
 
 navi::TripStore Framework::GetNaviTripStore() const
 {
-  return navi::TripStore(std::filesystem::path(GetPlatform().SettingsDir()) / "navi-trips");
+  auto root = std::filesystem::path(GetPlatform().SettingsDir()) / "navi-trips";
+#if defined(OMIM_OS_IPHONE)
+  std::filesystem::create_directories(root);
+  Platform::DisableBackupForFile(root.string());
+#endif
+  return navi::TripStore(std::move(root));
 }
 
 void Framework::StartNaviTrip(navi::TripStore & store, std::string const & id, navi::TripRole role, int64_t startedAtMs)

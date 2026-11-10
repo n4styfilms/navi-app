@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A71D00000000000000000101 /* navi_route_capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A71D00000000000000000102 /* navi_route_capture.cpp */; settings = {COMPILER_FLAGS = "-fno-fast-math"; }; };
+		A71D00000000000000000201 /* navi_trip_analysis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A71D00000000000000000202 /* navi_trip_analysis.cpp */; settings = {COMPILER_FLAGS = "-fno-fast-math"; }; };
+		A71D00000000000000000204 /* navi_trip_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A71D00000000000000000205 /* navi_trip_store.cpp */; settings = {COMPILER_FLAGS = "-fno-fast-math"; }; };
 		A71D00000000000000000001 /* navi_route_snapshot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A71D00000000000000000002 /* navi_route_snapshot.cpp */; settings = {COMPILER_FLAGS = "-fno-fast-math"; }; };
 		0831F23C200E53600034C365 /* bookmarks_search_params.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 0831F23B200E53600034C365 /* bookmarks_search_params.hpp */; };
 		34583BCF1C88556800F94664 /* place_page_info.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34583BCD1C88556800F94664 /* place_page_info.cpp */; };
@@ -154,6 +156,10 @@
 /* Begin PBXFileReference section */
 		A71D00000000000000000102 /* navi_route_capture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = navi_route_capture.cpp; sourceTree = "<group>"; };
 		A71D00000000000000000103 /* navi_route_capture.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = navi_route_capture.hpp; sourceTree = "<group>"; };
+		A71D00000000000000000202 /* navi_trip_analysis.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = navi_trip_analysis.cpp; sourceTree = "<group>"; };
+		A71D00000000000000000203 /* navi_trip_analysis.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = navi_trip_analysis.hpp; sourceTree = "<group>"; };
+		A71D00000000000000000205 /* navi_trip_store.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = navi_trip_store.cpp; sourceTree = "<group>"; };
+		A71D00000000000000000206 /* navi_trip_store.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = navi_trip_store.hpp; sourceTree = "<group>"; };
 		A71D00000000000000000002 /* navi_route_snapshot.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = navi_route_snapshot.cpp; sourceTree = "<group>"; };
 		A71D00000000000000000003 /* navi_route_snapshot.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = navi_route_snapshot.hpp; sourceTree = "<group>"; };
 		0831F23B200E53600034C365 /* bookmarks_search_params.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bookmarks_search_params.hpp; sourceTree = "<group>"; };
@@ -398,6 +404,10 @@
 			children = (
 				A71D00000000000000000102 /* navi_route_capture.cpp */,
 				A71D00000000000000000103 /* navi_route_capture.hpp */,
+				A71D00000000000000000202 /* navi_trip_analysis.cpp */,
+				A71D00000000000000000203 /* navi_trip_analysis.hpp */,
+				A71D00000000000000000205 /* navi_trip_store.cpp */,
+				A71D00000000000000000206 /* navi_trip_store.hpp */,
 				A71D00000000000000000002 /* navi_route_snapshot.cpp */,
 				A71D00000000000000000003 /* navi_route_snapshot.hpp */,
 				45201E921CE4AC90008A4842 /* api_mark_point.cpp */,
@@ -687,6 +697,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A71D00000000000000000101 /* navi_route_capture.cpp in Sources */,
+				A71D00000000000000000201 /* navi_trip_analysis.cpp in Sources */,
+				A71D00000000000000000204 /* navi_trip_store.cpp in Sources */,
 				A71D00000000000000000001 /* navi_route_snapshot.cpp in Sources */,
 				456E1B3A1F9A3C2A009C32E1 /* search_mark.cpp in Sources */,
 				F6B283051C1B03320081957A /* gps_track_filter.cpp in Sources */,

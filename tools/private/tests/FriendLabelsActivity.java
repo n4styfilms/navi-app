@@ -7,8 +7,10 @@ import android.os.Looper;
 import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import app.organicmaps.navi.map.EsriMapConfiguration;
+import app.organicmaps.navi.map.MapLoadState;
 import app.organicmaps.navi.map.NaviMapController;
 import java.util.Collections;
+import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Response;
@@ -91,6 +93,32 @@ public final class FriendLabelsActivity extends AppCompatActivity {
       handler.postDelayed(this::checkRendered, 1000);
     } else if (phase == 2 && dots == 0 && labels.isEmpty()) {
       Log.i("NaviFriendLabels", "PASS cleared peers remove actual friend dot and label");
+      var segments = List.of(
+          List.of(new LatLng(43.7295, 7.4208), new LatLng(43.7298, 7.4210)),
+          List.of(new LatLng(43.7302, 7.4214), new LatLng(43.7305, 7.4216)));
+      if (!controller.showTrip(segments)) throw new AssertionError("Saved trip could not be opened");
+      phase = 3;
+      attempts = 0;
+      handler.postDelayed(this::checkRendered, 1000);
+    } else if (phase == 3 || phase == 4) {
+      int lines = map.queryRenderedFeatures(bounds, "navi-route-line").size();
+      if (lines < 2 || controller.getState().status != MapLoadState.Status.READY
+          || !controller.hasTripPreview() || controller.getGeometryRevision() != -1) {
+        if (++attempts >= 15) throw new AssertionError("Disconnected trip lines did not render");
+      } else if (phase == 3) {
+        Log.i("NaviFriendLabels", "PASS actual disconnected trip lines rendered without a route");
+        phase = 4;
+        attempts = 0;
+        controller.retry();
+      } else {
+        Log.i("NaviFriendLabels", "PASS trip preview survives style reload");
+        phase = 5;
+        attempts = 0;
+        controller.closeTrip(true);
+      }
+      handler.postDelayed(this::checkRendered, 1000);
+    } else if (phase == 5 && !controller.hasTripPreview() && map.queryRenderedFeatures(bounds, "navi-route-line").isEmpty()) {
+      Log.i("NaviFriendLabels", "PASS closing trip clears its rendered geometry");
     } else if (++attempts < 15) {
       handler.postDelayed(this::checkRendered, 1000);
     } else {

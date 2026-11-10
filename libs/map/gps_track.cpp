@@ -7,6 +7,11 @@
 #include "base/exception.hpp"
 #include "base/logging.hpp"
 
+#include "std/target_os.hpp"
+#if defined(OMIM_OS_IPHONE)
+#include "platform/platform.hpp"
+#endif
+
 #include <algorithm>
 #include <filesystem>
 
@@ -195,6 +200,9 @@ void GpsTrack::InitStorageIfNeed()
   try
   {
     m_storage = make_unique<GpsTrackStorage>(m_filePath);
+#if defined(OMIM_OS_IPHONE)
+    Platform::DisableBackupForFile(m_filePath);
+#endif
   }
   catch (RootException const & e)
   {

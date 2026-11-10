@@ -1,4 +1,4 @@
-"""Run the real MapLibre friend-label regression on an explicitly named disposable AVD.
+"""Run the real MapLibre friend-label and trip preview regression on a disposable AVD.
 
 Requires JDK/Android SDK, Gradle 8.14+, and the public Noto glyph fixture below.
 No Firebase configuration, user data, trust overrides, or main-app installation.
@@ -86,7 +86,7 @@ dependencies {
     apk = out / 'build/outputs/apk/debug/NaviFriendLabelsProbe-debug.apk'
     subprocess.run(adb + ['install', '-r', str(apk)], timeout=120, check=True)
     subprocess.run(adb + ['shell', 'am', 'start', '-W', '-S', '-n', PACKAGE + '/.FriendLabelsActivity'], timeout=30, check=True)
-    deadline = time.monotonic() + 35
+    deadline = time.monotonic() + 60
     while time.monotonic() < deadline:
         pid = subprocess.run(adb + ['shell', 'pidof', PACKAGE], capture_output=True, text=True, timeout=10, check=True).stdout.strip()
         if not pid.isdecimal():
@@ -96,15 +96,15 @@ dependencies {
         (out / 'runtime.log').write_text(log, encoding='utf-8')
         if 'FAIL ' in log or 'FATAL EXCEPTION' in log:
             raise AssertionError(log)
-        if log.count('PASS ') == 3:
+        if log.count('PASS ') == 6:
             screenshot = subprocess.run(adb + ['exec-out', 'screencap', '-p'], capture_output=True, timeout=15, check=True)
             (out / 'cleared-peers.png').write_bytes(screenshot.stdout)
-            (out / 'result.json').write_text(json.dumps({'passed': 3, 'glyph_sha256': GLYPH_SHA,
+            (out / 'result.json').write_text(json.dumps({'passed': 6, 'glyph_sha256': GLYPH_SHA,
                 'apk_sha256': hashlib.sha256(apk.read_bytes()).hexdigest(), 'avd': args.avd}, indent=2), encoding='utf-8')
-            print('PASS 3 real GL friend-label checks; evidence:', out)
+            print('PASS 6 real GL friend-label and trip preview checks; evidence:', out)
             return
         time.sleep(0.5)
-    raise TimeoutError('Three rendered friend-label checks did not complete')
+    raise TimeoutError('Six rendered map checks did not complete')
 
 
 if __name__ == '__main__':
