@@ -38,6 +38,7 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
   private var stopButton: UIButton!
   private var optionsButton: UIButton!
   private let friendsService = NaviFriendsService.shared
+  private var friendsMapObservation: FriendsRuntime.Observation?
   private var friendsButton: UIButton!
   private var pauseSharingButton: UIButton!
   private var closeTripButton: UIButton!
@@ -62,6 +63,9 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     ])
     canvas.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(longPress(_:))))
     buildControls()
+    if let runtime = friendsService.runtime {
+      friendsMapObservation = FriendsMapProjection.observe(runtime) { [weak self] markers in self?.map.setFriends(markers) }
+    }
     map.onState = { [weak self] state in self?.showMapState(state) }
     map.onViewportChanged = { coordinate, zoom in
       guard zoom.isFinite, CLLocationCoordinate2DIsValid(coordinate) else { return }
@@ -99,6 +103,8 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     if attached { Search.remove(self); LocationManager.remove(observer: self); attached = false }
   }
   deinit {
+    let observation = friendsMapObservation
+    Task { @MainActor in observation?.close() }
     timer?.invalidate()
     searchWork?.cancel()
     map?.close()

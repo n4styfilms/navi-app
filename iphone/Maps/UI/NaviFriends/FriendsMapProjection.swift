@@ -2,13 +2,20 @@ import Foundation
 
 /// Same projection for the main map and the native account-to-renderer contract.
 @MainActor enum FriendsMapProjection {
+  static func observe(_ runtime: FriendsRuntime, render: @escaping ([NaviFriendMarker]) -> Void) -> FriendsRuntime.Observation {
+    runtime.observe { [weak runtime] value in
+      guard let runtime else { render([]); return }
+      render(markers(from: value.peers, at: runtime.serverNowMs))
+    }
+  }
+
   static func markers(from peers: [FriendsRepository.Peer], at now: Int64) -> [NaviFriendMarker] {
     peers.compactMap { peer in
       guard now > 0, peer.positionAllowed, peer.sharingEnabled, let point = peer.position, point.isValid else { return nil }
       let name = peer.displayName.isEmpty ? NaviPalette.text("Freund", "Friend") : peer.displayName
       let label: String
-      if let speed = peer.speedMetersPerSecond(at: now) {
-        label = name + " · " + String(format: "%.0f km/h", speed * 3.6)
+      if let speedKmh = peer.speedMetersPerSecond(at: now).map({ $0 * 3.6 }), speedKmh.isFinite {
+        label = name + " · " + String(format: "%.0f km/h", speedKmh)
       } else if point.isFresh(at: now) { label = name }
       else if now >= point.measuredAtMs {
         let seconds = (now - point.measuredAtMs) / 1000

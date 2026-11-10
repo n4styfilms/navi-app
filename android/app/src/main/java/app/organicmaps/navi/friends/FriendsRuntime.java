@@ -280,7 +280,9 @@ public final class FriendsRuntime implements AutoCloseable {
       if (position == null) return de ? "Kein geteilter Standort" : "No shared location";
       long age = now >= position.measuredAtMs ? (now - position.measuredAtMs) / 1000 : -1;
       Double speed = speed(now);
-      String label = speed == null ? (de ? "Geschwindigkeit unbekannt" : "Speed unavailable") : String.format(locale, "%.0f km/h", speed * 3.6);
+      double speedKmh = speed == null ? Double.NaN : speed * 3.6;
+      String label = Double.isFinite(speedKmh) ? String.format(locale, "%.0f km/h", speedKmh)
+          : (de ? "Geschwindigkeit unbekannt" : "Speed unavailable");
       return label + " · " + (age < 0 ? "—" : age + (de ? " s alt" : " s ago"))
           + String.format(locale, " · ±%.0f m", position.accuracyMeters);
     }

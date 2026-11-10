@@ -25,8 +25,8 @@ import FirebaseAuth
     defer { owner.close(); owner.view.removeFromSuperview() }
     owner.view.setCenter(CLLocationCoordinate2D(latitude: 43.7295, longitude: 7.4208), zoomLevel: 15, animated: false)
     let camera = owner.view.camera.copy() as! MLNMapCamera
-    let observation = receiver.observe { value in
-      owner.setFriends(FriendsMapProjection.markers(from: value.peers, at: receiver.serverNowMs))
+    let observation = FriendsMapProjection.observe(receiver) { markers in
+      owner.setFriends(markers)
     }
     defer { observation.close() }
     owner.setBasemap(.street)

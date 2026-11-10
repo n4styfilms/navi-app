@@ -896,6 +896,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   {
     if (mapView != null)
     {
+      map.setFriends(java.util.Collections.emptyList());
       mapView.onStop();
       locations.removeListener(this);
       SearchEngine.INSTANCE.removeListener(this);
