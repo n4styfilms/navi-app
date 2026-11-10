@@ -28,19 +28,19 @@ import UIKit
         if FileManager.default.fileExists(atPath: result.path) {
           try FileManager.default.removeItem(at: result)
         }
-        func writeResult(status: String, error: String? = nil) throws {
+        func writeResult(status: String, proofs: [String], error: String? = nil) throws {
           var record: [String: Any] = ["nonce": nonce, "source": source, "status": status,
-                                      "proofs": FriendsNativeProbe.proofs]
+                                      "proofs": proofs]
           record["error"] = error
           try JSONSerialization.data(withJSONObject: record).write(to: result, options: .atomic)
         }
         do {
           try await FriendsNativeProbe.run()
         } catch {
-          try writeResult(status: "failed", error: String(describing: error))
+          try writeResult(status: "failed", proofs: FriendsNativeProbe.proofs, error: String(describing: error))
           throw error
         }
-        try writeResult(status: "passed")
+        try writeResult(status: "passed", proofs: FriendsNativeProbe.proofs)
         exit(0)
       } catch {
         print("NAVI_APPLE_NATIVE_ERROR \(error)")
