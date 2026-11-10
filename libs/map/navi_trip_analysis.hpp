@@ -1,4 +1,5 @@
 #pragma once
+#include "geometry/latlon.hpp"
 #include "platform/location.hpp"
 #include <cstddef>
 #include <optional>
@@ -30,7 +31,14 @@ struct TripAnalysis {
   double startedAtSeconds = 0;
   double endedAtSeconds = 0;
 };
+struct TripGeometry {
+  std::vector<std::vector<ms::LatLon>> segments;
+  bool simplified = false;
+};
 /// Copies displayable measurements while preserving original indices and discontinuities.
 /// Raw archives remain untouched. Quality version 1 has no calibrated event thresholds.
 TripAnalysis AnalyseTrip(std::vector<location::GpsInfo> const & samples);
+/// Keep real endpoints and separate drawable segments. No measurement
+/// metadata is included in the resulting map geometry.
+TripGeometry BuildTripGeometry(TripAnalysis const & analysis, size_t pointLimit, size_t segmentLimit);
 }

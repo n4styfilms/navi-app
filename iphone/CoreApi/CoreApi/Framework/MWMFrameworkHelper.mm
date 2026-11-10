@@ -301,6 +301,16 @@ NSDictionary<NSString *, id> * NaviTripMetadata(navi::TripMetadata const & trip)
       @"rejectedCount": @(analysis.rejected.size()), @"rawCount": @(analysis.rawCount)} mutableCopy];
     if (analysis.maximumSpeedMetersPerSecond)
       result[@"maximumSpeedMetersPerSecond"] = @(*analysis.maximumSpeedMetersPerSecond);
+    auto const preview = navi::BuildTripGeometry(analysis, 8192, 100);
+    NSMutableArray * segments = [NSMutableArray arrayWithCapacity:preview.segments.size()];
+    for (auto const & segment : preview.segments) {
+      NSMutableArray * coordinates = [NSMutableArray arrayWithCapacity:segment.size()];
+      for (auto const & point : segment)
+        [coordinates addObject:@[@(point.m_lat), @(point.m_lon)]];
+      [segments addObject:coordinates];
+    }
+    result[@"segments"] = segments;
+    result[@"geometrySimplified"] = @(preview.simplified);
     return result;
   } catch (std::exception const &) {
     return nil;

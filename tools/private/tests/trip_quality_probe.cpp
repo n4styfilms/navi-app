@@ -56,6 +56,19 @@ int main() {
     auto tunnel = navi::AnalyseTrip({first, late});
     Require(tunnel.gapCount == 1 && tunnel.distanceMeters == 0 && tunnel.velocityChanges.empty(),
       "Tunnel gap was connected");
+    auto disconnected = navi::AnalyseTrip({first, middle, last, Point(1040, 200, 8), Point(1042, 220, 9),
+      Point(1044, 260, 9), Point(1100, 270, 9)});
+    auto preview = navi::BuildTripGeometry(disconnected, 4, 10);
+    Require(preview.segments.size() == 2 && preview.simplified, "Preview discarded a drawable segment or kept a singleton");
+    Require(preview.segments[0].size() == 2 && preview.segments[1].size() == 2,
+      "Preview exceeded the coordinate budget");
+    Require(preview.segments[0].front().m_lon == first.m_longitude &&
+      preview.segments[0].back().m_lon == last.m_longitude &&
+      preview.segments[1].front().m_lon == disconnected.segments[1].front().sample.m_longitude &&
+      preview.segments[1].back().m_lon == disconnected.segments[1].back().sample.m_longitude,
+      "Preview changed endpoints or drew across a tunnel");
+    Require(navi::BuildTripGeometry(disconnected, 10, 1).segments.size() == 1 &&
+      navi::BuildTripGeometry(disconnected, 1, 10).segments.empty(), "Preview exceeded a hard limit");
     auto android = middle; android.m_source = location::EAndroidNative;
     auto mixed = navi::AnalyseTrip({first, android});
     Require(mixed.gapCount == 1 && mixed.velocityChanges.empty(), "Provider change created an acceleration interval");

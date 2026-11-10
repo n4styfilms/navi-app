@@ -3,6 +3,7 @@ import CoreLocation
 import UIKit
 
 final class NaviTripsViewController: UITableViewController {
+  var onShowGeometry: (([[CLLocationCoordinate2D]]) -> Void)?
   private struct Trip {
     let id: String
     let passenger: Bool
@@ -151,9 +152,23 @@ final class NaviTripsViewController: UITableViewController {
     let rejected = stats["rejectedCount"] as? Int ?? 0
     let raw = stats["rawCount"] as? Int ?? 0
     let distanceText = raw > rejected ? String(format: "%.1f km", distance) : NaviPalette.text("unbekannt", "unknown")
-    let detail = NaviPalette.text("Erfasste Strecke \(distanceText)\nHöchsttempo \(maximum)\n\(gaps) GPS-Lücken · \(rejected) verworfene Punkte",
+    var detail = NaviPalette.text("Erfasste Strecke \(distanceText)\nHöchsttempo \(maximum)\n\(gaps) GPS-Lücken · \(rejected) verworfene Punkte",
       "Recorded distance \(distanceText)\nTop speed \(maximum)\n\(gaps) GPS gaps · \(rejected) excluded points")
+    if stats["geometrySimplified"] as? Bool == true {
+      detail += "\n" + NaviPalette.text("Vereinfachte Kartenansicht", "Simplified map preview")
+    }
     let prompt = UIAlertController(title: trip.role, message: detail, preferredStyle: .alert)
+    if let coordinates = stats["segments"] as? [[[Double]]], !coordinates.isEmpty, let show = onShowGeometry {
+      let geometry = coordinates.map { segment in
+        segment.compactMap { point -> CLLocationCoordinate2D? in
+          guard point.count == 2 else { return nil }
+          return CLLocationCoordinate2D(latitude: point[0], longitude: point[1])
+        }
+      }
+      prompt.addAction(UIAlertAction(title: NaviPalette.text("Auf Karte zeigen", "Show on map"), style: .default) { [weak self] _ in
+        self?.navigationController?.dismiss(animated: true) { show(geometry) }
+      })
+    }
     prompt.addAction(UIAlertAction(title: trip.passenger ? NaviPalette.text("Als Fahrer markieren", "Mark as driver") :
       NaviPalette.text("Als Mitfahrer markieren", "Mark as passenger"), style: .default) { [weak self] _ in
       if !FrameworkHelper.setNaviTripPassenger(!trip.passenger, id: trip.id) {

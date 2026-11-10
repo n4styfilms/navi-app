@@ -67,7 +67,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -99,6 +101,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
   private FriendsRuntime friends;
   private AutoCloseable friendsSubscription;
   private Button friendsButton;
+  private Button closeTripButton;
   private FriendsSheet friendsSheet;
   private boolean pendingFriendSharing;
   private boolean savingTrip;
@@ -208,6 +211,13 @@ public final class NaviActivity extends BaseMwmFragmentActivity
     LinearLayout.LayoutParams messageLayout = new LinearLayout.LayoutParams(-1, -2);
     messageLayout.topMargin = dp(10);
     top.addView(mapMessage, messageLayout);
+    closeTripButton = button(R.string.navi_trip_close_preview, false);
+    closeTripButton.setVisibility(View.GONE);
+    closeTripButton.setOnClickListener(view -> {
+      map.closeTrip(true);
+      closeTripButton.setVisibility(View.GONE);
+    });
+    top.addView(closeTripButton);
     ScrollView searchScroll = new ScrollView(this);
     results = column();
     results.setPadding(dp(8), dp(8), dp(8), dp(8));
@@ -457,6 +467,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
     Utils.keepScreenOn(foreground && (routing.isNavigating() || Config.isKeepScreenOnEnabled()), getWindow());
     snapshot = Framework.nativeGetNaviRouteSnapshot(map.getGeometryRevision());
     map.render(snapshot);
+    closeTripButton.setVisibility(map.hasTripPreview() ? View.VISIBLE : View.GONE);
     Location location = freshLocation();
     map.setLocation(location);
     boolean navigating = snapshot.state == NaviRouteSnapshot.State.NAVIGATING;
@@ -539,6 +550,7 @@ public final class NaviActivity extends BaseMwmFragmentActivity
 
   private void showTrips()
   {
+    map.closeTrip(true);
     LinearLayout content = sheetContent(R.string.navi_trips_title);
     JSONObject state = tripJson(TrackRecorder.nativeNaviTripState());
     if (state == null)
@@ -644,22 +656,60 @@ public final class NaviActivity extends BaseMwmFragmentActivity
         String speed = stats.has("maximumSpeedMetersPerSecond")
             ? String.format(Locale.getDefault(), "%.0f km/h", stats.optDouble("maximumSpeedMetersPerSecond") * 3.6) : unknown;
         boolean passenger = trip.optBoolean("passenger");
-        new AlertDialog.Builder(this).setTitle(passenger ? R.string.navi_trips_passenger : R.string.navi_trips_driver)
-            .setMessage(getString(R.string.navi_trip_detail, distance, speed, stats.optInt("gapCount"), stats.optInt("rejectedCount")))
-            .setPositiveButton(passenger ? R.string.navi_trip_set_driver : R.string.navi_trip_set_passenger, (dialog, which) -> {
-              if (!TrackRecorder.nativeSetNaviTripPassenger(id, !passenger)) toast(R.string.navi_trips_save_failed);
+        LinearLayout detail = sheetContent(passenger ? R.string.navi_trips_passenger : R.string.navi_trips_driver);
+        TextView measurements = text(16, false);
+        String summary = getString(R.string.navi_trip_detail, distance, speed, stats.optInt("gapCount"), stats.optInt("rejectedCount"));
+        if (stats.optBoolean("geometrySimplified")) summary += "\n" + getString(R.string.navi_trip_simplified);
+        measurements.setText(summary);
+        detail.addView(measurements);
+        JSONArray geometry = stats.optJSONArray("segments");
+        if (geometry != null && geometry.length() > 0)
+          addAction(detail, R.string.navi_trip_show_preview, () -> showTripOnMap(geometry));
+        addAction(detail, passenger ? R.string.navi_trip_set_driver : R.string.navi_trip_set_passenger, () -> {
+          if (!TrackRecorder.nativeSetNaviTripPassenger(id, !passenger)) toast(R.string.navi_trips_save_failed);
+          showTrips();
+        });
+        addAction(detail, R.string.navi_trip_delete, () -> new AlertDialog.Builder(this)
+            .setTitle(R.string.navi_trip_delete_confirm)
+            .setNegativeButton(R.string.navi_vehicle_cancel, null)
+            .setPositiveButton(R.string.navi_trip_delete, (confirmation, ignored) -> {
+              if (!TrackRecorder.nativeDeleteNaviTrip(id)) toast(R.string.navi_trips_save_failed);
               showTrips();
-            })
-            .setNeutralButton(R.string.navi_trip_delete, (dialog, which) -> new AlertDialog.Builder(this)
-                .setTitle(R.string.navi_trip_delete_confirm)
-                .setNegativeButton(R.string.navi_vehicle_cancel, null)
-                .setPositiveButton(R.string.navi_trip_delete, (confirmation, ignored) -> {
-                  if (!TrackRecorder.nativeDeleteNaviTrip(id)) toast(R.string.navi_trips_save_failed);
-                  showTrips();
-                }).show())
-            .setNegativeButton(R.string.navi_close, null).show();
+            }).show());
+        addAction(detail, R.string.navi_trips_title, this::showTrips);
+        showSheet(detail);
       });
     });
+  }
+
+  private void showTripOnMap(JSONArray geometry)
+  {
+    if (Framework.nativeGetNaviRouteSnapshot(map.getGeometryRevision()).state != NaviRouteSnapshot.State.NONE)
+    {
+      toast(R.string.navi_trip_end_route);
+      return;
+    }
+    List<List<LatLng>> segments = new ArrayList<>();
+    for (int i = 0; i < geometry.length(); i++)
+    {
+      JSONArray source = geometry.optJSONArray(i);
+      if (source == null) continue;
+      List<LatLng> segment = new ArrayList<>();
+      for (int j = 0; j < source.length(); j++)
+      {
+        JSONArray point = source.optJSONArray(j);
+        if (point == null) break;
+        double lat = point.optDouble(0), lon = point.optDouble(1);
+        if (!Double.isFinite(lat) || !Double.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) break;
+        segment.add(new LatLng(lat, lon));
+      }
+      if (segment.size() == source.length()) segments.add(segment);
+    }
+    if (map.showTrip(segments))
+    {
+      sheet.dismiss();
+      closeTripButton.setVisibility(View.VISIBLE);
+    }
   }
 
   @Override protected void onNewIntent(Intent intent)

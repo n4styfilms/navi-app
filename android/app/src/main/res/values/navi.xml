@@ -95,4 +95,8 @@
   <string name="navi_trip_set_passenger">Mark as passenger</string>
   <string name="navi_trip_delete">Delete</string>
   <string name="navi_trip_delete_confirm">Delete this trip?</string>
+  <string name="navi_trip_show_preview">Show on map</string>
+  <string name="navi_trip_close_preview">Close trip</string>
+  <string name="navi_trip_simplified">Simplified map preview</string>
+  <string name="navi_trip_end_route">End the route to open the trip on the map.</string>
 </resources>

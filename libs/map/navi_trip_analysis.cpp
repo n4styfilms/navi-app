@@ -71,4 +71,44 @@ TripAnalysis AnalyseTrip(std::vector<location::GpsInfo> const & samples) {
   }
   return result;
 }
+
+TripGeometry BuildTripGeometry(TripAnalysis const & analysis, size_t pointLimit, size_t segmentLimit) {
+  TripGeometry result;
+  std::vector<std::vector<TripPoint> const *> drawable;
+  for (auto const & segment : analysis.segments) {
+    if (segment.size() >= 2) drawable.push_back(&segment);
+  }
+  size_t const count = std::min({drawable.size(), segmentLimit, pointLimit / 2});
+  result.simplified = count < drawable.size();
+  if (count == 0) return result;
+
+  auto sampleIndex = [](size_t index, size_t sampleCount, size_t sourceCount) {
+    return static_cast<size_t>(static_cast<uint64_t>(index) * (sourceCount - 1) / (sampleCount - 1));
+  };
+  std::vector<std::vector<TripPoint> const *> selected;
+  if (count == 1) {
+    selected.push_back(*std::max_element(drawable.begin(), drawable.end(),
+      [](auto const * left, auto const * right) { return left->size() < right->size(); }));
+  } else {
+    for (size_t i = 0; i < count; ++i) selected.push_back(drawable[sampleIndex(i, count, drawable.size())]);
+  }
+  size_t interiors = 0;
+  for (auto const * segment : selected) interiors += segment->size() - 2;
+  size_t budget = pointLimit - 2 * count;
+  for (auto const * segment : selected) {
+    size_t const available = segment->size() - 2;
+    size_t const keep = interiors <= budget ? available
+      : static_cast<size_t>(static_cast<uint64_t>(budget) * available / interiors);
+    budget -= keep;
+    interiors -= available;
+    result.simplified = result.simplified || keep < available;
+    auto & coordinates = result.segments.emplace_back();
+    coordinates.reserve(keep + 2);
+    for (size_t i = 0; i < keep + 2; ++i) {
+      auto const & sample = (*segment)[sampleIndex(i, keep + 2, segment->size())].sample;
+      coordinates.emplace_back(sample.m_latitude, sample.m_longitude);
+    }
+  }
+  return result;
+}
 }

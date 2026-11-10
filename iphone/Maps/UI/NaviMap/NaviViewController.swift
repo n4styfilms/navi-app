@@ -40,6 +40,7 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
   private let friendsService = NaviFriendsService.shared
   private var friendsButton: UIButton!
   private var pauseSharingButton: UIButton!
+  private var closeTripButton: UIButton!
 
   init() { super.init(nibName: nil, bundle: nil) }
   required init?(coder: NSCoder) { fatalError("Use init()") }
@@ -161,6 +162,12 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     }, for: .touchUpInside)
     mapMessage.titleLabel?.numberOfLines = 0
     top.addArrangedSubview(mapMessage)
+    closeTripButton = NaviPalette.button(NaviPalette.text("Fahrt schließen", "Close trip")) { [weak self] in
+      self?.map.closeTrip()
+      self?.closeTripButton.isHidden = true
+    }
+    closeTripButton.isHidden = true
+    top.addArrangedSubview(closeTripButton)
     table.dataSource = self; table.delegate = self
     table.backgroundColor = NaviPalette.paper; table.layer.cornerRadius = 24
     table.rowHeight = UITableView.automaticDimension; table.estimatedRowHeight = 70
@@ -259,6 +266,7 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     refreshFriends()
     let snapshot = NaviRouteBridge.snapshot(withKnownGeometryRevision: map.geometryRevision)
     map.render(snapshot)
+    closeTripButton.isHidden = !map.hasTripPreview
     let location = freshLocation()
     map.setLocation(location)
     let navigating = snapshot.state == .navigating
@@ -398,7 +406,19 @@ final class NaviViewController: MapViewController, MWMLocationObserver, MWMSearc
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Mein Fahrzeug", "My vehicle"), style: .default) { [weak self] _ in self?.showVehicle() })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Freunde", "Friends"), style: .default) { [weak self] _ in self?.showFriends() })
     sheet.addAction(UIAlertAction(title: NaviPalette.text("Meine Fahrten", "My trips"), style: .default) { [weak self] _ in
-      let navigation = UINavigationController(rootViewController: NaviTripsViewController(style: .insetGrouped))
+      self?.map.closeTrip()
+      let trips = NaviTripsViewController(style: .insetGrouped)
+      trips.onShowGeometry = { [weak self] geometry in
+        guard let self else { return }
+        guard NaviRouteBridge.snapshot(withKnownGeometryRevision: self.map.geometryRevision).state == .none else {
+          self.showMessage(NaviPalette.text("Beende die Route, um die Fahrt auf der Karte zu öffnen.",
+            "End the route to open the trip on the map."))
+          return
+        }
+        self.map.showTrip(geometry)
+        self.closeTripButton.isHidden = !self.map.hasTripPreview
+      }
+      let navigation = UINavigationController(rootViewController: trips)
       navigation.view.tintColor = NaviPalette.ink
       self?.present(navigation, animated: true)
     })

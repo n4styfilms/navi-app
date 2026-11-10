@@ -88,4 +88,8 @@
   <string name="navi_trip_set_passenger">Als Mitfahrer markieren</string>
   <string name="navi_trip_delete">Löschen</string>
   <string name="navi_trip_delete_confirm">Diese Fahrt löschen?</string>
+  <string name="navi_trip_show_preview">Auf Karte zeigen</string>
+  <string name="navi_trip_close_preview">Fahrt schließen</string>
+  <string name="navi_trip_simplified">Vereinfachte Kartenansicht</string>
+  <string name="navi_trip_end_route">Beende die Route, um die Fahrt auf der Karte zu öffnen.</string>
 </resources>

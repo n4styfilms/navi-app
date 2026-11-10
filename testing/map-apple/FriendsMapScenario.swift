@@ -81,5 +81,26 @@ final class FriendsMapResources: URLProtocol {
     try require(abs(owner.view.centerCoordinate.latitude - distant.latitude) < 0.000001,
       "Own GPS immediately stole the selected friend's camera")
     print("NAVI_FRIENDS_MAP_SUCCESS rendered-label style-reload freshness removal camera-preserved explicit-focus")
+    let segments = [
+      [CLLocationCoordinate2D(latitude: 43.7295, longitude: 7.4208),
+       CLLocationCoordinate2D(latitude: 43.7298, longitude: 7.4210)],
+      [CLLocationCoordinate2D(latitude: 43.7302, longitude: 7.4214),
+       CLLocationCoordinate2D(latitude: 43.7305, longitude: 7.4216)]
+    ]
+    let tripLines = { owner.view.visibleFeatures(in: owner.view.bounds, styleLayerIdentifiers: Set(["navi-route-line"])) }
+    owner.showTrip(segments)
+    owner.render(NaviRouteSnapshot())
+    try require(owner.hasTripPreview && owner.geometryRevision == nil, "Trip preview entered live route state")
+    try await wait("two disconnected trip lines", { tripLines().count >= 2 })
+    owner.retry()
+    try await wait("trip survives style reload", { owner.view.style?.name == "navi-style-3" && tripLines().count >= 2 })
+    owner.closeTrip()
+    try await wait("trip clears without a route", { !owner.hasTripPreview && tripLines().isEmpty })
+    owner.showTrip(segments)
+    owner.render(NaviRouteSnapshot(state: .preview, geometryIncluded: true,
+      geometry: [.init(latitude: 43.7295, longitude: 7.4208), .init(latitude: 43.7298, longitude: 7.4210)], revision: 7))
+    try require(!owner.hasTripPreview && owner.geometryRevision?.uint64Value == 7,
+      "A new navigation route did not replace the trip preview")
+    print("NAVI_TRIP_MAP_SUCCESS gaps style-reload close route-ownership")
   }
 }

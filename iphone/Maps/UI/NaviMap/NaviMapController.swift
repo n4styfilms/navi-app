@@ -25,6 +25,8 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
   private var geometry: [CLLocationCoordinate2D] = []
   private(set) var geometryRevision: NSNumber?
   private var routeShape: MLNShape?
+  private var tripShape: MLNShape?
+  private var tripViewport: (camera: MLNMapCamera, following: Bool)?
   private var target: CLLocationCoordinate2D?
   private var location: CLLocation?
   private var following = false
@@ -160,7 +162,7 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
     guard !closed, let name = styleName, style.name == name,
           name == "navi-style-\(state.snapshot.generation)", state.ready(state.snapshot.generation) else { return }
     deadline?.cancel()
-    let route = MLNShapeSource(identifier: "navi-route", shape: routeShape, options: nil)
+    let route = MLNShapeSource(identifier: "navi-route", shape: routeShape ?? tripShape, options: nil)
     let position = MLNShapeSource(identifier: "navi-position", shape: nil, options: nil)
     let destination = MLNShapeSource(identifier: "navi-target", shape: nil, options: nil)
     [route, position, destination].forEach { style.addSource($0) }
@@ -217,12 +219,14 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
   func render(_ snapshot: NaviRouteSnapshot) {
     precondition(Thread.isMainThread)
     guard !closed else { return }
+    if snapshot.state != .none { closeTrip(restoreCamera: false) }
     let ready = snapshot.state == .preview || snapshot.state == .navigating
     if !ready {
+      let hadRoute = routeShape != nil
       geometry.removeAll()
       geometryRevision = nil
       routeShape = nil
-      routeSource?.shape = nil
+      if hadRoute { routeSource?.shape = tripShape }
     } else if snapshot.geometryIncluded {
       geometry = snapshot.geometry.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
       geometryRevision = NSNumber(value: snapshot.revision)
@@ -232,6 +236,39 @@ final class NaviMapController: NSObject, MLNMapViewDelegate {
         routeShape = MLNPolyline(coordinates: &coordinates, count: count)
       } else { routeShape = nil }
       routeSource?.shape = routeShape
+    }
+  }
+  var hasTripPreview: Bool { tripShape != nil }
+
+  func showTrip(_ segments: [[CLLocationCoordinate2D]]) {
+    precondition(Thread.isMainThread)
+    guard !closed, routeShape == nil else { return }
+    let drawable = segments.filter { $0.count >= 2 && $0.allSatisfy(CLLocationCoordinate2DIsValid) }
+    guard !drawable.isEmpty else { return }
+    if tripViewport == nil { tripViewport = (view.camera.copy() as! MLNMapCamera, following) }
+    following = false
+    let lines = drawable.map { segment in
+      var points = segment
+      let count = UInt(points.count)
+      return MLNPolylineFeature(coordinates: &points, count: count)
+    }
+    tripShape = MLNShapeCollectionFeature(shapes: lines)
+    routeSource?.shape = tripShape
+    var coordinates = drawable.flatMap { $0 }
+    let count = UInt(coordinates.count)
+    view.setVisibleCoordinates(&coordinates, count: count,
+      edgePadding: UIEdgeInsets(top: 100, left: 40, bottom: 130, right: 40), animated: true)
+  }
+
+  func closeTrip(restoreCamera: Bool = true) {
+    precondition(Thread.isMainThread)
+    guard let viewport = tripViewport else { return }
+    tripViewport = nil
+    tripShape = nil
+    routeSource?.shape = routeShape
+    if restoreCamera {
+      following = viewport.following
+      view.setCamera(viewport.camera, animated: true)
     }
   }
   func setTarget(_ coordinate: CLLocationCoordinate2D?) {

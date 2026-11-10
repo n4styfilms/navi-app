@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import app.organicmaps.sdk.routing.NaviRouteSnapshot;
 import org.maplibre.android.camera.CameraUpdateFactory;
+import org.maplibre.android.camera.CameraPosition;
 import org.maplibre.android.geometry.LatLng;
 import org.maplibre.android.geometry.LatLngBounds;
 import org.maplibre.android.maps.MapLibreMap;
@@ -72,6 +73,9 @@ public final class NaviMapController
   private Style style;
   private BasemapMode requestedMode = BasemapMode.STREET;
   private final List<Point> route = new ArrayList<>();
+  private FeatureCollection tripGeometry = FeatureCollection.fromFeatures(Collections.emptyList());
+  private CameraPosition tripCamera;
+  private boolean tripFollowing;
   private long geometryRevision = -1;
   private Location location;
   private LatLng target;
@@ -164,6 +168,7 @@ public final class NaviMapController
   public void render(NaviRouteSnapshot snapshot)
   {
     requireMainThread();
+    if (snapshot.state != NaviRouteSnapshot.State.NONE) closeTrip(false);
     if (!snapshot.isReady())
     {
       routeDirty = routeDirty || !route.isEmpty();
@@ -178,6 +183,52 @@ public final class NaviMapController
         route.add(Point.fromLngLat(point.longitude, point.latitude));
       geometryRevision = snapshot.revision;
     }
+    renderOverlays();
+  }
+
+  public boolean hasTripPreview() { return tripCamera != null; }
+
+  public boolean showTrip(List<List<LatLng>> segments)
+  {
+    requireMainThread();
+    if (map == null || !route.isEmpty()) return false;
+    List<Feature> lines = new ArrayList<>();
+    List<LatLng> bounds = new ArrayList<>();
+    for (List<LatLng> segment : segments)
+    {
+      if (segment.size() < 2) continue;
+      List<Point> points = new ArrayList<>();
+      for (LatLng coordinate : segment)
+        points.add(Point.fromLngLat(coordinate.getLongitude(), coordinate.getLatitude()));
+      lines.add(Feature.fromGeometry(LineString.fromLngLats(points)));
+      bounds.addAll(segment);
+    }
+    if (lines.isEmpty()) return false;
+    if (tripCamera == null)
+    {
+      tripCamera = map.getCameraPosition();
+      tripFollowing = following;
+    }
+    following = false;
+    tripGeometry = FeatureCollection.fromFeatures(lines);
+    routeDirty = true;
+    renderOverlays();
+    map.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds.Builder().includes(bounds).build(), 64));
+    return true;
+  }
+
+  public void closeTrip(boolean restoreCamera)
+  {
+    requireMainThread();
+    if (tripCamera == null) return;
+    if (restoreCamera && map != null)
+    {
+      following = tripFollowing;
+      map.animateCamera(CameraUpdateFactory.newCameraPosition(tripCamera));
+    }
+    tripCamera = null;
+    tripGeometry = FeatureCollection.fromFeatures(Collections.emptyList());
+    routeDirty = true;
     renderOverlays();
   }
 
@@ -274,7 +325,7 @@ public final class NaviMapController
     GeoJsonSource routeSource = style.getSourceAs(ROUTE);
     if (routeDirty)
     {
-      routeSource.setGeoJson(route.size() < 2 ? FeatureCollection.fromFeatures(Collections.emptyList()) :
+      routeSource.setGeoJson(route.size() < 2 ? tripGeometry :
           FeatureCollection.fromFeatures(Collections.singletonList(Feature.fromGeometry(LineString.fromLngLats(route)))));
       routeDirty = false;
     }

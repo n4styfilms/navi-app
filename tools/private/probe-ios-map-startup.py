@@ -199,8 +199,9 @@ container = Path(run(['xcrun','simctl','get_app_container',udid,'app.navi.mappro
 capture = container/'Documents/friends-map.png'
 if capture.is_file():
     shutil.copyfile(capture, out/'simulator.png')
-if friends.returncode != 0 or 'NAVI_FRIENDS_MAP_SUCCESS' not in friends.stdout:
-    raise SystemExit('Actual friends renderer contract failed: ' + friends.stdout + friends.stderr)
+if friends.returncode != 0 or not all(flag in friends.stdout for flag in
+        ['NAVI_FRIENDS_MAP_SUCCESS', 'NAVI_TRIP_MAP_SUCCESS']):
+    raise SystemExit('Actual map renderer contract failed: ' + friends.stdout + friends.stderr)
 try:
     subprocess.run([sys.executable, str(Path(__file__).with_name('probe-ios-controls.py')),
                     str(out / 'controls')], check=True, timeout=420)

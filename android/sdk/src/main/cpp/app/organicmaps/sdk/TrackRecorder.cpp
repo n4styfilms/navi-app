@@ -128,6 +128,22 @@ JNIEXPORT jstring JNICALL Java_app_organicmaps_sdk_location_TrackRecorder_native
     ToJSONObject(*result, "rejectedCount", static_cast<uint64_t>(analysis.rejected.size()));
     if (analysis.maximumSpeedMetersPerSecond)
       ToJSONObject(*result, "maximumSpeedMetersPerSecond", *analysis.maximumSpeedMetersPerSecond);
+    auto const preview = navi::BuildTripGeometry(analysis, 8192, 100);
+    auto segments = base::NewJSONArray();
+    for (auto const & segment : preview.segments)
+    {
+      auto coordinates = base::NewJSONArray();
+      for (auto const & point : segment)
+      {
+        auto pair = base::NewJSONArray();
+        json_array_append_new(pair.get(), json_real(point.m_lat));
+        json_array_append_new(pair.get(), json_real(point.m_lon));
+        json_array_append_new(coordinates.get(), pair.release());
+      }
+      json_array_append_new(segments.get(), coordinates.release());
+    }
+    ToJSONObject(*result, "segments", std::move(segments));
+    ToJSONObject(*result, "geometrySimplified", preview.simplified);
     return TripJson(env, result);
   }
   catch (std::exception const &)
